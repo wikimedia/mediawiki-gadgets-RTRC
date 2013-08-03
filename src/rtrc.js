@@ -944,7 +944,7 @@
 		$('#content').html(
 		'<div class="mw-rtrc-wrapper">' +
 			'<div class="mw-rtrc-head">Real-Time Recent Changes <small>(' + appVersion + ')</small><div class="mw-rtrc-head-links"><a target="_blank" href="' + getWikipageUrl('Special:Log/patrol') + '?user=' + encodeURIComponent(mw.user.name()) + '">' + krMsg('mypatrollog').ucFirst() + '</a> <a id="toggleHelp" href="#toggleHelp">Help</a></div></div>' +
-			'<div id="krRTRC_RCForm"><form><fieldset id="krRTRC_RCOptions" class="mw-rtrc-settings mw-rtrc-nohelp">' +
+			'<div id="krRTRC_RCForm"><form><fieldset id="krRTRC_RCOptions" class="mw-rtrc-settings mw-rtrc-nohelp make-switch">' +
 				'<div class="panel"><label for="rc-options-limit" class="head">' + krMsg('limit') + '</label><select id="rc-options-limit" name="rc-options-limit"><option value="10">10</option><option selected="" value="25">25</option><option value="50">50</option><option value="75">75</option><option value="100">100</option></select></div>' +
 				'<div class="sep"></div>' +
 				'<div class="panel"><label class="head">' + krMsg('filter') + '</label><div style="text-align:left"><input type="checkbox" value="on" id="rc-options-filter-anons" name="rc-options-filter-anons"><label for="rc-options-filter-anons"> ' + krMsg('anononly') + '</label><br /><input type="checkbox" value="on" id="rc-options-filter-unpatrolled" name="rc-options-filter-unpatrolled"><label for="rc-options-filter-unpatrolled"> ' + krMsg('unpatrolledonly') + '</label></div></div>' +
@@ -968,7 +968,7 @@
 				'<div class="sep"></div>' +
 				'<div class="panel panel-last"><input class="button" type="button" id="RCOptions_submit" value="' + krMsg('apply') + '" /></div>' +
 				'<hr style="clear: both;" />' +
-				'<div class="panel2"><label for="krRTRC_MassPatrol" class="head">MassPatrol <span section="MassPatrol" class="helpicon"></span></label><input id="krRTRC_MassPatrol" class="button button-small button-off" type="button" value="Off" /></div>' +
+				'<div class="panel2"><label for="krRTRC_MassPatrol" class="head">MassPatrol <span section="MassPatrol" class="helpicon"></span><input id="krRTRC_MassPatrol" type="checkbox" class="switch" /></labe></div>' +
 				'<div class="sep2"></div>' +
 				'<div class="panel2"><label for="rc-options-autodiff" class="head">AutoDiff <span section="AutoDiff" class="helpicon"></span></label><input type="button" class="button button-small button-off" value="Off" id="rc-options-autodiff" /> <input type="checkbox" value="on" id="rc-options-autodiff-top" /> <label for="rc-options-autodiff-top"> ' + krMsg('loadfromtop') + '</label></div>' +
 				'<div class="sep2"></div>' +
@@ -984,7 +984,8 @@
 				' | <a href="//meta.wikimedia.org/wiki/User:Krinkle/Tools/Real-Time_Recent_Changes" class="external text" rel="nofollow">' + krMsg('documentation') + '</a>' +
 				' | <a href="http://krinkle.mit-license.org" class="external text" rel="nofollow">License</a>' +
 			'</div></div>' +
-		'</div>');
+		'</div>')
+			.find( 'input.switch' ).after('<div class="switched"></div>');
 		$('body').append('<div id="krRTRC_Tip" class="plainlinks"><span id="krRTRC_Tiptext"></span></div>');
 
 		$('#krRTRC_RCOutput').prepend('<div class="feed"></div><img src="' + ajaxLoaderUrl + '" id="krRTRC_loader" style="display: none;" />');
@@ -1283,7 +1284,7 @@
 		mw.loader.using(['mediawiki.util', 'mediawiki.action.history.diff'], dModules.resolve, dModules.reject);
 
 		$.when(
-			!!window.krMsgs || $.getScript('//toolserver.org/~krinkle/I18N/export.php?lang=' + conf.wgUserLanguage),
+			!!(window.krMsgs = {}) || $.getScript('//toolserver.org/~krinkle/I18N/export.php?lang=' + conf.wgUserLanguage),
 			dModules.promise(),
 			$.ready.promise()
 		).done(function () {
