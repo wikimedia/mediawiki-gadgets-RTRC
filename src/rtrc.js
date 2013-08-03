@@ -5,7 +5,7 @@
  * @license http://krinkle.mit-license.org/
  * @author Timo Tijhof, 2010–2013
  */
-/*global krMsgs, confirm */
+/*global krMsgs */
 (function ($, mw) {
 	'use strict';
 
@@ -913,43 +913,43 @@
 	//
 	// Prepares the page
 	krRTRC_initFuncs2[0] = function () {
-		$('#p-namespaces > ul > li')
-			.removeClass('new')
-			.find(' > a > span').eq(0)
-				.text('Tool');
-		$('#ca-talk')
-			.removeClass('new')
-			.find('> a')
-				.attr('href', '//meta.wikimedia.org/w/index.php?title=User_talk:Krinkle/Tools&action=edit&section=new&editintro=User_talk:Krinkle/Tools/Editnotice&preload=User_talk:Krinkle/Tools/Preload')
-				.attr('target', '_blank')
-				.find('> span')
-					.text('Feedback');
-		$('#footer').remove();
-		$('#content').addClass('krRTRC_body');
+		var ns,
+			fmNs = mw.config.get('wgFormattedNamespaces');
+
+		$('#p-namespaces ul')
+			.find('li.selected')
+				.removeClass('new')
+				.find('a')
+					.text('RTRC')
+					.end()
+				.end()
+			.append(
+				// Transplant "Main Page" link from the now-hidden sidebar
+				$('#mw-panel .portal').eq(0).find('li').eq(0).wrapInner('<span>')
+			);
+
 		rcLegendHtml = '<div id="krRTRC_RCLegend">' + krMsg('recentchanges-label-legend').replace('$1.', '') + ' <abbr class="newpage" title="' + krMsg('recentchanges-label-newpage') + '">N</abbr>' + krMsg('recentchanges-legend-newpage').replace('$1', '') + ', <!--<abbr class="minor" title="' + krMsg('recentchanges-label-minor') + '">m</abbr>' + krMsg('recentchanges-legend-minor').replace('$1', '') + ', <abbr class="bot" title="' + krMsg('recentchanges-label-bot') + '">b</abbr>' + krMsg('recentchanges-legend-bot').replace('$1', '') + ', --><abbr class="unpatrolled" title="' + krMsg('recentchanges-label-unpatrolled') + '">!</abbr>' + krMsg('recentchanges-legend-unpatrolled').replace('$1', '') + '<br />Colors: <div class="item patrolled inline-block">&nbsp;' + krMsg('markedaspatrolled') + '&nbsp;</div>, <div class="item indiff inline-block">&nbsp;' + krMsg('currentedit') + '&nbsp;</div>, <div class="item skipped inline-block">&nbsp;' + krMsg('skippededit') + '&nbsp;</div>, <div class="item aes inline-block">&nbsp;Edit with an Automatic Edit Summary&nbsp;</div><br />' + krMsg('abbreviations') + ': T - ' + krMsg('talkpagelinktext') + ', C - ' + krMsg('contributions') + '</div>';
 		rcNamespaceDropdown = '<select id="rc-options-namespace" name="rc-options-namespace">';
 		rcNamespaceDropdown += '<option value>' + krMsg('namespacesall') + '</option>';
 		rcNamespaceDropdown += '<option value="0">' + krMsg('blanknamespace') + '</option>';
-
-		var ns,
-			fmNs = mw.config.get('wgFormattedNamespaces');
 
 		for (ns in fmNs) {
 			if (ns > 0) {
 				rcNamespaceDropdown += '<option value="' + ns + '">' + fmNs[ns] + '</option>';
 			}
 		}
+
 		rcNamespaceDropdown += '</select>';
 
 		$('#content').html(
-		'<div id="content-inner"><div id="krRTRC_PageWrap" class="plainlinks">' +
-			'<div id="krRTRC_Topbar">Real-Time Recent Changes <small class="ns">(' + appVersion + ')</small><small id="toggleHelp">[help]</small><a target="_blank" href="' + getWikipageUrl('Special:Log/patrol') + '?user=' + encodeURIComponent(mw.user.name()) + '" style="float:right;font-size:smaller;color:#ccc">&nbsp;[' + krMsg('mypatrollog') + ']&nbsp;</a></div>' +
-			'<div id="krRTRC_RCForm"><fieldset id="krRTRC_RCOptions" class="nohelp"><form>' +
+		'<div class="mw-rtrc-wrapper">' +
+			'<div class="mw-rtrc-head">Real-Time Recent Changes <small>(' + appVersion + ')</small><div class="mw-rtrc-head-links"><a target="_blank" href="' + getWikipageUrl('Special:Log/patrol') + '?user=' + encodeURIComponent(mw.user.name()) + '">' + krMsg('mypatrollog').ucFirst() + '</a> <a id="toggleHelp" href="#toggleHelp">Help</a></div></div>' +
+			'<div id="krRTRC_RCForm"><form><fieldset id="krRTRC_RCOptions" class="mw-rtrc-settings mw-rtrc-nohelp">' +
 				'<div class="panel"><label for="rc-options-limit" class="head">' + krMsg('limit') + '</label><select id="rc-options-limit" name="rc-options-limit"><option value="10">10</option><option selected="" value="25">25</option><option value="50">50</option><option value="75">75</option><option value="100">100</option></select></div>' +
 				'<div class="sep"></div>' +
 				'<div class="panel"><label class="head">' + krMsg('filter') + '</label><div style="text-align:left"><input type="checkbox" value="on" id="rc-options-filter-anons" name="rc-options-filter-anons"><label for="rc-options-filter-anons"> ' + krMsg('anononly') + '</label><br /><input type="checkbox" value="on" id="rc-options-filter-unpatrolled" name="rc-options-filter-unpatrolled"><label for="rc-options-filter-unpatrolled"> ' + krMsg('unpatrolledonly') + '</label></div></div>' +
 				'<div class="sep"></div>' +
-				'<div class="panel"><label for="rc-options-rcuser" class="head">' + krMsg('userfilter-opt') + ' <span section="Userfilter" class="helpicon"></span></label><div style="text-align: center;"><input type="text" value="" size="16" id="rc-options-rcuser" name="rc-options-rcuser" /><br /><input class="button" type="button" id="RCOptions_RcuserClr" value="' + krMsg('clear') + '" /></div></div>' +
+				'<div class="panel"><label for="rc-options-rcuser" class="head">' + krMsg('userfilter-opt') + ' <span section="Userfilter" class="helpicon"></span></label><div style="text-align: center;"><input type="text" value="" size="16" id="rc-options-rcuser" name="rc-options-rcuser" /><br /><input class="button button-small" type="button" id="RCOptions_RcuserClr" value="' + krMsg('clear') + '" /></div></div>' +
 				'<div class="sep"></div>' +
 				'<div class="panel"><label class="head">' + krMsg('type') + '</label><div style="text-align:left"><input type="checkbox" value="on" id="rc-options-type-edit" name="rc-options-type-edit" checked="checked"><label for="rc-options-type-edit"> ' + krMsg('edits') + '</label><br /><input type="checkbox" checked="checked" value="on" id="rc-options-type-newpage" name="rc-options-type-newpage"><label for="rc-options-type-newpage"> ' + krMsg('newpages') + '</label></div></div>' +
 				'<div class="sep"></div>' +
@@ -968,25 +968,25 @@
 				'<div class="sep"></div>' +
 				'<div class="panel panel-last"><input class="button" type="button" id="RCOptions_submit" value="' + krMsg('apply') + '" /></div>' +
 				'<hr style="clear: both;" />' +
-				'<div class="panel2"><label for="krRTRC_MassPatrol" class="head">MassPatrol <span section="MassPatrol" class="helpicon"></span></label><input id="krRTRC_MassPatrol" class="button button-off" type="button" value="Off" /></div>' +
+				'<div class="panel2"><label for="krRTRC_MassPatrol" class="head">MassPatrol <span section="MassPatrol" class="helpicon"></span></label><input id="krRTRC_MassPatrol" class="button button-small button-off" type="button" value="Off" /></div>' +
 				'<div class="sep2"></div>' +
-				'<div class="panel2"><label for="rc-options-autodiff" class="head">AutoDiff <span section="AutoDiff" class="helpicon"></span></label><input type="button" class="button button-off" value="Off" id="rc-options-autodiff" /> <input type="checkbox" value="on" id="rc-options-autodiff-top" /> <label for="rc-options-autodiff-top"> ' + krMsg('loadfromtop') + '</label></div>' +
+				'<div class="panel2"><label for="rc-options-autodiff" class="head">AutoDiff <span section="AutoDiff" class="helpicon"></span></label><input type="button" class="button button-small button-off" value="Off" id="rc-options-autodiff" /> <input type="checkbox" value="on" id="rc-options-autodiff-top" /> <label for="rc-options-autodiff-top"> ' + krMsg('loadfromtop') + '</label></div>' +
 				'<div class="sep2"></div>' +
-				'<div class="panel2"><label for="krRTRC_toggleRefresh" class="head">Pause</label><input id="krRTRC_toggleRefresh" class="button button-off" type="button" value="Off" /></div>' +
+				'<div class="panel2"><label for="krRTRC_toggleRefresh" class="head">Pause</label><input id="krRTRC_toggleRefresh" class="button button-small button-off" type="button" value="Off" /></div>' +
 			'</fieldset></form></div>' +
 			'<a name="krRTRC_DiffTop" />' +
-			'<div id="krRTRC_DiffFrame" style="display: none;"></div>' +
-			'<div id="krRTRC_RCOutput" class="placeholder">' + rcLegendHtml + '</div>' +
+			'<div class="mw-rtrc-diff" id="krRTRC_DiffFrame" style="display: none;"></div>' +
+			'<div id="krRTRC_RCOutput" class="placeholder plainlinks">' + rcLegendHtml + '</div>' +
 			'<div style="clear: both;"></div>' +
-			'<div id="krRTRC_Footer"><div class="inside" style="text-align: right;">' +
+			'<div id="krRTRC_Footer"><div class="inside plainlinks" style="text-align: right;">' +
 				'Real-Time Recent Changes by <a href="//commons.wikimedia.org/wiki/User:Krinkle" class="external text" rel="nofollow">Krinkle</a>:' +
 				' <a href="//meta.wikimedia.org/wiki/User:Krinkle/Tools/Real-Time_Recent_Changes#Changelog" class="external text" rel="nofollow">' + krMsg('whatsnew') + '</a>' +
 				' | <a href="//meta.wikimedia.org/wiki/User:Krinkle/Tools/Real-Time_Recent_Changes" class="external text" rel="nofollow">' + krMsg('documentation') + '</a>' +
 				' | <a href="http://krinkle.mit-license.org" class="external text" rel="nofollow">License</a>' +
-			'</div></div>');
-		$('body').append('<div id="krRTRC_Tip"><span id="krRTRC_Tiptext"></span></div>');
+			'</div></div>' +
+		'</div>');
+		$('body').append('<div id="krRTRC_Tip" class="plainlinks"><span id="krRTRC_Tiptext"></span></div>');
 
-		$('#content-inner').css('position', 'relative');
 		$('#krRTRC_RCOutput').prepend('<div class="feed"></div><img src="' + ajaxLoaderUrl + '" id="krRTRC_loader" style="display: none;" />');
 	};
 
@@ -1035,7 +1035,7 @@
 					skipButtonHtml = '<span class="tab"><a id="diffSkip">Skip</a></span>';
 				}
 				$('#krRTRC_DiffFrame').fadeIn().prepend(
-					'<h3>' + title + '</h3><div id="krRTRC_DiffTools"><span class="tab"><a id="diffClose">X</a></span><span class="tab"><a href="' + href + '" target="_blank" id="diffNewWindow">Open in Wiki</a></span>' +
+					'<h3>' + title + '</h3><div class="mw-rtrc-diff-tools"><span class="tab"><a id="diffClose">X</a></span><span class="tab"><a href="' + href + '" target="_blank" id="diffNewWindow">Open in Wiki</a></span>' +
 					(userPatrolTokenCache ?
 						'<span class="tab"><a onclick="(function(){ if($(\'.patrollink a\').length){ $(\'.patrollink a\').click(); } else { $(\'#diffSkip\').click(); } })();">[mark]</a></span>' :
 						''
@@ -1063,7 +1063,7 @@
 				} else {
 					skipButtonHtml = '<span class="tab"><a id="diffSkip">Skip</a></span>';
 				}
-				$('#krRTRC_DiffFrame').fadeIn().prepend('<h3>' + title + '</h3><div id="krRTRC_DiffTools"><span class="tab"><a id="diffClose">X</a></span><span class="tab"><a href="' + href + '" target="_blank" id="diffNewWindow">Open in Wiki</a></span><span class="tab"><a onclick="$(\'.patrollink a\').click()">[mark]</a></span><span class="tab"><a id="diffNext">' + krMsg('next').ucFirst() + ' &raquo;</a></span>' + skipButtonHtml + '</div>');
+				$('#krRTRC_DiffFrame').fadeIn().prepend('<h3>' + title + '</h3><div class="mw-rtrc-diff-tools"><span class="tab"><a id="diffClose">X</a></span><span class="tab"><a href="' + href + '" target="_blank" id="diffNewWindow">Open in Wiki</a></span><span class="tab"><a onclick="$(\'.patrollink a\').click()">[mark]</a></span><span class="tab"><a id="diffNext">' + krMsg('next').ucFirst() + ' &raquo;</a></span>' + skipButtonHtml + '</div>');
 				if (optMassPatrol) {
 					$('.patrollink a').click();
 				}
@@ -1135,8 +1135,9 @@
 		});
 
 		// Show helpicons
-		$('#toggleHelp').live('click', function () {
-			$('#krRTRC_RCOptions').toggleClass('nohelp');
+		$('#toggleHelp').live('click', function (e) {
+			e.preventDefault();
+			$('#krRTRC_RCOptions').toggleClass('mw-rtrc-nohelp');
 		});
 
 		// Link helpicons
@@ -1277,30 +1278,26 @@
 		(conf.wgCanonicalSpecialPageName === 'Blankpage' && conf.wgTitle.split('/', 2)[1] === 'RTRC')
 	) {
 
+		$('html').addClass('mw-rtrc-available');
 		dModules = $.Deferred();
 		mw.loader.using(['mediawiki.util', 'mediawiki.action.history.diff'], dModules.resolve, dModules.reject);
 
 		$.when(
 			!!window.krMsgs || $.getScript('//toolserver.org/~krinkle/I18N/export.php?lang=' + conf.wgUserLanguage),
-			dModules.promise()
+			dModules.promise(),
+			$.ready.promise()
 		).done(function () {
-			var msg, ret,
-				browserName = $.client.profile().name;
+			var msg,
+				profile = $.client.profile();
 
 			// Reject bad browsers
 			// TODO: Check versions as well, or better yet: feature detection
-			if (browserName === 'msie') {
-				msg = 'Internet Explorer is not supported. Please use a Mozilla or WebKit-based browser such as Chrome, Firefox or Safari.';
+			if (profile.name === 'msie' && profile.versionNumber < 9) {
+				msg = 'Internet Explorer is not supported. Please use a modern browser such as Chrome, Firefox or Safari.';
 				$('#mw-content-text').empty().append(
 					$('<p>').addClass('errorbox').text(msg)
 				);
 				return;
-			}
-			if (browserName === 'opera') {
-				ret = confirm('Opera is currently not supported. Proceed at own risk or use a Mozilla or WebKit-based browser such as Chrome, Firefox or Safari.');
-				if (!ret) {
-					return;
-				}
 			}
 
 			// Map over months
