@@ -1275,7 +1275,10 @@
 	 */
 
 	// If on the right page with the right action...
-	if (conf.wgTitle === 'Krinkle/RTRC' && conf.wgAction === 'view') {
+	if (
+		(conf.wgTitle === 'Krinkle/RTRC' && conf.wgAction === 'view') ||
+		(conf.wgCanonicalSpecialPageName === 'Blankpage' && conf.wgTitle.split('/', 2)[1] === 'RTRC')
+	) {
 
 		mw.loader.load('//meta.wikimedia.org/w/index.php?title=User:Krinkle/RTRC.css&action=raw&ctype=text/css', 'text/css', true);
 
