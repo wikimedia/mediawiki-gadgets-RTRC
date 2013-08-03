@@ -18,7 +18,7 @@
 	 * -------------------------------------------------
 	 */
 	var
-	appVersion = 'v0.9.4',
+	appVersion = 'v0.9.5-pre',
 	appDate = '2013-07-03',
 	apiUrl = mw.util.wikiScript('api'),
 	userLang = mw.config.get('wgUserLanguage'),
