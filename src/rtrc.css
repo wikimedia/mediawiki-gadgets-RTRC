@@ -1,0 +1,158 @@
+/**
+ * Real-Time Recent Changes
+ * https://github.com/Krinkle/mw-gadget-rtrc
+ *
+ * @license http://krinkle.mit-license.org/
+ * @author Timo Tijhof, 2010–2013
+ */
+
+/*
+	MAIN LAYOUT & CLASSES
+*/
+/* Minify top-bar */
+body.skin-vector #mw-page-base { height:2.5em }
+body.skin-vector #left-navigation { top:0em; left:8em }
+body.skin-vector #right-navigation,
+#footer, #contentSub, #catlinks, #p-tb,
+.mw-revdelundel-link { display:none }
+
+div#mw-panel div.portal div.body	{ margin-left:0 !important }
+body.skin-vector div#mw-panel,
+/* body.skin-monobook */ .portlet,
+body.skin-vector div#mw-panel #p-logo a,
+body.skin-monobook div#column-one #p-logo a
+									{ width:127px }
+#quickbar { padding:0; width:127px; }
+
+#krRTRC_PageWrap, #krRTRC_PageWrap *{ margin:0;padding:0;outline:0px !important }
+#content.krRTRC_body				{ background:rgb(247, 246, 248); margin-left:8em; padding:0px 1em; border-top:30px solid #343434 }
+#krRTRC_PageWrap, .ns				{ font:12px/1.4 "Lucida Sans", "Lucida Grande", "Lucida Sans Unicode", sans-serif }
+#krRTRC_PageWrap					{ display:block; position:absolute; top:0; left:0; width:100%; height:100%; background:rgb(247, 246, 248); color:#343434; min-width:865px }
+#krRTRC_PageWrap .inline-block		{ display:inline-block }
+
+#krRTRC_Topbar						{ position:absolute; top:-25px; left:10%; width:80%; text-align:center; font:16px Georgia, Serif; opacity:0.8; color:#ccc; -webkit-transition:all 0.15s ease-in-out }
+#krRTRC_Topbar:hover				{ opacity:1.0 }
+
+#krRTRC_Footer						{ position:fixed; bottom:0; left:0; width:100%; height:30px; background:rgba(255,255,255,0.6); opacity:0.8; border-top:1px solid #a1cef5; text-align:center; color:#343434 }
+#krRTRC_Footer:hover				{ background:rgba(255,255,255,1.0); opacity:1.0 }
+#krRTRC_Footer .inside				{ padding:6px 15px 0px 15px }
+
+/*
+	WHOISONLINE
+*/
+#krwhosonline						{ position:relative; }
+#krwhosonline .more					{ display:none }
+#krwhosonline:hover .more			{ display:block; position:absolute; bottom:99%; right:0px; padding:8px 15px; background:rgba(255,255,255,0.6); border:1px solid #a1cef5; border-bottom:none; text-align:left; color:#eee }
+
+/*
+	BUTTONS/TEXT
+*/
+#krRTRC_PageWrap a:active,
+#krRTRC_PageWrap .button:active,
+#krRTRC_PageWrap .helpicon:active	{ position:relative; top:1px }
+
+#krRTRC_RCOptions.nohelp .helpicon	{ display:none !important }
+#krRTRC_PageWrap .helpicon			{ display:inline-block; width:18px; height:18px; background:transparent url(//upload.wikimedia.org/wikipedia/commons/5/51/Question-helpbutton.png) no-repeat; vertical-align:middle }
+
+#krRTRC_PageWrap .button:hover,
+#krRTRC_PageWrap .helpicon:hover,
+#krRTRC_PageWrap #toggleHelp:hover,
+#krRTRC_Tiptext:hover	{ cursor:pointer }
+#krRTRC_PageWrap #toggleHelp		{ float:right }
+#krRTRC_Tip { position:absolute; top:0px; right:0px; display:none }
+#krRTRC_Tiptext { border:3px solid rgb(136, 240, 36); padding:4px 24px 4px 8px; background:#f9f9f9 url(//upload.wikimedia.org/wikipedia/commons/thumb/3/35/Button_normal.svg/12px-Button_normal.svg.png) top right no-repeat } /* Reminder: Also update example in docs */
+
+/*
+	RC OPTIONS
+*/
+#krRTRC_RCOptions					{ clear:both; max-width:975px; margin:0 auto; padding:0px; background:white; border:0px solid transparent; -moz-border-radius-bottomleft:11px; -webkit-border-bottom-left-radius:11px; -khtml-border-bottom-left-radius:11px; border-bottom-left-radius:11px;-moz-border-radius-bottomright:11px; -webkit-border-bottom-right-radius:11px; -khtml-border-bottom-right-radius:11px; border-bottom-right-radius:11px;-moz-box-shadow:rgba(200,200,200,1) 0 5px 15px; -webkit-box-shadow:rgba(200,200,200,1) 0 5px 15px; -khtml-box-shadow:rgba(200,200,200,1) 0 5px 15px; box-shadow:rgba(200,200,200,1) 0 5px 15px }
+#krRTRC_RCOptions .panel			{ float:left; margin:0px; padding:3px 5px; text-align:center }
+#krRTRC_RCOptions .panel .head		{ display:block; margin-bottom:5px; font-weight:bold }
+#krRTRC_RCOptions .panel2			{ float:left; margin:0px; padding:3px 5px 1px 5px; text-align:center; min-height:20px }
+#krRTRC_RCOptions .panel2 .head		{ display:inline-block; margin-bottom:5px; margin-right:5px; font-weight:bold }
+#krRTRC_RCOptions .sep				{ float:left; border-right:2px ridge rgb(247, 246, 248); height:68px }
+#krRTRC_RCOptions .sep2				{ float:left; border-right:2px ridge rgb(247, 246, 248); height:33px }
+#krRTRC_RCOptions .panel-last		{ float:right; margin:0px 5px }
+#krRTRC_RCOptions .button			{ margin-top:1px; padding:3px 5px; background-color:#0645ad; border:1px solid #0645ad; color:white; font-weight:bold;
+									  background-image:-moz-linear-gradient(100% 100% 90deg, #678bd6, #0645ad);
+									  background-image:-webkit-gradient(linear, 0% 0%, 0% 100%, from(#678bd6), to(#0645ad));
+									  -moz-border-radius:5px; -webkit-border-radius:5px; -khtml-border-radius:5px; border-radius:5px }
+#krRTRC_RCOptions .button:hover		{ background-color:#36b;
+									  background-image:-moz-linear-gradient(100% 100% 90deg, #678bd6, #36b);
+									  background-image:-webkit-gradient(linear, 0% 0%, 0% 100%, from(#678bd6), to(#36b)) }
+#krRTRC_RCOptions .button:active	{ background-color:#678bd6;
+									  background-image:-moz-linear-gradient(100% 100% 90deg, #0645ad, #678bd6);
+									  background-image:-webkit-gradient(linear, 0% 0%, 0% 100%, from(#0645ad), to(#678bd6)) }
+#krRTRC_RCOptions .button-off		{ vertical-align:top; background-color:limeGreen; border:1px solid green;
+									  background-image:-moz-linear-gradient(100% 100% 90deg, limeGreen, green);
+									  background-image:-webkit-gradient(linear, 0% 0%, 0% 100%, from(limeGreen), to(green)) }
+#krRTRC_RCOptions .button-off:hover	{ background-color:GreenYellow;
+									  background-image:-moz-linear-gradient(100% 100% 90deg, limeGreen, limeGreen);
+									  background-image:-webkit-gradient(linear, 0% 0%, 0% 100%, from(limeGreen ), to(limeGreen)) }
+#krRTRC_RCOptions .button-off:active{ background-color:green;
+									  background-image:-moz-linear-gradient(100% 100% 90deg, green, limeGreen);
+									  background-image:-webkit-gradient(linear, 0% 0%, 0% 100%, from(green), to(limeGreen)) }
+#krRTRC_RCOptions .button-on		{ font-size:larger; background-color:#FF0000; border:1px solid #990000;
+									  background-image:-moz-linear-gradient(100% 100% 90deg, #FF0000, #990000);
+									  background-image:-webkit-gradient(linear, 0% 0%, 0% 100%, from(#FF0000 ), to(#990000)) }
+#krRTRC_RCOptions .button-on:hover	{ background-color:#FF0000;
+									  background-image:-moz-linear-gradient(100% 100% 90deg, #FF0000, #FF0000);
+									  background-image:-webkit-gradient(linear, 0% 0%, 0% 100%, from(#FF0000 ), to(#FF0000)) }
+#krRTRC_RCOptions .button-on:active{ background-color:#990000;
+									  background-image:-moz-linear-gradient(100% 100% 90deg, #990000, #FF0000);
+									  background-image:-webkit-gradient(linear, 0% 0%, 0% 100%, from(#990000), to(#FF0000)) }
+#krRTRC_RCOptions .button[disabled]:hover	{ cursor:default }
+#krRTRC_RCOptions #RCOptions_submit	{ padding:5px 9px; font-size:14px }
+
+/*
+	DIFF FRAME
+*/
+#krRTRC_DiffFrame					{ position:relative; width:97%; margin:20px auto 15px auto; padding:1em; overflow:hidden; background:white;-moz-border-radius:11px; -webkit-border-radius:11px; -khtml-border-radius:11px; border-radius:11px;-moz-box-shadow:rgba(200,200,200,1) 0 5px 15px; -webkit-box-shadow:rgba(200,200,200,1) 0 5px 15px; -khtml-box-shadow:rgba(200,200,200,1) 0 5px 15px; box-shadow:rgba(200,200,200,1) 0 5px 15px }
+#krRTRC_DiffFrame h3				{ margin:0 1em 0.5em 0; border-bottom:1px solid rgb(247, 246, 248); font-size:21px; font-weight:normal; white-space:nowrap; overflow:hidden }
+#krRTRC_DiffFrame table.diff		{ margin:0; width:100% }
+#krRTRC_DiffTools					{ position:absolute; top:0em; right:2em; width:80% }
+#krRTRC_DiffTools .tab				{ float:right; font-weight:bold; margin-left:3px; padding:3px 10px; background-color:rgb(247, 246, 248);-moz-border-radius-bottomleft:11px; -webkit-border-bottom-left-radius:11px; -khtml-border-bottom-left-radius:11px; border-bottom-left-radius:11px;-moz-border-radius-bottomright:11px; -webkit-border-bottom-right-radius:11px; -khtml-border-bottom-right-radius:11px; border-bottom-right-radius:11px }
+#krRTRC_DiffTools .tab a:hover		{ cursor:pointer }
+
+/*
+	RC OUTPUT
+*/
+#krRTRC_RCOutput					{ position:relative; width:100%; margin:20px auto 70px auto }
+#krRTRC_RCOutput.placeholder		{ width:100%; height:600px; background:transparent url(//upload.wikimedia.org/wikipedia/commons/9/9d/RTRC_Placeholder.png) top center no-repeat }
+#krRTRC_RCOutput.placeholder *		{ display:none }
+#krRTRC_RCOutput .feed				{ position:relative; padding:2em 0; background:white;
+									  font-size:14px; -moz-border-radius-topleft:11px; -webkit-border-top-left-radius:11px; -khtml-border-top-left-radius:11px; border-top-left-radius:11px;-moz-border-radius-topright:11px; -webkit-border-top-right-radius:11px; -khtml-border-top-right-radius:11px; border-top-right-radius:11px;-moz-box-shadow:rgba(200,200,200,1) 0 5px 15px; -webkit-box-shadow:rgba(200,200,200,1) 0 5px 15px; -khtml-box-shadow:rgba(200,200,200,1) 0 5px 15px; box-shadow:rgba(200,200,200,1) 0 5px 15px }
+#krRTRC_lastupdate					{ position:absolute; top:0.5em; left:10%; width:80%; font-size:smaller; text-align:center }
+#krRTRC_loader						{ position:absolute; top:0; right:0 }
+#krRTRC_Dumpdate					{ position:absolute; bottom:-3em; right:5px; text-align:right }
+#krRTRC_list						{ margin:0 0 -1.5em 0; width:100% }
+#krRTRC_list .item					{ padding:0px 5px; white-space:nowrap }
+			.item:nth-child(odd)	{ background:#f3f3f3 }
+
+/* Acts like a table with table-rows, using divs to avoid fixed table-layout with forced width and oveflow issues */
+#krRTRC_list .item div				{ display:inline-block; overflow:hidden; padding:3px 0px }
+#krRTRC_list .item div[first]		{ width:38% }
+#krRTRC_list .item div[user]		{ width:21% }
+#krRTRC_list .item div[other]		{ width:35% }
+#krRTRC_list .item div[size]		{ width:6%;font-size:smaller; text-align:right }
+
+/* item classes */
+			.item.aes				{ background:#fff0f0 }
+			.item.aes .comment		{ font-weight:bold }
+
+			.item.skipped			{ background:#d6d9e9 !important }
+			.item.patrolled			{ background:#d9e9d6 !important }
+			.item.indiff			{ background:#ffce7b !important; border:1px solid orange }
+
+			.item .user.blacklisted	{ font-weight:bold; color:red !important }
+			.item .user.blacklisted img	{ vertical-align:baseline }
+
+#krRTRC_RCLegend					{ margin:5px auto; padding:5px 13px; background:white;
+									  -moz-border-radius-bottomleft:11px; -webkit-border-bottom-left-radius:11px; -khtml-border-bottom-left-radius:11px; border-bottom-left-radius:11px;-moz-border-radius-bottomright:11px; -webkit-border-bottom-right-radius:11px; -khtml-border-bottom-right-radius:11px; border-bottom-right-radius:11px;-moz-box-shadow:rgba(200,200,200,1) 0 5px 15px; -webkit-box-shadow:rgba(200,200,200,1) 0 5px 15px; -khtml-box-shadow:rgba(200,200,200,1) 0 5px 15px; box-shadow:rgba(200,200,200,1) 0 5px 15px }
+
+									  /* Diff pre-wrap (partially from wikibits/diff.css but there only adds pre-wrap for diffchange */
+.diffchange,
+table.diff td {
+	white-space: -moz-pre-wrap;
+	white-space: pre-wrap;
+}

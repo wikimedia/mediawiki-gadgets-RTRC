@@ -1,9 +1,6 @@
 /**
  * Real-Time Recent Changes
- * https://meta.wikimedia.org/wiki/User:Krinkle/Tools/Real-Time_Recent_Changes
- *
- * MediaWiki dependencies: mediawiki.util, mediawiki.action.history.diff
- * External dependencies: [[m:User:Krinkle/RTRC.css]], [[tools:~krinkle/I18N/export.php]]
+ * https://github.com/Krinkle/mw-gadget-rtrc
  *
  * @license http://krinkle.mit-license.org/
  * @author Timo Tijhof, 2010–2013
@@ -1279,8 +1276,6 @@
 		(conf.wgTitle === 'Krinkle/RTRC' && conf.wgAction === 'view') ||
 		(conf.wgCanonicalSpecialPageName === 'Blankpage' && conf.wgTitle.split('/', 2)[1] === 'RTRC')
 	) {
-
-		mw.loader.load('//meta.wikimedia.org/w/index.php?title=User:Krinkle/RTRC.css&action=raw&ctype=text/css', 'text/css', true);
 
 		dModules = $.Deferred();
 		mw.loader.using(['mediawiki.util', 'mediawiki.action.history.diff'], dModules.resolve, dModules.reject);
