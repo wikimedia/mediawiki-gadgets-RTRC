@@ -1,0 +1,35 @@
+{
+  "name": "mw-gadget-rtrc",
+  "version": "0.9.4",
+  "description": "MediaWiki gadget to monitor and patrol recent changes in real-time.",
+  "keywords": [
+    "mw-gadget"
+  ],
+  "homepage": "https://github.com/Krinkle/mw-gadget-rtrc",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/Krinkle/mw-gadget-rtrc.git"
+  },
+  "bugs": "https://github.com/Krinkle/mw-gadget-rtrc/issues",
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "http://mit-license.org/"
+    }
+  ],
+  "author": {
+    "name": "Timo Tijhof",
+    "web": "https://github.com/Krinkle"
+  },
+  "scripts": {
+    "test": "grunt",
+    "prepublish": "grunt release"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "grunt": "~0.4.1",
+    "grunt-contrib-jshint": "~0.6.2",
+    "grunt-contrib-uglify": "~0.2.2",
+    "grunt-contrib-watch": "~0.5.1"
+  }
+}
