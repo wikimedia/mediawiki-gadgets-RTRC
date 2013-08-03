@@ -19,7 +19,6 @@
 	 */
 	var
 	appVersion = 'v0.9.5-pre',
-	appDate = '2013-07-03',
 	apiUrl = mw.util.wikiScript('api'),
 	userLang = mw.config.get('wgUserLanguage'),
 	// 32x32px
@@ -950,7 +949,7 @@
 
 		$('#content').html(
 		'<div id="content-inner"><div id="krRTRC_PageWrap" class="plainlinks">' +
-			'<div id="krRTRC_Topbar">Real-Time Recent Changes <small class="ns">(' + appVersion + ' as of ' + appDate + ')</small><small id="toggleHelp">[help]</small><a target="_blank" href="' + getWikipageUrl('Special:Log/patrol') + '?user=' + encodeURIComponent(mw.user.name()) + '" style="float:right;font-size:smaller;color:#ccc">&nbsp;[' + krMsg('mypatrollog') + ']&nbsp;</a></div>' +
+			'<div id="krRTRC_Topbar">Real-Time Recent Changes <small class="ns">(' + appVersion + ')</small><small id="toggleHelp">[help]</small><a target="_blank" href="' + getWikipageUrl('Special:Log/patrol') + '?user=' + encodeURIComponent(mw.user.name()) + '" style="float:right;font-size:smaller;color:#ccc">&nbsp;[' + krMsg('mypatrollog') + ']&nbsp;</a></div>' +
 			'<div id="krRTRC_RCForm"><fieldset id="krRTRC_RCOptions" class="nohelp"><form>' +
 				'<div class="panel"><label for="rc-options-limit" class="head">' + krMsg('limit') + '</label><select id="rc-options-limit" name="rc-options-limit"><option value="10">10</option><option selected="" value="25">25</option><option value="50">50</option><option value="75">75</option><option value="100">100</option></select></div>' +
 				'<div class="sep"></div>' +
