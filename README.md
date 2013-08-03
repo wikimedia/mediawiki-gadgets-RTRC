@@ -1,1 +1,1 @@
-# Real-Time Recent Changes [![Build Status](https://travis-ci.org/Krinkle/mediawiki-gadget-rtrc.png)](https://travis-ci.org/Krinkle/mediawiki-gadget-rtrc)
+# Real-Time Recent Changes [![Build Status](https://travis-ci.org/Krinkle/mw-gadget-rtrc.png)](https://travis-ci.org/Krinkle/mw-gadget-rtrc)
