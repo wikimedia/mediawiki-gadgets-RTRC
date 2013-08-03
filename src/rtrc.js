@@ -9,7 +9,6 @@
  * @author Timo Tijhof, 2010–2013
  */
 /*global krMsgs, confirm */
-/*global wgPageName, wgServer, wgAction, wgTitle */
 (function ($, mw) {
 	'use strict';
 
@@ -20,12 +19,19 @@
 	var
 	appVersion = 'v0.9.5-pre',
 	apiUrl = mw.util.wikiScript('api'),
-	userLang = mw.config.get('wgUserLanguage'),
+	conf = mw.config.get([
+		'wgAction',
+		'wgCanonicalSpecialPageName',
+		'wgPageName',
+		'wgServer',
+		'wgTitle',
+		'wgUserLanguage'
+	]),
 	// 32x32px
 	ajaxLoaderUrl = '//upload.wikimedia.org/wikipedia/commons/d/de/Ajax-loader.gif',
 	// 18x15
 	blacklistIconUrl = '//upload.wikimedia.org/wikipedia/commons/thumb/f/f7/Nuvola_apps_important.svg/18px-Nuvola_apps_important.svg.png',
-	docUrl = '//meta.wikimedia.org/wiki/User:Krinkle/Tools/Real-Time_Recent_Changes?uselang=' + userLang,
+	docUrl = '//meta.wikimedia.org/wiki/User:Krinkle/Tools/Real-Time_Recent_Changes?uselang=' + conf.wgUserLanguage,
 	patrolCacheSize = 20,
 
 	/**
@@ -96,15 +102,6 @@
 	 * Utility functions
 	 * -------------------------------------------------
 	 */
-
-	// Logs a message if debugging is enabled
-	function krLog(s, o) {
-		if (o) {
-			mw.log(s, o);
-		} else {
-			mw.log(s);
-		}
-	}
 
 	if (!String.prototype.ucFirst) {
 		String.prototype.ucFirst = function () {
@@ -208,7 +205,7 @@
 			// d.getTime(): NaN
 			// Number(d): NaN
 			if (isNaN(d)) {
-				krLog('timeUtil.apiApplyWikiOffset: Invalid Date');
+				mw.log('timeUtil.apiApplyWikiOffset: Invalid Date');
 				return false;
 			}
 			// Get difference in miliseconds
@@ -578,12 +575,12 @@
 					// API errors ?
 					if ($(rawback).find('error').length) {
 
-						krLog('krRTRC_GetRCData()-> ' + $(rawback).find('rc').length + ' errors');
+						mw.log('krRTRC_GetRCData()-> ' + $(rawback).find('rc').length + ' errors');
 						$('#krRTRC_RCOutput').removeClass('placeholder');
 
 						// Account doesnt have patrol flag
 						if ($(rawback).find('error').attr('code') === 'rcpermissiondenied') {
-							rcFeedMemHTML += '<h3>Downloading recent changes failed</h3><p>Please untick the "Unpatrolled only"-checkbox or request the Patroller-right on <a href="' + wgServer + '">' + wgServer + '</a>';
+							rcFeedMemHTML += '<h3>Downloading recent changes failed</h3><p>Please untick the "Unpatrolled only"-checkbox or request the Patroller-right on <a href="' + conf.wgPageName + '">' + conf.wgPageName + '</a>';
 
 						// Other error
 						} else {
@@ -738,7 +735,7 @@
 		a += optIRCBL ? '&ircbl=on' : '';
 		a += optAutoDiff ? '&autodiff=on' : '';
 		a += optAutoDiffTop ? '&autodiff_top=on' : '';
-		return mw.util.wikiScript() + '?' + $.param({ title: wgPageName, jumpstart: 'on' }) + a;
+		return mw.util.wikiScript() + '?' + $.param({ title: conf.wgPageName, jumpstart: 'on' }) + a;
 	}
 
 	function krRTRC_NextDiff() {
@@ -753,7 +750,7 @@
 
 	function krRTRC_TipIn($targetEl, uid, is_anon) {
 		var o, links;
-		krLog('krRTRC_TipIn()');
+		mw.log('krRTRC_TipIn()');
 		o = $targetEl.offset();
 		if (is_anon) {
 			links = ' · <a target="_blank" title="Whois ' + uid + '?" href="//toolserver.org/~chm/whois.php?ip=' + uid + '">WHOIS</a>';
@@ -815,20 +812,20 @@
 
 	// Init Phase 1 : When the DOM is ready
 	function krRTRC_init1() {
-		krLog('Init Phase 1 started');
+		mw.log('Init Phase 1 started');
 		while (krRTRC_initFuncs.length) {
 			(krRTRC_initFuncs.shift())();
 		}
-		krLog('Init Phase 1 done');
+		mw.log('Init Phase 1 done');
 	}
 
 	// Init Phase 2 : Called in GetIntMsgs()
 	function krRTRC_init2() {
-		krLog('Init Phase 2 started');
+		mw.log('Init Phase 2 started');
 		while (krRTRC_initFuncs2.length) {
 			(krRTRC_initFuncs2.shift())();
 		}
-		krLog('Init Phase 2 done');
+		mw.log('Init Phase 2 done');
 	}
 
 
@@ -894,10 +891,10 @@
 	// Downloads interface messages via the API
 	krRTRC_initFuncs[3] = function () {
 
-		$.getJSON(apiUrl + '?action=query&format=json&meta=allmessages&amlang=' + userLang + '&ammessages=show|hide|ascending abbrev|descending abbrev|markaspatrolleddiff|markedaspatrolled|markedaspatrollederror|next|diff|talkpagelinktext|contributions|recentchanges-label-legend|recentchanges-label-bot|recentchanges-label-minor|recentchanges-label-newpage|recentchanges-label-unpatrolled|recentchanges-legend-bot|recentchanges-legend-minor|recentchanges-legend-newpage|recentchanges-legend-unpatrolled|namespaces|namespacesall|blanknamespace&callback=?', function (data) {
+		$.getJSON(apiUrl + '?action=query&format=json&meta=allmessages&amlang=' + conf.wgUserLanguage + '&ammessages=show|hide|ascending abbrev|descending abbrev|markaspatrolleddiff|markedaspatrolled|markedaspatrollederror|next|diff|talkpagelinktext|contributions|recentchanges-label-legend|recentchanges-label-bot|recentchanges-label-minor|recentchanges-label-newpage|recentchanges-label-unpatrolled|recentchanges-legend-bot|recentchanges-legend-minor|recentchanges-legend-newpage|recentchanges-legend-unpatrolled|namespaces|namespacesall|blanknamespace&callback=?', function (data) {
 			var i;
-			krLog('GetIntMsgs->' + data);
-			krLog(data);
+			mw.log('GetIntMsgs->' + data);
+			mw.log(data);
 			data = data.query.allmessages;
 			for (i = 0; i < data.length; i += 1) {
 				krMsgs[data[i].name] = data[i]['*'];
@@ -1033,7 +1030,7 @@
 				href = $(this).parent().find('>a.diff').attr('href');
 			$('#krRTRC_DiffFrame')
 			.removeAttr('style'/* this resets style="max-height: 400;" from a.newPage below */)
-			.load(mw.util.wikiScript() + '?action=render&diff=' + window.currentDiff + '&diffonly=1&uselang=' + userLang, function () {
+			.load(mw.util.wikiScript() + '?action=render&diff=' + window.currentDiff + '&diffonly=1&uselang=' + conf.wgUserLanguage, function () {
 				$(this).html($(this).html().replace('diffonly=', 'krinkle=').replace('diffonly=', 'krinkle='));
 				if (krInArray(window.currentDiffRcid, skippedRCIDs)) {
 					skipButtonHtml = '<span class="tab"><a id="diffUnskip">Unskip</a></span>';
@@ -1063,7 +1060,7 @@
 			var title = $(this).parent().find('> a.page').text(),
 				href = $(this).parent().find('> a.page').attr('href');
 
-			$('#krRTRC_DiffFrame').css('max-height', '400px').load(href + '&action=render&uselang=' + userLang, function () {
+			$('#krRTRC_DiffFrame').css('max-height', '400px').load(href + '&action=render&uselang=' + conf.wgUserLanguage, function () {
 				if (krInArray(window.currentDiffRcid, skippedRCIDs)) {
 					skipButtonHtml = '<span class="tab"><a id="diffUnskip">Unskip</a></span>';
 				} else {
@@ -1089,7 +1086,7 @@
 				success: function (rawback) {
 					if ($(rawback).find('error').length) {
 						$('.patrollink').html('<span style="color: red;">' + krMsg('markedaspatrollederror') + '</span>');
-						krLog('PatrolError: ' + $(rawback).find('error').attr('code') + '; info: ' + $(rawback).find('error').attr('info'));
+						mw.log('PatrolError: ' + $(rawback).find('error').attr('code') + '; info: ' + $(rawback).find('error').attr('info'));
 					} else {
 						$('.patrollink').html('<span style="color: green;">' + krMsg('markedaspatrolled') + '</span>');
 						$('#krRTRC_RCOutput > .feed div[rcid="' + window.currentDiffRcid + '"]').addClass('patrolled');
@@ -1100,11 +1097,11 @@
 						patrolledRCIDs.push(window.currentDiffRcid);
 
 						while (patrolledRCIDs.length > patrolCacheSize) {
-							krLog('MarkPatrolCache -> Cache array is bigger then cachemax, shifting array(' + patrolledRCIDs.length + ' vs. ' + patrolCacheSize + '). Current array:');
-							krLog(patrolledRCIDs);
+							mw.log('MarkPatrolCache -> Cache array is bigger then cachemax, shifting array(' + patrolledRCIDs.length + ' vs. ' + patrolCacheSize + '). Current array:');
+							mw.log(patrolledRCIDs);
 							patrolledRCIDs.shift();
-							krLog('MarkPatrolCache -> Cache array is shifted. New array:');
-							krLog(patrolledRCIDs);
+							mw.log('MarkPatrolCache -> Cache array is shifted. New array:');
+							mw.log(patrolledRCIDs);
 						}
 
 						if (optAutoDiff) {
@@ -1182,8 +1179,8 @@
 		$('#krRTRC_list *').live('mouseover', function (e) {
 			var $hovEl = false;
 
-			krLog(e);
-			krLog(e.target);
+			mw.log(e);
+			mw.log(e.target);
 			if ($(e.target).is('.rcitem')) {
 				$hovEl = $(e.target);
 			} else if ($(e.target).parents('.rcitem').is('.rcitem')) {
@@ -1254,7 +1251,7 @@
 
 		// Button: Pause
 		$('#krRTRC_toggleRefresh').live('click', function () {
-			krLog('#krRTRC_toggleRefresh clicked');
+			mw.log('#krRTRC_toggleRefresh clicked');
 			if (rcRefreshEnabled) {
 				rcRefreshEnabled = false;
 				$(this).val('On').addClass('button-on');
@@ -1278,7 +1275,7 @@
 	 */
 
 	// If on the right page with the right action...
-	if (wgTitle === 'Krinkle/RTRC' && (wgAction === 'view' || wgAction === 'edit')) {
+	if (conf.wgTitle === 'Krinkle/RTRC' && conf.wgAction === 'view') {
 
 		mw.loader.load('//meta.wikimedia.org/w/index.php?title=User:Krinkle/RTRC.css&action=raw&ctype=text/css', 'text/css', true);
 
@@ -1286,7 +1283,7 @@
 		mw.loader.using(['mediawiki.util', 'mediawiki.action.history.diff'], dModules.resolve, dModules.reject);
 
 		$.when(
-			!!window.krMsgs || $.getScript('//toolserver.org/~krinkle/I18N/export.php?lang=' + userLang),
+			!!window.krMsgs || $.getScript('//toolserver.org/~krinkle/I18N/export.php?lang=' + conf.wgUserLanguage),
 			dModules.promise()
 		).done(function () {
 			var msg, ret,
