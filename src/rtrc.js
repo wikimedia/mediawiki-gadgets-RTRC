@@ -744,7 +744,6 @@
 
 	function krRTRC_TipIn($targetEl, uid, is_anon) {
 		var o, links;
-		mw.log('krRTRC_TipIn()');
 		o = $targetEl.offset();
 		if (is_anon) {
 			links = ' · <a target="_blank" title="Whois ' + uid + '?" href="//toolserver.org/~chm/whois.php?ip=' + uid + '">WHOIS</a>';
@@ -805,20 +804,16 @@
 
 	// Init Phase 1 : When the DOM is ready
 	function krRTRC_init1() {
-		mw.log('Init Phase 1 started');
 		while (krRTRC_initFuncs.length) {
 			(krRTRC_initFuncs.shift())();
 		}
-		mw.log('Init Phase 1 done');
 	}
 
 	// Init Phase 2 : Called in GetIntMsgs()
 	function krRTRC_init2() {
-		mw.log('Init Phase 2 started');
 		while (krRTRC_initFuncs2.length) {
 			(krRTRC_initFuncs2.shift())();
 		}
-		mw.log('Init Phase 2 done');
 	}
 
 
@@ -886,8 +881,6 @@
 
 		$.getJSON(apiUrl + '?action=query&format=json&meta=allmessages&amlang=' + conf.wgUserLanguage + '&ammessages=show|hide|ascending abbrev|descending abbrev|markaspatrolleddiff|markedaspatrolled|markedaspatrollederror|next|diff|talkpagelinktext|contributions|recentchanges-label-legend|recentchanges-label-bot|recentchanges-label-minor|recentchanges-label-newpage|recentchanges-label-unpatrolled|recentchanges-legend-bot|recentchanges-legend-minor|recentchanges-legend-newpage|recentchanges-legend-unpatrolled|namespaces|namespacesall|blanknamespace&callback=?', function (data) {
 			var i;
-			mw.log('GetIntMsgs->' + data);
-			mw.log(data);
 			data = data.query.allmessages;
 			for (i = 0; i < data.length; i += 1) {
 				krMsgs[data[i].name] = data[i]['*'];
@@ -1178,20 +1171,17 @@
 		// Tip
 		$krRTRC_Tip = $('#krRTRC_Tip');
 		$krRTRC_Tiptext = $('#krRTRC_Tiptext');
-		$('#krRTRC_Tip').click(function () {
-			krRTRC_TipOut();
-		});
-		$('#krRTRC_Tip').hover(function () {
-			clearTimeout(krRTRC_TipTime);
-		}, function () {
-			krRTRC_TipTime = setTimeout(krRTRC_TipOut, 1000);
-		});
+		$('#krRTRC_Tip')
+			.click(krRTRC_TipOut)
+			.hover(function () {
+				clearTimeout(krRTRC_TipTime);
+			}, function () {
+				krRTRC_TipTime = setTimeout(krRTRC_TipOut, 1000);
+			});
 
 		$('#krRTRC_list *').live('mouseover', function (e) {
-			var $hovEl = false;
+			var $hovEl;
 
-			mw.log(e);
-			mw.log(e.target);
 			if ($(e.target).is('.rcitem')) {
 				$hovEl = $(e.target);
 			} else if ($(e.target).parents('.rcitem').is('.rcitem')) {
