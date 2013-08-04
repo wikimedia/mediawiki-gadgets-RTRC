@@ -933,7 +933,7 @@
 		$wrapper = $($.parseHTML(
 		'<div class="mw-rtrc-wrapper">' +
 			'<div class="mw-rtrc-head">Real-Time Recent Changes <small>(' + appVersion + ')</small><div class="mw-rtrc-head-links"><a target="_blank" href="' + getWikipageUrl('Special:Log/patrol') + '?user=' + encodeURIComponent(mw.user.name()) + '">' + krMsg('mypatrollog').ucFirst() + '</a> <a id="toggleHelp" href="#toggleHelp">Help</a></div></div>' +
-			'<div id="krRTRC_RCForm"><form><fieldset id="krRTRC_RCOptions" class="mw-rtrc-settings mw-rtrc-nohelp make-switch">' +
+			'<form><fieldset id="krRTRC_RCOptions" class="mw-rtrc-settings mw-rtrc-nohelp make-switch">' +
 				'<div class="panel"><label for="rc-options-limit" class="head">' + krMsg('limit') + '</label><select id="rc-options-limit" name="rc-options-limit"><option value="10">10</option><option selected="" value="25">25</option><option value="50">50</option><option value="75">75</option><option value="100">100</option></select></div>' +
 				'<div class="sep"></div>' +
 				'<div class="panel"><label class="head">' + krMsg('filter') + '</label><div style="text-align:left"><label><input type="checkbox" id="rc-options-filter-anons" name="rc-options-filter-anons"> ' + krMsg('anononly') + '</label><br /><label><input type="checkbox" id="rc-options-filter-unpatrolled" name="rc-options-filter-unpatrolled"> ' + krMsg('unpatrolledonly') + '</label></div></div>' +
@@ -961,7 +961,7 @@
 				'<div class="panel2"><label class="head">' + krMsg('loadfromtop') + '<input type="checkbox" class="switch" id="rc-options-autodiff-top" /></label></div>' +
 				'<div class="sep2"></div>' +
 				'<div class="panel2"><label class="head">Pause<input id="krRTRC_toggleRefresh" class="switch" type="checkbox" /></label></div>' +
-			'</fieldset></form></div>' +
+			'</fieldset></form>' +
 			'<a name="krRTRC_DiffTop" />' +
 			'<div class="mw-rtrc-diff" id="krRTRC_DiffFrame" style="display: none;"></div>' +
 			'<div id="krRTRC_RCOutput" class="placeholder plainlinks">' + rcLegendHtml + '</div>' +
@@ -1146,11 +1146,11 @@
 		});
 
 		// Link helpicons
-		$('#krRTRC_RCForm .helpicon')
+		$('.mw-rtrc-settings .helpicon')
 			.attr('title', krMsg('clickforinfo'))
-			.click(function () {
+			.click(function (e) {
+				e.preventDefault();
 				window.open(docUrl + '#' + $(this).attr('section'), '_blank');
-				return false;
 			});
 
 		// Clear rcuser-field
