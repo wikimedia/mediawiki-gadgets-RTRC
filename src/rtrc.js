@@ -1078,41 +1078,50 @@
 
 		// Mark as patrolled
 		$('.patrollink').live('click', function () {
-			$('.patrollink > a').html(krMsg('markaspatrolleddiff') + '...');
+			var $el = $(this);
+			$el.find('a').text(krMsg('markaspatrolleddiff') + '...');
 			$.ajax({
 				type: 'POST',
-				url: apiUrl + '?action=patrol&format=xml&list=recentchanges&rcid=' + currentDiffRcid + '&token=' + userPatrolTokenCache,
-				dataType: 'xml',
-				success: function (rawback) {
-					if ($(rawback).find('error').length) {
-						$('.patrollink').html('<span style="color: red;">' + krMsg('markedaspatrollederror') + '</span>');
-						mw.log('PatrolError: ' + $(rawback).find('error').attr('code') + '; info: ' + $(rawback).find('error').attr('info'));
-					} else {
-						$('.patrollink').html('<span style="color: green;">' + krMsg('markedaspatrolled') + '</span>');
-						$('#krRTRC_RCOutput > .feed div[rcid="' + currentDiffRcid + '"]').addClass('patrolled');
-
-						// Patrolling/Refreshing sometimes overlap eachother causing patrolled edits to show up in an 'unpatrolled only' feed.
-						// Make sure that any patrolled edits stay marked as such to prevent AutoDiff from picking a patrolled edit
-						// See also krRTRC_RebindElements()
-						patrolledRCIDs.push(currentDiffRcid);
-
-						while (patrolledRCIDs.length > patrolCacheSize) {
-							mw.log('MarkPatrolCache -> Cache array is bigger then cachemax, shifting array(' + patrolledRCIDs.length + ' vs. ' + patrolCacheSize + '). Current array:');
-							mw.log(patrolledRCIDs);
-							patrolledRCIDs.shift();
-							mw.log('MarkPatrolCache -> Cache array is shifted. New array:');
-							mw.log(patrolledRCIDs);
-						}
-
-						if (optAutoDiff) {
-							krRTRC_NextDiff();
-						}
-					}
+				url: apiUrl,
+				data: {
+					action: 'patrol',
+					format: 'json',
+					list: 'recentchanges',
+					rcid: currentDiffRcid,
+					token: userPatrolTokenCache
 				},
-				error: function () {
-					$('.patrollink').html('<span style="color: red;">' + krMsg('markedaspatrollederror') + '</span>');
+				dataType: 'json'
+			}).done(function (data) {
+				if (!data || data.error) {
+					$el.empty().append(
+						$('<span style="color: red;"></span>').text(krMsg('markedaspatrollederror'))
+					);
+					mw.log('Patrol error:', data);
+				} else {
+					$el.empty().append(
+						$('<span style="color: green;"></span>').text(krMsg('markedaspatrolled'))
+					);
+					$('#krRTRC_RCOutput > .feed div[rcid="' + currentDiffRcid + '"]').addClass('patrolled');
+
+					// Patrolling/Refreshing sometimes overlap eachother causing patrolled edits to show up in an 'unpatrolled only' feed.
+					// Make sure that any patrolled edits stay marked as such to prevent AutoDiff from picking a patrolled edit
+					// See also krRTRC_RebindElements()
+					patrolledRCIDs.push(currentDiffRcid);
+
+					while (patrolledRCIDs.length > patrolCacheSize) {
+						patrolledRCIDs.shift();
+					}
+
+					if (optAutoDiff) {
+						krRTRC_NextDiff();
+					}
 				}
+			}).fail(function () {
+				$el.empty().append(
+					$('<span style="color: red;"></span>').text(krMsg('markedaspatrollederror'))
+				);
 			});
+
 			return false;
 		});
 
@@ -1144,15 +1153,16 @@
 		});
 
 		// Link helpicons
-		$('#krRTRC_RCForm .helpicon').attr('title', krMsg('clickforinfo'));
-		$('#krRTRC_RCForm .helpicon').live('click', function () {
-			window.open(docUrl + '#' + $(this).attr('section'), '_blank');
-			return false;
-		});
+		$('#krRTRC_RCForm .helpicon')
+			.attr('title', krMsg('clickforinfo'))
+			.click(function () {
+				window.open(docUrl + '#' + $(this).attr('section'), '_blank');
+				return false;
+			});
 
 		// Clear rcuser-field
 		// If MassPatrol is active, warn that clearing rcuser will automatically disable MassPatrol f
-		$('#RCOptions_RcuserClr').live('click', function () {
+		$('#RCOptions_RcuserClr').click(function () {
 			if (optMassPatrol) {
 				var a = confirm(krMsg('masspatrol_userfilterconfirm'));
 				if (a) {
