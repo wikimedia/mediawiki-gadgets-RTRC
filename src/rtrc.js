@@ -103,7 +103,13 @@
 
 	if (!String.prototype.ucFirst) {
 		String.prototype.ucFirst = function () {
-			return this.substr(0, 1).toUpperCase() + this.substr(1, this.length);
+			// http://jsperf.com/ucfirst/4
+			// http://jsperf.com/ucfirst-replace-vs-substr/3
+			// str.charAt(0).toUpperCase() + str.substr(1);
+			// str[0].toUpperCase() + str.slice(1);
+			// str.charAt(0).toUpperCase() + str.substring(1);
+			// str.substr(0, 1).toUpperCase() + str.substr(1, this.length);
+			return this.charAt(0).toUpperCase() + this.substring(1);
 		};
 	}
 
