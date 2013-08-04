@@ -118,7 +118,7 @@
 	}
 
 	// Check if a variable is 'empty'
-	function krEmpty(v) {
+	function isEmpty(v) {
 		var key;
 
 		if (v === '' || v === '0' || v === 0 || v === false || v === null || v === undefined) {
@@ -357,7 +357,7 @@
 		}
 
 		optUser = $('#rc-options-rcuser').val() === '' ? false : $.trim($('#rc-options-rcuser').val());
-		if (!krEmpty(optUser)) {
+		if (!isEmpty(optUser)) {
 			optUser = '&rcuser=' + optUser;
 		} else {
 			optUser = '';
@@ -384,8 +384,8 @@
 			optRctype = 'edit|new';
 		}
 
-		optFrom = krEmpty($.trim($('#rc-options-timeframe-rcfrom').val())) ? false : $.trim($('#rc-options-timeframe-rcfrom').val());
-		optUntill = krEmpty($.trim($('#rc-options-timeframe-rcuntill').val())) ? false : $.trim($('#rc-options-timeframe-rcuntill').val());
+		optFrom = isEmpty($.trim($('#rc-options-timeframe-rcfrom').val())) ? false : $.trim($('#rc-options-timeframe-rcfrom').val());
+		optUntill = isEmpty($.trim($('#rc-options-timeframe-rcuntill').val())) ? false : $.trim($('#rc-options-timeframe-rcuntill').val());
 
 		if (optOrder === 'older') {
 			if (krRTRC_isInt(parseInt(optUntill, 10)) && timeUtil.apiApplyWikiOffset(optUntill)) {
