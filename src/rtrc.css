@@ -139,6 +139,11 @@
 	top: 1px;
 }
 
+.mw-rtrc-wrapper select {
+	/* Reset Vector's select { vertical-align: top; } */
+	vertical-align: baseline;
+}
+
 .mw-rtrc-wrapper .helpicon {
 	display: inline-block;
 	margin-left: 0.3em;
