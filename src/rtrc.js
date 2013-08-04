@@ -946,7 +946,7 @@
 				'<div class="sep"></div>' +
 				'<div class="panel"><label for="rc-options-namespace" class="head">' + krMsg('namespaces') + '</label>' + rcNamespaceDropdown + '</div>' +
 				'<div class="sep"></div>' +
-				'<div class="panel"><label class="head">' + krMsg('order') + ' <br /><span section="Order" class="helpicon"></span></label><div style="text-align: left;"><input type="radio" name="rc-options-rcdir" value="asc"> ' + krMsg('asc') + ' <br /><input type="radio" name="rc-options-rcdir" value="desc" checked="checked"> ' + krMsg('desc') + ' </div></div>' +
+				'<div class="panel"><label class="head">' + krMsg('order') + ' <br /><span section="Order" class="helpicon"></span></label><div style="text-align: left;"><label><input type="radio" name="rc-options-rcdir" value="asc"> ' + krMsg('asc') + '</label><br /><label><input type="radio" name="rc-options-rcdir" value="desc" checked="checked"> ' + krMsg('desc') + '</label></div></div>' +
 				'<div class="sep"></div>' +
 				'<div class="panel"><label for="rc-options-interval" class="head">R <br /><span section="Reload_Interval" class="helpicon"></span></label><input type="text" value="3" size="1" id="rc-options-interval" name="rc-options-interval"></div>' +
 				'<div class="sep"></div>' +
