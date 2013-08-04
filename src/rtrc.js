@@ -726,7 +726,7 @@
 		a += optIRCBL ? '&ircbl=on' : '';
 		a += optAutoDiff ? '&autodiff=on' : '';
 		a += optAutoDiffTop ? '&autodiff_top=on' : '';
-		return mw.util.wikiScript() + '?' + $.param({ title: conf.wgPageName, jumpstart: 'on' }) + a;
+		return mw.util.wikiScript() + '?title=' + mw.util.wikiUrlencode(conf.wgPageName) + '&jumpstart=on&' + a;
 	}
 
 	function krRTRC_NextDiff() {
