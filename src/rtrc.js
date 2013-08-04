@@ -106,12 +106,6 @@
 		};
 	}
 
-	if (!String.prototype.escapeRE) {
-		String.prototype.escapeRE = function () {
-			return this.replace(/([\\{}()|.?*+\^$\[\]])/g, '\\$1');
-		};
-	}
-
 	// Encode/decode htmlentities
 	function krEncodeEntities(s) {
 		return $('<div>').text(s).html();
