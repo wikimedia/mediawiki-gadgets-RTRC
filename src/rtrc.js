@@ -90,6 +90,7 @@
 	timeUtil,
 	dModules,
 
+	currentDiffRcid, krRTRC_TipTime,
 	$krRTRC_Tip, $krRTRC_MassPatrol, $krRTRC_Tiptext;
 
 	// implied globals, legacy click handlers
@@ -104,11 +105,6 @@
 		String.prototype.ucFirst = function () {
 			return this.substr(0, 1).toUpperCase() + this.substr(1, this.length);
 		};
-	}
-
-	// Encode/decode htmlentities
-	function krEncodeEntities(s) {
-		return $('<div>').text(s).html();
 	}
 
 	// Get interface message
@@ -327,7 +323,7 @@
 		item += '<div first>(' + diffLink + ') ' + typeSymbol + ' ';
 		item += timeUtil.getClocktimeFromApi(timestamp) + ' <a class="page" href="' + getWikipageUrl(title) + '?rcid=' + rcid + '" target="_blank">' + title + '</a></div>';
 		item += '<div user>&nbsp;<small>&middot;&nbsp;<a href="' + getWikipageUrl('User talk:' + user) + '" target="_blank">T</a> &middot; <a href="' + getWikipageUrl('Special:Contributions/' + user) + '" target="_blank">C</a>&nbsp;</small>&middot;&nbsp;<a class="user" href="' + getWikipageUrl('User:' + user) + '" target="_blank">' + user + '</a></div>';
-		item += '<div other>&nbsp;<span class="comment">' + krEncodeEntities(comment) + '</span></div>';
+		item += '<div other>&nbsp;<span class="comment">' + mw.html.escape(comment) + '</span></div>';
 
 		if (diffsize > 0) {
 			el = diffsize > 399 ? 'strong' : 'span';
@@ -342,6 +338,7 @@
 		item += '</div>';
 		return item;
 	}
+
 
 	function krRTRC_GetRCOptions() {
 
@@ -365,6 +362,9 @@
 		} else {
 			optUser = '';
 		}
+
+		// Title filter option (rctitles) is no longer supported by MediaWiki (disabled),
+		// see https://bugzilla.wikimedia.org/show_bug.cgi?id=12394#c5.
 
 		optTypeEditoptUser = $('#rc-options-type-edit:checked').val() === 'on';
 		optTypeNewpage = $('#rc-options-type-newpage:checked').val() === 'on';
@@ -445,7 +445,7 @@
 		});
 
 		// The current diff in diff-view stays marked
-		$('#krRTRC_RCOutput > .feed div[rcid="' + window.currentDiffRcid + '"]').addClass('indiff');
+		$('#krRTRC_RCOutput > .feed div[rcid="' + currentDiffRcid + '"]').addClass('indiff');
 
 		// All http-links within the diff-view open in a new window
 		$('#krRTRC_DiffFrame > table.diff a[href^="http://"], #krRTRC_DiffFrame > table.diff a[href^="https://"], #krRTRC_DiffFrame > table.diff a[href^="//"]').attr('target', '_blank');
@@ -758,12 +758,12 @@
 			top: (o.top - 23) + 'px',
 			display: 'block'
 		}).show();
-		window.krRTRC_TipTime = setTimeout(krRTRC_TipOut, 3000);
+		krRTRC_TipTime = setTimeout(krRTRC_TipOut, 3000);
 	}
 
 	function krRTRC_TipOut() {
-		if (window.krRTRC_TipTime !== undefined) {
-			clearTimeout(window.krRTRC_TipTime);
+		if (krRTRC_TipTime !== undefined) {
+			clearTimeout(krRTRC_TipTime);
 		}
 		$krRTRC_Tip.hide();
 	}
@@ -906,7 +906,7 @@
 	//
 	// Prepares the page
 	krRTRC_initFuncs2[0] = function () {
-		var ns,
+		var ns, $wrapper,
 			fmNs = mw.config.get('wgFormattedNamespaces');
 
 		$('#p-namespaces ul')
@@ -934,7 +934,7 @@
 
 		rcNamespaceDropdown += '</select>';
 
-		$('#content').html(
+		$wrapper = $($.parseHTML(
 		'<div class="mw-rtrc-wrapper">' +
 			'<div class="mw-rtrc-head">Real-Time Recent Changes <small>(' + appVersion + ')</small><div class="mw-rtrc-head-links"><a target="_blank" href="' + getWikipageUrl('Special:Log/patrol') + '?user=' + encodeURIComponent(mw.user.name()) + '">' + krMsg('mypatrollog').ucFirst() + '</a> <a id="toggleHelp" href="#toggleHelp">Help</a></div></div>' +
 			'<div id="krRTRC_RCForm"><form><fieldset id="krRTRC_RCOptions" class="mw-rtrc-settings mw-rtrc-nohelp make-switch">' +
@@ -946,9 +946,6 @@
 				'<div class="sep"></div>' +
 				'<div class="panel"><label class="head">' + krMsg('type') + '</label><div style="text-align:left"><input type="checkbox" value="on" id="rc-options-type-edit" name="rc-options-type-edit" checked="checked"><label for="rc-options-type-edit"> ' + krMsg('edits') + '</label><br /><input type="checkbox" checked="checked" value="on" id="rc-options-type-newpage" name="rc-options-type-newpage"><label for="rc-options-type-newpage"> ' + krMsg('newpages') + '</label></div></div>' +
 				'<div class="sep"></div>' +
-				// RCTITLES DISABLED: https://bugzilla.wikimedia.org/show_bug.cgi?id=12394#c5
-				// '<div class="panel"><label class="head" for="rc-options-rctitle">' + krMsg('pagefilter-opt') + '<span section="Pagefilter" class="helpicon"></span></label><div style="text-align: center;"><input type="text" value="" size="16" id="rc-options-rctitle" name="rc-options-rctitle" /><br /><input class="button" type="button" id="RCOptions_RctitleClr" value="' + krMsg('clear') + '" /></div></div>' +
-				//'<div class="sep"></div>' +
 				'<div class="panel"><label class="head">' + krMsg('timeframe-opt') + '<span section="Timeframe" class="helpicon"></span></label><div style="text-align: right;"><label for="rc-options-timeframe-rcfrom">' + krMsg('from') + ': </label><input type="text" value="" size="14" id="rc-options-timeframe-rcfrom" name="rc-options-timeframe-rcfrom"><br /><label for="rc-options-timeframe-rcuntill">' + krMsg('untill') + ': </label><input type="text" value="" size="14" id="rc-options-timeframe-rcuntill" name="rc-options-timeframe-rcuntill"></div></div>' +
 				'<div class="sep"></div>' +
 				'<div class="panel"><label for="rc-options-namespace" class="head">' + krMsg('namespaces') + '</label>' + rcNamespaceDropdown + '</div>' +
@@ -979,8 +976,15 @@
 				' | <a href="//meta.wikimedia.org/wiki/User:Krinkle/Tools/Real-Time_Recent_Changes" class="external text" rel="nofollow">' + krMsg('documentation') + '</a>' +
 				' | <a href="http://krinkle.mit-license.org" class="external text" rel="nofollow">License</a>' +
 			'</div></div>' +
-		'</div>')
-			.find( 'input.switch' ).after('<div class="switched"></div>');
+		'</div>'
+		))
+			// Add helper element for switch checkboxes
+			.find('input.switch')
+				.after('<div class="switched"></div>')
+				.end();
+
+
+		$('#content').empty().append($wrapper);
 		$('body').append('<div id="krRTRC_Tip" class="plainlinks"><span id="krRTRC_Tiptext"></span></div>');
 
 		$('#krRTRC_RCOutput').prepend('<div class="feed"></div><img src="' + ajaxLoaderUrl + '" id="krRTRC_loader" style="display: none;" />');
@@ -1010,22 +1014,22 @@
 		$('#diffClose').live('click', function () {
 			$('#krRTRC_DiffFrame').fadeOut('fast');
 			window.currentDiff = '';
-			window.currentDiffRcid = '';
+			currentDiffRcid = '';
 		});
 
 		// Load diffview on (diff)-link click
 		window.currentDiff = '';
-		window.currentDiffRcid = '';
+		currentDiffRcid = '';
 		$('a.diff').live('click', function () {
 			window.currentDiff = $(this).attr('diff');
-			window.currentDiffRcid = $(this).attr('rcid');
+			currentDiffRcid = $(this).attr('rcid');
 			var title = $(this).parent().find('>a.page').text(),
 				href = $(this).parent().find('>a.diff').attr('href');
 			$('#krRTRC_DiffFrame')
 			.removeAttr('style'/* this resets style="max-height: 400;" from a.newPage below */)
 			.load(mw.util.wikiScript() + '?action=render&diff=' + window.currentDiff + '&diffonly=1&uselang=' + conf.wgUserLanguage, function () {
 				$(this).html($(this).html().replace('diffonly=', 'krinkle=').replace('diffonly=', 'krinkle='));
-				if (krInArray(window.currentDiffRcid, skippedRCIDs)) {
+				if (krInArray(currentDiffRcid, skippedRCIDs)) {
 					skipButtonHtml = '<span class="tab"><a id="diffUnskip">Unskip</a></span>';
 				} else {
 					skipButtonHtml = '<span class="tab"><a id="diffSkip">Skip</a></span>';
@@ -1049,12 +1053,12 @@
 			return false;
 		});
 		$('a.newPage').live('click', function () {
-			window.currentDiffRcid = $(this).attr('rcid');
+			currentDiffRcid = $(this).attr('rcid');
 			var title = $(this).parent().find('> a.page').text(),
 				href = $(this).parent().find('> a.page').attr('href');
 
 			$('#krRTRC_DiffFrame').css('max-height', '400px').load(href + '&action=render&uselang=' + conf.wgUserLanguage, function () {
-				if (krInArray(window.currentDiffRcid, skippedRCIDs)) {
+				if (krInArray(currentDiffRcid, skippedRCIDs)) {
 					skipButtonHtml = '<span class="tab"><a id="diffUnskip">Unskip</a></span>';
 				} else {
 					skipButtonHtml = '<span class="tab"><a id="diffSkip">Skip</a></span>';
@@ -1074,7 +1078,7 @@
 			$('.patrollink > a').html(krMsg('markaspatrolleddiff') + '...');
 			$.ajax({
 				type: 'POST',
-				url: apiUrl + '?action=patrol&format=xml&list=recentchanges&rcid=' + window.currentDiffRcid + '&token=' + userPatrolTokenCache,
+				url: apiUrl + '?action=patrol&format=xml&list=recentchanges&rcid=' + currentDiffRcid + '&token=' + userPatrolTokenCache,
 				dataType: 'xml',
 				success: function (rawback) {
 					if ($(rawback).find('error').length) {
@@ -1082,12 +1086,12 @@
 						mw.log('PatrolError: ' + $(rawback).find('error').attr('code') + '; info: ' + $(rawback).find('error').attr('info'));
 					} else {
 						$('.patrollink').html('<span style="color: green;">' + krMsg('markedaspatrolled') + '</span>');
-						$('#krRTRC_RCOutput > .feed div[rcid="' + window.currentDiffRcid + '"]').addClass('patrolled');
+						$('#krRTRC_RCOutput > .feed div[rcid="' + currentDiffRcid + '"]').addClass('patrolled');
 
 						// Patrolling/Refreshing sometimes overlap eachother causing patrolled edits to show up in an 'unpatrolled only' feed.
 						// Make sure that any patrolled edits stay marked as such to prevent AutoDiff from picking a patrolled edit
 						// See also krRTRC_RebindElements()
-						patrolledRCIDs.push(window.currentDiffRcid);
+						patrolledRCIDs.push(currentDiffRcid);
 
 						while (patrolledRCIDs.length > patrolCacheSize) {
 							mw.log('MarkPatrolCache -> Cache array is bigger then cachemax, shifting array(' + patrolledRCIDs.length + ' vs. ' + patrolCacheSize + '). Current array:');
@@ -1116,17 +1120,17 @@
 
 		// SkipDiff
 		$('#diffSkip').live('click', function () {
-			$('#krRTRC_RCOutput > .feed div[rcid=' + window.currentDiffRcid + ']').addClass('skipped');
+			$('#krRTRC_RCOutput > .feed div[rcid=' + currentDiffRcid + ']').addClass('skipped');
 			// Add to array, to reAddClass after refresh in krRTRC_RebindElements
-			skippedRCIDs.push(window.currentDiffRcid);
+			skippedRCIDs.push(currentDiffRcid);
 			krRTRC_NextDiff(); // Load next
 		});
 
 		// UnskipDiff
 		$('#diffUnskip').live('click', function () {
-			$('#krRTRC_RCOutput > .feed div[rcid=' + window.currentDiffRcid + ']').removeClass('skipped');
+			$('#krRTRC_RCOutput > .feed div[rcid=' + currentDiffRcid + ']').removeClass('skipped');
 			// Remove from array, to no longer reAddClass after refresh
-			skippedRCIDs.splice(skippedRCIDs.indexOf(window.currentDiffRcid), 1);
+			skippedRCIDs.splice(skippedRCIDs.indexOf(currentDiffRcid), 1);
 			//krRTRC_NextDiff(); // Load next ?
 		});
 
@@ -1165,9 +1169,9 @@
 			krRTRC_TipOut();
 		});
 		$('#krRTRC_Tip').hover(function () {
-			clearTimeout(window.krRTRC_TipTime);
+			clearTimeout(krRTRC_TipTime);
 		}, function () {
-			window.krRTRC_TipTime = setTimeout(krRTRC_TipOut, 1000);
+			krRTRC_TipTime = setTimeout(krRTRC_TipOut, 1000);
 		});
 
 		$('#krRTRC_list *').live('mouseover', function (e) {
