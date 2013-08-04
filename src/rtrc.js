@@ -113,7 +113,7 @@
 	}
 
 	// Returns a GET-parameter as string
-	function krGetUrlParam(s, url) {
+	function getParamValue(s, url) {
 		return mw.util.getParamValue(s, url);
 	}
 
@@ -448,7 +448,7 @@
 		$('#krRTRC_RCOutput > .feed div[rcid="' + currentDiffRcid + '"]').addClass('indiff');
 
 		// All http-links within the diff-view open in a new window
-		$('#krRTRC_DiffFrame > table.diff a[href^="http://"], #krRTRC_DiffFrame > table.diff a[href^="https://"], #krRTRC_DiffFrame > table.diff a[href^="//"]').attr('target', '_blank');
+		$('#krRTRC_DiffFrame > table.diff a').filter('a[href^="http://"], a[href^="https://"], a[href^="//"]').attr('target', '_blank');
 
 	}
 
@@ -603,7 +603,7 @@
 						rcFeedMemHTML += htmloutput + '</div>';
 						if (optIRCBL) {
 							krRTRC_ApplyIRCBL();
-							//isUpdating is set to false within krRTRC_ApplyIRCBL()
+							// isUpdating is set to false within krRTRC_ApplyIRCBL()
 						} else {
 							krRTRC_PushFrontend();
 							isUpdating = false;
@@ -624,7 +624,6 @@
 	}
 
 	function krRTRC_hardRefresh() {
-
 		rcRefreshEnabled = true;
 		$('#krRTRC_toggleRefresh').prop('checked', false);
 		krRTRC_GetRCOptions();
@@ -637,69 +636,69 @@
 	function krRTRC_ProcesPermalink(l) {
 		var get;
 
-		get = krGetUrlParam('rclimit', l);
+		get = getParamValue('rclimit', l);
 		$('#rc-options-limit option[value=' + get + ']').prop('selected', true);
 
-		get = krGetUrlParam('rcshow_anon', l);
+		get = getParamValue('rcshow_anon', l);
 		if (get === 'on') {
 			$('#rc-options-filter-anons').prop('checked', true);
 		}
 
-		get = krGetUrlParam('rcshow_patrol', l);
+		get = getParamValue('rcshow_patrol', l);
 		if (get === 'on') {
 			$('#rc-options-filter-unpatrolled').prop('checked', true);
 		}
 
-		get = krGetUrlParam('rcuser', l);
+		get = getParamValue('rcuser', l);
 		$('#rc-options-rcuser').val(get);
 
-		get = krGetUrlParam('typeedit', l);
+		get = getParamValue('typeedit', l);
 		if (get === 'off') {
 			$('#rc-options-type-edit').prop('checked', false);
 		}
 
-		get = krGetUrlParam('typenewpage', l);
+		get = getParamValue('typenewpage', l);
 		if (get === 'off') {
 			$('#rc-options-type-newpage').prop('checked', false);
 		}
 
-		get = krGetUrlParam('rcfrom', l);
+		get = getParamValue('rcfrom', l);
 		$('#rc-options-timeframe-rcfrom').val(get);
 
-		get = krGetUrlParam('rcuntill', l);
+		get = getParamValue('rcuntill', l);
 		$('#rc-options-timeframe-rcuntill').val(get);
 
 		// optNS
-		get = krGetUrlParam('rcnamespace', l);
+		get = getParamValue('rcnamespace', l);
 		$('#rc-options-namespace option[value=' + get + ']').prop('selected', true);
 
-		get = krGetUrlParam('rcdir', l);
+		get = getParamValue('rcdir', l);
 		if (get === 'asc') {
 			$('#krRTRC_RCOptions input[name=rc-options-rcdir][value=asc]').prop('checked', true);
 			$('#krRTRC_RCOptions input[name=rc-options-rcdir][value=desc]').prop('checked', false);
 		}
 
-		get = krGetUrlParam('ajaxint', l);
+		get = getParamValue('ajaxint', l);
 		if (get !== '' && get !== ' ' && get !== null && get !== false) {
 			$('#rc-options-interval').val(get);
 		}
 
-		get = krGetUrlParam('ircbl', l);
+		get = getParamValue('ircbl', l);
 		if (get === 'on') {
 			$('#rc-options-ircbl').prop('checked', true);
 		}
 
-		get = krGetUrlParam('autodiff');
+		get = getParamValue('autodiff');
 		if (get === 'on') {
 			$('#rc-options-autodiff').prop('checked', true);
 		}
 
-		get = krGetUrlParam('autodiff_top', l);
+		get = getParamValue('autodiff_top', l);
 		if (get === 'on') {
 			$('#rc-options-autodiff-top').prop('checked', true);
 		}
 
-		get = krGetUrlParam('jumpstart', l);
+		get = getParamValue('jumpstart', l);
 		if (get === 'on') {
 			get = krRTRC_GetRCOptions();
 			krRTRC_hardRefresh();
