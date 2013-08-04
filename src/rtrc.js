@@ -420,10 +420,8 @@
 
 		optIRCBL = $('#rc-options-ircbl').prop('checked');
 
-		optAutoDiff = $('#rc-options-autodiff').val();
-		optAutoDiff = optAutoDiff === 'On';
-		optAutoDiffTop = $('#rc-options-autodiff-top:checked').val();
-		optAutoDiffTop = optAutoDiffTop === 'on';
+		optAutoDiff = $('#rc-options-autodiff').prop('checked');
+		optAutoDiffTop = $('#rc-options-autodiff-top').prop('checked');
 
 		apiRecentChangesQueryUrl = apiUrl + '?action=query&format=xml&list=recentchanges' + optUser + '' + optPage + '&rctype=' + optRctype + '&rcshow=!bot' + optRcshow + '&rcprop=flags|timestamp|user|title|comment|sizes|ids' + optRcprop + '&rcnamespace=' + optNS + '&rclimit=' + optLimit + '&rcdir=' + optOrder + optRcstart + optRcend;
 		return apiRecentChangesQueryUrl;
@@ -1240,7 +1238,6 @@
 		// Checkbox: AutoDiff from top
 		$('#rc-options-autodiff-top').click(function () {
 			optAutoDiffTop = !optAutoDiffTop;
-			$(this).prop('checked', optAutoDiffTop);
 		});
 
 		// Button: Pause
