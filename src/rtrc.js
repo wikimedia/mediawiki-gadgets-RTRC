@@ -344,11 +344,11 @@
 
 		optLimit = $('#rc-options-limit').val();
 
-		optFiltAnon = $('#rc-options-filter-anons:checked').val();
-		optRcshow = optFiltAnon === 'on' ? '|anon' : '';
+		optFiltAnon = $('#rc-options-filter-anons').prop('checked');
+		optRcshow = optFiltAnon ? '|anon' : '';
 
-		optFiltPatrol = $('#rc-options-filter-unpatrolled:checked').val();
-		if (optFiltPatrol === 'on') {
+		optFiltPatrol = $('#rc-options-filter-unpatrolled').prop('checked');
+		if (optFiltPatrol) {
 			optRcshow += '|!patrolled';
 		}
 
@@ -366,8 +366,8 @@
 		// Title filter option (rctitles) is no longer supported by MediaWiki (disabled),
 		// see https://bugzilla.wikimedia.org/show_bug.cgi?id=12394#c5.
 
-		optTypeEditoptUser = $('#rc-options-type-edit:checked').val() === 'on';
-		optTypeNewpage = $('#rc-options-type-newpage:checked').val() === 'on';
+		optTypeEditoptUser = $('#rc-options-type-edit').prop('checked');
+		optTypeNewpage = $('#rc-options-type-newpage').prop('checked');
 		optRctype = [];
 		if (optTypeEditoptUser) {
 			optRctype.push('edit');
@@ -418,7 +418,7 @@
 
 		optRInt = parseInt($('#rc-options-interval').val(), 10) * 1000;
 
-		optIRCBL = $('#rc-options-ircbl:checked').val() === 'on';
+		optIRCBL = $('#rc-options-ircbl').prop('checked');
 
 		optAutoDiff = $('#rc-options-autodiff').val();
 		optAutoDiff = optAutoDiff === 'On';
@@ -660,7 +660,7 @@
 
 		get = krGetUrlParam('typenewpage', l);
 		if (get === 'off') {
-			$('#rc-options-type-newpage').prop('checked');
+			$('#rc-options-type-newpage').prop('checked', false);
 		}
 
 		get = krGetUrlParam('rcfrom', l);
@@ -940,11 +940,11 @@
 			'<div id="krRTRC_RCForm"><form><fieldset id="krRTRC_RCOptions" class="mw-rtrc-settings mw-rtrc-nohelp make-switch">' +
 				'<div class="panel"><label for="rc-options-limit" class="head">' + krMsg('limit') + '</label><select id="rc-options-limit" name="rc-options-limit"><option value="10">10</option><option selected="" value="25">25</option><option value="50">50</option><option value="75">75</option><option value="100">100</option></select></div>' +
 				'<div class="sep"></div>' +
-				'<div class="panel"><label class="head">' + krMsg('filter') + '</label><div style="text-align:left"><input type="checkbox" value="on" id="rc-options-filter-anons" name="rc-options-filter-anons"><label for="rc-options-filter-anons"> ' + krMsg('anononly') + '</label><br /><input type="checkbox" value="on" id="rc-options-filter-unpatrolled" name="rc-options-filter-unpatrolled"><label for="rc-options-filter-unpatrolled"> ' + krMsg('unpatrolledonly') + '</label></div></div>' +
+				'<div class="panel"><label class="head">' + krMsg('filter') + '</label><div style="text-align:left"><input type="checkbox" id="rc-options-filter-anons" name="rc-options-filter-anons"><label for="rc-options-filter-anons"> ' + krMsg('anononly') + '</label><br /><input type="checkbox" id="rc-options-filter-unpatrolled" name="rc-options-filter-unpatrolled"><label for="rc-options-filter-unpatrolled"> ' + krMsg('unpatrolledonly') + '</label></div></div>' +
 				'<div class="sep"></div>' +
 				'<div class="panel"><label for="rc-options-rcuser" class="head">' + krMsg('userfilter-opt') + '<span section="Userfilter" class="helpicon"></span></label><div style="text-align: center;"><input type="text" value="" size="16" id="rc-options-rcuser" name="rc-options-rcuser" /><br /><input class="button button-small" type="button" id="RCOptions_RcuserClr" value="' + krMsg('clear') + '" /></div></div>' +
 				'<div class="sep"></div>' +
-				'<div class="panel"><label class="head">' + krMsg('type') + '</label><div style="text-align:left"><input type="checkbox" value="on" id="rc-options-type-edit" name="rc-options-type-edit" checked="checked"><label for="rc-options-type-edit"> ' + krMsg('edits') + '</label><br /><input type="checkbox" checked="checked" value="on" id="rc-options-type-newpage" name="rc-options-type-newpage"><label for="rc-options-type-newpage"> ' + krMsg('newpages') + '</label></div></div>' +
+				'<div class="panel"><label class="head">' + krMsg('type') + '</label><div style="text-align:left"><input type="checkbox" id="rc-options-type-edit" name="rc-options-type-edit" checked="checked"><label for="rc-options-type-edit"> ' + krMsg('edits') + '</label><br /><input type="checkbox" checked="checked" id="rc-options-type-newpage" name="rc-options-type-newpage"><label for="rc-options-type-newpage"> ' + krMsg('newpages') + '</label></div></div>' +
 				'<div class="sep"></div>' +
 				'<div class="panel"><label class="head">' + krMsg('timeframe-opt') + '<span section="Timeframe" class="helpicon"></span></label><div style="text-align: right;"><label for="rc-options-timeframe-rcfrom">' + krMsg('from') + ': </label><input type="text" value="" size="14" id="rc-options-timeframe-rcfrom" name="rc-options-timeframe-rcfrom"><br /><label for="rc-options-timeframe-rcuntill">' + krMsg('untill') + ': </label><input type="text" value="" size="14" id="rc-options-timeframe-rcuntill" name="rc-options-timeframe-rcuntill"></div></div>' +
 				'<div class="sep"></div>' +
@@ -954,7 +954,7 @@
 				'<div class="sep"></div>' +
 				'<div class="panel"><label for="rc-options-interval" class="head">R <br /><span section="Reload_Interval" class="helpicon"></span></label><input type="text" value="3" size="1" id="rc-options-interval" name="rc-options-interval"></div>' +
 				'<div class="sep"></div>' +
-				'<div class="panel"><label class="head" for="rc-options-ircbl">IRCBL<br /><span section="IRC_Blacklist" class="helpicon"></span></label><input type="checkbox" value="on" size id="rc-options-ircbl" name="rc-options-ircbl" /></div>' +
+				'<div class="panel"><label class="head" for="rc-options-ircbl">IRCBL<br /><span section="IRC_Blacklist" class="helpicon"></span></label><input type="checkbox" id="rc-options-ircbl" name="rc-options-ircbl" /></div>' +
 				'<div class="sep"></div>' +
 				'<div class="panel panel-last"><input class="button" type="button" id="RCOptions_submit" value="' + krMsg('apply') + '" /></div>' +
 				'<hr style="clear: both;" />' +
@@ -1135,7 +1135,7 @@
 		});
 
 		// Show helpicons
-		$('#toggleHelp').live('click', function (e) {
+		$('#toggleHelp').click(function (e) {
 			e.preventDefault();
 			$('#krRTRC_RCOptions').toggleClass('mw-rtrc-nohelp');
 		});
@@ -1246,20 +1246,13 @@
 
 		// Button: Pause
 		$('#krRTRC_toggleRefresh').click(function () {
-			mw.log('#krRTRC_toggleRefresh clicked');
-			if (rcRefreshEnabled) {
+			if (this.checked) {
 				rcRefreshEnabled = false;
-				$(this).prop('checked', true);
 				clearTimeout(rcRefreshTimeout);
-			} else if (!rcRefreshEnabled) {
-				rcRefreshEnabled = true;
-				$(this).prop('checked', false);
-				krRTRC_hardRefresh();
-			} else {
-				$(this).prop('checked', true);
-				clearTimeout(rcRefreshTimeout);
+				return;
 			}
-			return false;
+			rcRefreshEnabled = true;
+			krRTRC_hardRefresh();
 		});
 
 	};
@@ -1298,7 +1291,7 @@
 			}
 
 			// Map over months
-			monthNames = krMsg('months').split(',');
+			//FIXME: monthNames = krMsg('months').split(',');
 
 			// Start first phase of init
 			krRTRC_init1();
