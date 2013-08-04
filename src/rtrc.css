@@ -141,6 +141,7 @@
 
 .mw-rtrc-wrapper .helpicon {
 	display: inline-block;
+	margin-left: 0.3em;
 	vertical-align: middle;
 	width: 18px;
 	height: 18px;
@@ -255,19 +256,19 @@
 .mw-rtrc-settings .button:active {
 	box-shadow: inset 0 4px 6px rgba(0, 0, 0, 0.250);
 }
-.mw-rtrc-settings .button-off {
+.mw-rtrc-settings .button-green {
 	background-color: #4cae4c;
 	border-color: #449d44;
 }
-.mw-rtrc-settings .button-off:hover	{
+.mw-rtrc-settings .button-green:hover	{
 	background-color: #5cb85c;
 	border-color: #5cb85c;
 }
-.mw-rtrc-settings .button-on {
+.mw-rtrc-settings .button-red {
 	background-color: #d43f3a;
 	border-color: #c9302c;
 }
-.mw-rtrc-settings .button-on:hover {
+.mw-rtrc-settings .button-red:hover {
 	background-color: #d9534f;
 	border-color: #d9534f;
 }
@@ -377,79 +378,83 @@
 
 
 /**
- * iOS 6 style switch checkboxes
- * by Lea Verou http://lea.verou.me
+ * On/Off switch checboxes.
+ * Based on "iOS 6 style switch checkboxes" by Lea Verou http://lea.verou.me
  */
 
-:root input.switch { /* :root here acting as a filter for older browsers */
+.mw-rtrc-settings .switch {
 	position: absolute;
 	opacity: 0;
 }
 
-:root input.switch + div {
+.mw-rtrc-settings .switch + div {
 	display: inline-block;
 	vertical-align: middle;
-	width: 3em;	height: 1em;
-	border: 1px solid rgba(0,0,0,.3);
-	border-radius: 999px;
 	margin: 0 .5em;
-	background: white;
-	background-image: linear-gradient(rgba(0,0,0,.1), transparent),
-	                  linear-gradient(90deg, hsl(210, 90%, 60%) 50%, transparent 50%);
+	width: 3em;
+	height: 1em;
+	overflow: hidden;
+	background: #fff;
+	background-image: linear-gradient(rgba(0, 0, 0, .1), transparent),
+		              linear-gradient(90deg, #357ebd 50%, transparent 50%);
 	background-size: 200% 100%;
 	background-position: 100% 0;
 	background-origin: border-box;
 	background-clip: border-box;
-	overflow: hidden;
+	border: 1px solid rgba(0, 0, 0, .3);
+	border-radius: 999px;
+	box-shadow: 0 .1em .1em rgba(0, 0, 0, .2) inset,
+		        0 .45em 0 .1em rgba(0, 0, 0, .05) inset;
+	font-size: 146%;
 	transition-duration: .4s;
 	transition-property: padding, width, background-position, text-indent;
-	box-shadow: 0 .1em .1em rgba(0,0,0,.2) inset,
-	            0 .45em 0 .1em rgba(0,0,0,.05) inset;
-	font-size: 150%; /* change this and see how they adjust! */
 }
 
-:root input.switch:checked + div {
-	padding-left: 2em;	width: 1em;
+.mw-rtrc-settings .switch:checked + div {
+	padding-left: 2em;
+	width: 1em;
 	background-position: 0 0;
 }
 
-:root input.switch + div:before {
+.mw-rtrc-settings .switch + div:before {
 	content: 'On';
 	float: left;
-	width: 1.65em; height: 1.65em;
 	margin: -.1em;
+	width: 1.65em;
+	height: 1.65em;
+	background: #fff;
+	background-image: linear-gradient(rgba(0, 0, 0, .2), transparent);
 	border: 1px solid rgba(0,0,0,.35);
 	border-radius: inherit;
-	background: white;
-	background-image: linear-gradient(rgba(0,0,0,.2), transparent);
-	box-shadow: 0 .1em .1em .1em hsla(0,0%,100%,.8) inset,
-	            0 0 .5em rgba(0,0,0,.3);
+	box-shadow: 0 .1em .1em .1em hsla(0, 0%, 100%, .8) inset,
+		        0 0 .5em rgba(0, 0, 0, .3);
 	color: white;
-	text-shadow: 0 -1px 1px rgba(0,0,0,.3);
+	text-shadow: 0 -1px 1px rgba(0, 0, 0, .3);
 	text-indent: -2.5em;
 }
 
-:root input.switch:active + div:before {
+.mw-rtrc-settings .switch:active + div:before {
 	background-color: #eee;
 }
 
-:root input.switch:focus + div {
-	box-shadow: 0 .1em .1em rgba(0,0,0,.2) inset,
-	            0 .45em 0 .1em rgba(0,0,0,.05) inset,
-	            0 0 .4em 1px rgba(255,0,0,.5);
+.mw-rtrc-settings .switch:focus + div {
+	box-shadow: 0 .1em .1em rgba(0, 0, 0, .2) inset,
+		        0 .45em 0 .1em rgba(0, 0, 0, .05) inset,
+		        0 0 .4em 1px rgba(255, 0, 0, .5);
 }
 
-:root input.switch + div:before,
-:root input.switch + div:after {
-	font: bold 60%/1.9 sans-serif;
+.mw-rtrc-settings .switch + div:before,
+.mw-rtrc-settings .switch + div:after {
+	font-weight: bold;
+	font-size: 60%;
+	line-height: 1.9;
 	text-transform: uppercase;
 }
 
-:root input.switch + div:after {
+.mw-rtrc-settings .switch + div:after {
 	content: 'Off';
 	float: left;
 	text-indent: .5em;
-	color: rgba(0,0,0,.45);
+	color: rgba(0, 0, 0, .45);
 	text-shadow: none;
-
 }

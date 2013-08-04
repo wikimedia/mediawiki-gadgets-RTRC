@@ -5,7 +5,7 @@
  * @license http://krinkle.mit-license.org/
  * @author Timo Tijhof, 2010–2013
  */
-/*global krMsgs */
+/*global krMsgs, confirm */
 (function ($, mw) {
 	'use strict';
 
@@ -632,7 +632,7 @@
 	function krRTRC_hardRefresh() {
 
 		rcRefreshEnabled = true;
-		$('#krRTRC_toggleRefresh').val('Off').removeClass('button-on');
+		$('#krRTRC_toggleRefresh').prop('checked', false);
 		krRTRC_GetRCOptions();
 		clearTimeout(rcRefreshTimeout);
 		krRTRC_Refresh();
@@ -697,7 +697,7 @@
 
 		get = krGetUrlParam('autodiff');
 		if (get === 'on') {
-			$('#rc-options-autodiff').val('On').addClass('button-on');
+			$('#rc-options-autodiff').prop('checked', true);
 		}
 
 		get = krGetUrlParam('autodiff_top', l);
@@ -777,7 +777,7 @@
 	function krRTRC_ToggleMassPatrol(b) {
 		if (b === true) {
 			optMassPatrol = true;
-			$krRTRC_MassPatrol.val('On').addClass('button-on');
+			$krRTRC_MassPatrol.prop('checked', optMassPatrol);
 			if (window.currentDiff === '') {
 				krRTRC_NextDiff();
 			} else {
@@ -785,9 +785,8 @@
 			}
 		} else {
 			optMassPatrol = false;
-			$krRTRC_MassPatrol.val('Off').removeClass('button-on');
+			$krRTRC_MassPatrol.prop('checked', false);
 		}
-
 	}
 
 	function krRTRC_GetPatroltoken() {
@@ -949,14 +948,14 @@
 				'<div class="sep"></div>' +
 				'<div class="panel"><label class="head">' + krMsg('filter') + '</label><div style="text-align:left"><input type="checkbox" value="on" id="rc-options-filter-anons" name="rc-options-filter-anons"><label for="rc-options-filter-anons"> ' + krMsg('anononly') + '</label><br /><input type="checkbox" value="on" id="rc-options-filter-unpatrolled" name="rc-options-filter-unpatrolled"><label for="rc-options-filter-unpatrolled"> ' + krMsg('unpatrolledonly') + '</label></div></div>' +
 				'<div class="sep"></div>' +
-				'<div class="panel"><label for="rc-options-rcuser" class="head">' + krMsg('userfilter-opt') + ' <span section="Userfilter" class="helpicon"></span></label><div style="text-align: center;"><input type="text" value="" size="16" id="rc-options-rcuser" name="rc-options-rcuser" /><br /><input class="button button-small" type="button" id="RCOptions_RcuserClr" value="' + krMsg('clear') + '" /></div></div>' +
+				'<div class="panel"><label for="rc-options-rcuser" class="head">' + krMsg('userfilter-opt') + '<span section="Userfilter" class="helpicon"></span></label><div style="text-align: center;"><input type="text" value="" size="16" id="rc-options-rcuser" name="rc-options-rcuser" /><br /><input class="button button-small" type="button" id="RCOptions_RcuserClr" value="' + krMsg('clear') + '" /></div></div>' +
 				'<div class="sep"></div>' +
 				'<div class="panel"><label class="head">' + krMsg('type') + '</label><div style="text-align:left"><input type="checkbox" value="on" id="rc-options-type-edit" name="rc-options-type-edit" checked="checked"><label for="rc-options-type-edit"> ' + krMsg('edits') + '</label><br /><input type="checkbox" checked="checked" value="on" id="rc-options-type-newpage" name="rc-options-type-newpage"><label for="rc-options-type-newpage"> ' + krMsg('newpages') + '</label></div></div>' +
 				'<div class="sep"></div>' +
 				// RCTITLES DISABLED: https://bugzilla.wikimedia.org/show_bug.cgi?id=12394#c5
-				// '<div class="panel"><label class="head" for="rc-options-rctitle">' + krMsg('pagefilter-opt') + ' <span section="Pagefilter" class="helpicon"></span></label><div style="text-align: center;"><input type="text" value="" size="16" id="rc-options-rctitle" name="rc-options-rctitle" /><br /><input class="button" type="button" id="RCOptions_RctitleClr" value="' + krMsg('clear') + '" /></div></div>' +
+				// '<div class="panel"><label class="head" for="rc-options-rctitle">' + krMsg('pagefilter-opt') + '<span section="Pagefilter" class="helpicon"></span></label><div style="text-align: center;"><input type="text" value="" size="16" id="rc-options-rctitle" name="rc-options-rctitle" /><br /><input class="button" type="button" id="RCOptions_RctitleClr" value="' + krMsg('clear') + '" /></div></div>' +
 				//'<div class="sep"></div>' +
-				'<div class="panel"><label class="head">' + krMsg('timeframe-opt') + ' <span section="Timeframe" class="helpicon"></span></label><div style="text-align: right;"><label for="rc-options-timeframe-rcfrom">' + krMsg('from') + ': </label><input type="text" value="" size="14" id="rc-options-timeframe-rcfrom" name="rc-options-timeframe-rcfrom"><br /><label for="rc-options-timeframe-rcuntill">' + krMsg('untill') + ': </label><input type="text" value="" size="14" id="rc-options-timeframe-rcuntill" name="rc-options-timeframe-rcuntill"></div></div>' +
+				'<div class="panel"><label class="head">' + krMsg('timeframe-opt') + '<span section="Timeframe" class="helpicon"></span></label><div style="text-align: right;"><label for="rc-options-timeframe-rcfrom">' + krMsg('from') + ': </label><input type="text" value="" size="14" id="rc-options-timeframe-rcfrom" name="rc-options-timeframe-rcfrom"><br /><label for="rc-options-timeframe-rcuntill">' + krMsg('untill') + ': </label><input type="text" value="" size="14" id="rc-options-timeframe-rcuntill" name="rc-options-timeframe-rcuntill"></div></div>' +
 				'<div class="sep"></div>' +
 				'<div class="panel"><label for="rc-options-namespace" class="head">' + krMsg('namespaces') + '</label>' + rcNamespaceDropdown + '</div>' +
 				'<div class="sep"></div>' +
@@ -968,11 +967,13 @@
 				'<div class="sep"></div>' +
 				'<div class="panel panel-last"><input class="button" type="button" id="RCOptions_submit" value="' + krMsg('apply') + '" /></div>' +
 				'<hr style="clear: both;" />' +
-				'<div class="panel2"><label for="krRTRC_MassPatrol" class="head">MassPatrol <span section="MassPatrol" class="helpicon"></span><input id="krRTRC_MassPatrol" type="checkbox" class="switch" /></labe></div>' +
+				'<div class="panel2"><label for="krRTRC_MassPatrol" class="head">MassPatrol<span section="MassPatrol" class="helpicon"></span><input id="krRTRC_MassPatrol" type="checkbox" class="switch" /></label></div>' +
 				'<div class="sep2"></div>' +
-				'<div class="panel2"><label for="rc-options-autodiff" class="head">AutoDiff <span section="AutoDiff" class="helpicon"></span></label><input type="button" class="button button-small button-off" value="Off" id="rc-options-autodiff" /> <input type="checkbox" value="on" id="rc-options-autodiff-top" /> <label for="rc-options-autodiff-top"> ' + krMsg('loadfromtop') + '</label></div>' +
+				'<div class="panel2"><label for="rc-options-autodiff" class="head">AutoDiff<span section="AutoDiff" class="helpicon"></span><input type="checkbox" class="switch" id="rc-options-autodiff" /></label></div>' +
 				'<div class="sep2"></div>' +
-				'<div class="panel2"><label for="krRTRC_toggleRefresh" class="head">Pause</label><input id="krRTRC_toggleRefresh" class="button button-small button-off" type="button" value="Off" /></div>' +
+				'<div class="panel2"><label for="rc-options-autodiff-top" class="head">' + krMsg('loadfromtop') + '<input type="checkbox" class="switch" id="rc-options-autodiff-top" /></label></div>' +
+				'<div class="sep2"></div>' +
+				'<div class="panel2"><label for="krRTRC_toggleRefresh" class="head">Pause<input id="krRTRC_toggleRefresh" class="switch" type="checkbox" /></label></div>' +
 			'</fieldset></form></div>' +
 			'<a name="krRTRC_DiffTop" />' +
 			'<div class="mw-rtrc-diff" id="krRTRC_DiffFrame" style="display: none;"></div>' +
@@ -1152,7 +1153,7 @@
 		// If MassPatrol is active, warn that clearing rcuser will automatically disable MassPatrol f
 		$('#RCOptions_RcuserClr').live('click', function () {
 			if (optMassPatrol) {
-				var a = window.confirm(krMsg('masspatrol_userfilterconfirm'));
+				var a = confirm(krMsg('masspatrol_userfilterconfirm'));
 				if (a) {
 					$('#rc-options-rcuser').val('');
 					krRTRC_ToggleMassPatrol(false);
@@ -1201,66 +1202,63 @@
 		});
 
 		// Button: MassPatrol
-		$krRTRC_MassPatrol = $('#krRTRC_MassPatrol');
-		$krRTRC_MassPatrol.live('click', function () {
-			if (optMassPatrol) {
-				krRTRC_ToggleMassPatrol(false);
-			} else if (optAutoDiff) {
+		$krRTRC_MassPatrol = $('#krRTRC_MassPatrol').click(function () {
+			if (!this.checked) {
+				if (optMassPatrol) {
+					krRTRC_ToggleMassPatrol(false);
+				}
+				return;
+			}
+			if (optAutoDiff) {
 				krRTRC_ToggleMassPatrol(true);
 			} else {
-				var a = window.confirm(krMsg('masspatrol_autodiffneeded'));
-				if (a) {
-					optAutoDiff = true;
-					$('#rc-options-autodiff').val('On').addClass('button-on');
-					krRTRC_ToggleMassPatrol(true);
+				var a = confirm(krMsg('masspatrol_autodiffneeded'));
+				if (!a) {
+					// Undo
+					this.checked = false;
+					return;
 				}
+				$('#rc-options-autodiff').prop('checked', true);
+				optAutoDiff = true;
+				krRTRC_ToggleMassPatrol(true);
 			}
 		});
 
 		// Button: AutoDiff
-		$('#rc-options-autodiff').live('click', function () {
-			if (optAutoDiff) {
-				if (optMassPatrol) {
-					var a = window.confirm(krMsg('autodiff_masspatrolneeds'));
-					if (a) {
-						$('#rc-options-autodiff').val('Off').removeClass('button-on');
-						optAutoDiff = false;
-						krRTRC_ToggleMassPatrol(false);
-					}
-				} else {
-					$(this).val('Off').removeClass('button-on');
-					optAutoDiff = false;
+		$('#rc-options-autodiff').click(function () {
+			if (optMassPatrol && optAutoDiff && !this.checked) {
+				var a = confirm(krMsg('autodiff_masspatrolneeds'));
+				if (!a) {
+					// Undo
+					this.checked = true;
+					return;
 				}
+				optAutoDiff = false;
+				krRTRC_ToggleMassPatrol(false);
 			} else {
-				$(this).val('On').addClass('button-on');
-				optAutoDiff = true;
+				optAutoDiff = this.checked;
 			}
 		});
 
 		// Checkbox: AutoDiff from top
-		$('#rc-options-autodiff-top').live('click', function () {
-			if (optAutoDiffTop) {
-				$(this).prop('checked', false);
-				optAutoDiffTop = false;
-			} else {
-				$(this).prop('checked', true);
-				optAutoDiffTop = true;
-			}
+		$('#rc-options-autodiff-top').click(function () {
+			optAutoDiffTop = !optAutoDiffTop;
+			$(this).prop('checked', optAutoDiffTop);
 		});
 
 		// Button: Pause
-		$('#krRTRC_toggleRefresh').live('click', function () {
+		$('#krRTRC_toggleRefresh').click(function () {
 			mw.log('#krRTRC_toggleRefresh clicked');
 			if (rcRefreshEnabled) {
 				rcRefreshEnabled = false;
-				$(this).val('On').addClass('button-on');
+				$(this).prop('checked', true);
 				clearTimeout(rcRefreshTimeout);
 			} else if (!rcRefreshEnabled) {
 				rcRefreshEnabled = true;
-				$(this).val('Off').removeClass('button-on');
+				$(this).prop('checked', false);
 				krRTRC_hardRefresh();
 			} else {
-				$(this).val('On').addClass('button-on');
+				$(this).prop('checked', true);
 				clearTimeout(rcRefreshTimeout);
 			}
 			return false;
