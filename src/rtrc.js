@@ -932,46 +932,176 @@
 
 		$wrapper = $($.parseHTML(
 		'<div class="mw-rtrc-wrapper">' +
-			'<div class="mw-rtrc-head">Real-Time Recent Changes <small>(' + appVersion + ')</small><div class="mw-rtrc-head-links"><a target="_blank" href="' + getWikipageUrl('Special:Log/patrol') + '?user=' + encodeURIComponent(mw.user.name()) + '">' + krMsg('mypatrollog').ucFirst() + '</a> <a id="toggleHelp" href="#toggleHelp">Help</a></div></div>' +
+			'<div class="mw-rtrc-head">' +
+				'Real-Time Recent Changes <small>(' + appVersion + ')</small>' +
+				'<div class="mw-rtrc-head-links">' +
+					'<a target="_blank" href="' + getWikipageUrl('Special:Log/patrol') + '?user=' + encodeURIComponent(mw.user.name()) + '">' +
+						krMsg('mypatrollog').ucFirst() +
+					'</a>' +
+					'<a id="toggleHelp" href="#toggleHelp">Help</a>' +
+				'</div>' +
+			'</div>' +
 			'<form><fieldset id="krRTRC_RCOptions" class="mw-rtrc-settings mw-rtrc-nohelp make-switch">' +
-				'<div class="panel"><label for="rc-options-limit" class="head">' + krMsg('limit') + '</label><select id="rc-options-limit" name="rc-options-limit"><option value="10">10</option><option selected="" value="25">25</option><option value="50">50</option><option value="75">75</option><option value="100">100</option></select></div>' +
+				'<div class="panel">' +
+					'<label for="rc-options-limit" class="head">' + krMsg('limit') + '</label>' +
+					'<select id="rc-options-limit" name="rc-options-limit">' +
+						'<option value="10">10</option>' +
+						'<option value="25" selected="">25</option>' +
+						'<option value="50">50</option>' +
+						'<option value="75">75</option>' +
+						'<option value="100">100</option>' +
+					'</select>' +
+				'</div>' +
 				'<div class="sep"></div>' +
-				'<div class="panel"><label class="head">' + krMsg('filter') + '</label><div style="text-align:left"><label><input type="checkbox" id="rc-options-filter-anons" name="rc-options-filter-anons"> ' + krMsg('anononly') + '</label><br /><label><input type="checkbox" id="rc-options-filter-unpatrolled" name="rc-options-filter-unpatrolled"> ' + krMsg('unpatrolledonly') + '</label></div></div>' +
+				'<div class="panel">' +
+					'<label class="head">' + krMsg('filter') + '</label>' +
+					'<div style="text-align: left;">' +
+						'<label>' +
+							'<input type="checkbox" id="rc-options-filter-anons" name="rc-options-filter-anons">' +
+							' ' + krMsg('anononly') +
+						'</label>' +
+						'<br />' +
+						'<label>' +
+							'<input type="checkbox" id="rc-options-filter-unpatrolled" name="rc-options-filter-unpatrolled"/>' +
+							' ' + krMsg('unpatrolledonly') +
+						'</label>' +
+					'</div>' +
+				'</div>' +
 				'<div class="sep"></div>' +
-				'<div class="panel"><label for="rc-options-rcuser" class="head">' + krMsg('userfilter-opt') + '<span section="Userfilter" class="helpicon"></span></label><div style="text-align: center;"><input type="text" value="" size="16" id="rc-options-rcuser" name="rc-options-rcuser" /><br /><input class="button button-small" type="button" id="RCOptions_RcuserClr" value="' + krMsg('clear') + '" /></div></div>' +
+				'<div class="panel">' +
+					'<label for="rc-options-rcuser" class="head">' +
+						krMsg('userfilter-opt') +
+						'<span section="Userfilter" class="helpicon"></span>' +
+					'</label>' +
+					'<div style="text-align: center;">' +
+						'<input type="text" value="" size="16" id="rc-options-rcuser" name="rc-options-rcuser" />' +
+						'<br />' +
+						'<input class="button button-small" type="button" id="RCOptions_RcuserClr" value="' + krMsg('clear') + '" />' +
+					'</div>' +
+				'</div>' +
 				'<div class="sep"></div>' +
-				'<div class="panel"><label class="head">' + krMsg('type') + '</label><div style="text-align:left"><label><input type="checkbox" id="rc-options-type-edit" name="rc-options-type-edit" checked="checked"> ' + krMsg('edits') + '</label><br /><label><input type="checkbox" checked="checked" id="rc-options-type-newpage" name="rc-options-type-newpage"> ' + krMsg('newpages') + '</label></div></div>' +
+				'<div class="panel">' +
+					'<label class="head">' + krMsg('type') + '</label>' +
+					'<div style="text-align: left;">' +
+						'<label>' +
+							'<input type="checkbox" id="rc-options-type-edit" name="rc-options-type-edit" checked="checked"/>' +
+							' ' + krMsg('edits') +
+						'</label>' +
+						'<br />' +
+						'<label>' +
+							'<input type="checkbox" checked="checked" id="rc-options-type-newpage" name="rc-options-type-newpage"/>' +
+							' ' + krMsg('newpages') +
+						'</label>' +
+					'</div>' +
+				'</div>' +
 				'<div class="sep"></div>' +
-				'<div class="panel"><label class="head">' + krMsg('timeframe-opt') + '<span section="Timeframe" class="helpicon"></span></label><div style="text-align: right;"><label>' + krMsg('from') + ': <input type="text" value="" size="14" id="rc-options-timeframe-rcfrom" name="rc-options-timeframe-rcfrom"/></label><br /><label>' + krMsg('untill') + ': <input type="text" value="" size="14" id="rc-options-timeframe-rcuntill" name="rc-options-timeframe-rcuntill"/></label></div></div>' +
+				'<div class="panel">' +
+					'<label class="head">' +
+						krMsg('timeframe-opt') +
+						'<span section="Timeframe" class="helpicon"></span>' +
+					'</label>' +
+					'<div style="text-align: right;">' +
+						'<label>' +
+							krMsg('from') + ': ' +
+							'<input type="text" value="" size="14" id="rc-options-timeframe-rcfrom" name="rc-options-timeframe-rcfrom" />' +
+						'</label>' +
+						'<br />' +
+						'<label>' +
+							krMsg('untill') + ': ' +
+							'<input type="text" value="" size="14" id="rc-options-timeframe-rcuntill" name="rc-options-timeframe-rcuntill" />' +
+						'</label>' +
+					'</div>' +
+				'</div>' +
 				'<div class="sep"></div>' +
-				'<div class="panel"><label for="rc-options-namespace" class="head">' + krMsg('namespaces') + '</label>' + rcNamespaceDropdown + '</div>' +
+				'<div class="panel">' +
+					'<label for="rc-options-namespace" class="head">' +
+						krMsg('namespaces') +
+					'</label>' +
+					rcNamespaceDropdown +
+				'</div>' +
 				'<div class="sep"></div>' +
-				'<div class="panel"><label class="head">' + krMsg('order') + ' <br /><span section="Order" class="helpicon"></span></label><div style="text-align: left;"><label><input type="radio" name="rc-options-rcdir" value="asc"> ' + krMsg('asc') + '</label><br /><label><input type="radio" name="rc-options-rcdir" value="desc" checked="checked"> ' + krMsg('desc') + '</label></div></div>' +
+				'<div class="panel">' +
+					'<label class="head">' +
+						krMsg('order') +
+						' <br />' +
+						'<span section="Order" class="helpicon"></span>' +
+					'</label>' +
+					'<div style="text-align: left;">' +
+						'<label>' +
+							'<input type="radio" name="rc-options-rcdir" value="asc"/>' +
+							' ' + krMsg('asc') +
+						'</label>' +
+						'<br />' +
+						'<label>' +
+							'<input type="radio" name="rc-options-rcdir" value="desc" checked="checked"/>' +
+							' ' + krMsg('desc') +
+						'</label>' +
+					'</div>' +
+				'</div>' +
 				'<div class="sep"></div>' +
-				'<div class="panel"><label for="rc-options-interval" class="head">R <br /><span section="Reload_Interval" class="helpicon"></span></label><input type="text" value="3" size="1" id="rc-options-interval" name="rc-options-interval"></div>' +
+				'<div class="panel">' +
+					'<label for="rc-options-interval" class="head">' +
+						'R<br />' +
+						'<span section="Reload_Interval" class="helpicon"></span>' +
+					'</label>' +
+					'<input type="text" value="3" size="1" id="rc-options-interval" name="rc-options-interval" />' +
+				'</div>' +
 				'<div class="sep"></div>' +
-				'<div class="panel"><label class="head" for="rc-options-ircbl">IRCBL<br /><span section="IRC_Blacklist" class="helpicon"></span></label><input type="checkbox" id="rc-options-ircbl" name="rc-options-ircbl" /></div>' +
+				'<div class="panel">' +
+					'<label class="head" for="rc-options-ircbl">' +
+						'IRCBL<br />' +
+						'<span section="IRC_Blacklist" class="helpicon"></span>' +
+					'</label>' +
+					'<input type="checkbox" id="rc-options-ircbl" name="rc-options-ircbl" />' +
+				'</div>' +
 				'<div class="sep"></div>' +
-				'<div class="panel panel-last"><input class="button" type="button" id="RCOptions_submit" value="' + krMsg('apply') + '" /></div>' +
+				'<div class="panel panel-last">' +
+					'<input class="button" type="button" id="RCOptions_submit" value="' + krMsg('apply') + '" />' +
+				'</div>' +
 				'<hr style="clear: both;" />' +
-				'<div class="panel2"><label class="head">MassPatrol<span section="MassPatrol" class="helpicon"></span><input id="krRTRC_MassPatrol" type="checkbox" class="switch" /></label></div>' +
+				'<div class="panel2">' +
+					'<label class="head">' +
+						'MassPatrol' +
+						'<span section="MassPatrol" class="helpicon"></span>' +
+						'<input id="krRTRC_MassPatrol" type="checkbox" class="switch" />' +
+					'</label>' +
+				'</div>' +
 				'<div class="sep2"></div>' +
-				'<div class="panel2"><label class="head">AutoDiff<span section="AutoDiff" class="helpicon"></span><input type="checkbox" class="switch" id="rc-options-autodiff" /></label></div>' +
+				'<div class="panel2">' +
+					'<label class="head">' +
+						'AutoDiff' +
+						'<span section="AutoDiff" class="helpicon"></span>' +
+						'<input type="checkbox" class="switch" id="rc-options-autodiff" />' +
+					'</label>' +
+				'</div>' +
 				'<div class="sep2"></div>' +
-				'<div class="panel2"><label class="head">' + krMsg('loadfromtop') + '<input type="checkbox" class="switch" id="rc-options-autodiff-top" /></label></div>' +
+				'<div class="panel2">' +
+					'<label class="head">' +
+						krMsg('loadfromtop') +
+						'<input type="checkbox" class="switch" id="rc-options-autodiff-top" />' +
+					'</label>' +
+				'</div>' +
 				'<div class="sep2"></div>' +
-				'<div class="panel2"><label class="head">Pause<input id="krRTRC_toggleRefresh" class="switch" type="checkbox" /></label></div>' +
+				'<div class="panel2">' +
+					'<label class="head">' +
+						'Pause' +
+						'<input id="krRTRC_toggleRefresh" class="switch" type="checkbox" />' +
+					'</label>' +
+				'</div>' +
 			'</fieldset></form>' +
 			'<a name="krRTRC_DiffTop" />' +
 			'<div class="mw-rtrc-diff" id="krRTRC_DiffFrame" style="display: none;"></div>' +
 			'<div id="krRTRC_RCOutput" class="placeholder plainlinks">' + rcLegendHtml + '</div>' +
 			'<div style="clear: both;"></div>' +
-			'<div id="krRTRC_Footer"><div class="inside plainlinks" style="text-align: right;">' +
-				'Real-Time Recent Changes by <a href="//commons.wikimedia.org/wiki/User:Krinkle" class="external text" rel="nofollow">Krinkle</a>:' +
-				' <a href="//meta.wikimedia.org/wiki/User:Krinkle/Tools/Real-Time_Recent_Changes#Changelog" class="external text" rel="nofollow">' + krMsg('whatsnew') + '</a>' +
-				' | <a href="//meta.wikimedia.org/wiki/User:Krinkle/Tools/Real-Time_Recent_Changes" class="external text" rel="nofollow">' + krMsg('documentation') + '</a>' +
-				' | <a href="http://krinkle.mit-license.org" class="external text" rel="nofollow">License</a>' +
-			'</div></div>' +
+			'<div id="krRTRC_Footer">' +
+				'<div class="inside plainlinks" style="text-align: right;">' +
+					'Real-Time Recent Changes by ' +
+					'<a href="//commons.wikimedia.org/wiki/User:Krinkle" class="external text" rel="nofollow">Krinkle</a>' +
+					' | <a href="//meta.wikimedia.org/wiki/User:Krinkle/Tools/Real-Time_Recent_Changes#Changelog" class="external text" rel="nofollow">' + krMsg('whatsnew') + '</a>' +
+					' | <a href="//meta.wikimedia.org/wiki/User:Krinkle/Tools/Real-Time_Recent_Changes" class="external text" rel="nofollow">' + krMsg('documentation') + '</a>' +
+					' | <a href="http://krinkle.mit-license.org" class="external text" rel="nofollow">License</a>' +
+				'</div>' +
+			'</div>' +
 		'</div>'
 		))
 			// Add helper element for switch checkboxes
