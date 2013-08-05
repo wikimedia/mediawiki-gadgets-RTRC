@@ -946,7 +946,7 @@
 					'<label for="rc-options-limit" class="head">' + krMsg('limit') + '</label>' +
 					'<select id="rc-options-limit" name="rc-options-limit">' +
 						'<option value="10">10</option>' +
-						'<option value="25" selected="">25</option>' +
+						'<option value="25" selected>25</option>' +
 						'<option value="50">50</option>' +
 						'<option value="75">75</option>' +
 						'<option value="100">100</option>' +
@@ -974,7 +974,7 @@
 						'<span section="Userfilter" class="helpicon"></span>' +
 					'</label>' +
 					'<div style="text-align: center;">' +
-						'<input type="text" value="" size="16" id="rc-options-rcuser" name="rc-options-rcuser" />' +
+						'<input type="text" size="16" id="rc-options-rcuser" name="rc-options-rcuser" />' +
 						'<br />' +
 						'<input class="button button-small" type="button" id="RCOptions_RcuserClr" value="' + krMsg('clear') + '" />' +
 					'</div>' +
@@ -984,12 +984,12 @@
 					'<label class="head">' + krMsg('type') + '</label>' +
 					'<div style="text-align: left;">' +
 						'<label>' +
-							'<input type="checkbox" id="rc-options-type-edit" name="rc-options-type-edit" checked="checked"/>' +
+							'<input type="checkbox" id="rc-options-type-edit" name="rc-options-type-edit" checked />' +
 							' ' + krMsg('edits') +
 						'</label>' +
 						'<br />' +
 						'<label>' +
-							'<input type="checkbox" checked="checked" id="rc-options-type-newpage" name="rc-options-type-newpage"/>' +
+							'<input type="checkbox" id="rc-options-type-newpage" name="rc-options-type-newpage" checked />' +
 							' ' + krMsg('newpages') +
 						'</label>' +
 					'</div>' +
@@ -1003,12 +1003,12 @@
 					'<div style="text-align: right;">' +
 						'<label>' +
 							krMsg('from') + ': ' +
-							'<input type="text" value="" size="14" id="rc-options-timeframe-rcfrom" name="rc-options-timeframe-rcfrom" />' +
+							'<input type="text" size="14" id="rc-options-timeframe-rcfrom" name="rc-options-timeframe-rcfrom" />' +
 						'</label>' +
 						'<br />' +
 						'<label>' +
 							krMsg('untill') + ': ' +
-							'<input type="text" value="" size="14" id="rc-options-timeframe-rcuntill" name="rc-options-timeframe-rcuntill" />' +
+							'<input type="text" size="14" id="rc-options-timeframe-rcuntill" name="rc-options-timeframe-rcuntill" />' +
 						'</label>' +
 					'</div>' +
 				'</div>' +
@@ -1028,12 +1028,12 @@
 					'</label>' +
 					'<div style="text-align: left;">' +
 						'<label>' +
-							'<input type="radio" name="rc-options-rcdir" value="asc"/>' +
+							'<input type="radio" name="rc-options-rcdir" value="asc" />' +
 							' ' + krMsg('asc') +
 						'</label>' +
 						'<br />' +
 						'<label>' +
-							'<input type="radio" name="rc-options-rcdir" value="desc" checked="checked"/>' +
+							'<input type="radio" name="rc-options-rcdir" value="desc" checked />' +
 							' ' + krMsg('desc') +
 						'</label>' +
 					'</div>' +
