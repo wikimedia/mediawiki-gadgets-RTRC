@@ -764,7 +764,7 @@
 	}
 
 	function krRTRC_TipOut() {
-		if (krRTRC_TipTime !== undefined) {
+		if (krRTRC_TipTime) {
 			clearTimeout(krRTRC_TipTime);
 		}
 		$krRTRC_Tip.hide();
@@ -1111,7 +1111,10 @@
 
 
 		$('#content').empty().append($wrapper);
-		$('body').append('<div id="krRTRC_Tip" class="plainlinks"><span id="krRTRC_Tiptext"></span></div>');
+
+		$krRTRC_Tiptext = $('<span id="krRTRC_Tiptext"></span>');
+		$krRTRC_Tip = $('<div id="krRTRC_Tip" class="plainlinks"></div>').append($krRTRC_Tiptext);
+		$('body').append($krRTRC_Tip);
 
 		$('#krRTRC_RCOutput').prepend('<div class="feed"></div><img src="' + ajaxLoaderUrl + '" id="krRTRC_loader" style="display: none;" />');
 	};
@@ -1299,8 +1302,6 @@
 		});
 
 		// Tip
-		$krRTRC_Tip = $('#krRTRC_Tip');
-		$krRTRC_Tiptext = $('#krRTRC_Tiptext');
 		$('#krRTRC_Tip')
 			.click(krRTRC_TipOut)
 			.hover(function () {
