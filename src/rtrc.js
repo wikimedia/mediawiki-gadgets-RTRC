@@ -39,18 +39,17 @@
 	userHasDeletedhistoryRight = false,
 	userPatrolTokenCache = false,
 	apiRecentChangesQueryUrl = false,
-	rcRefreshTimeout = null,
-	rcRefreshEnabled = null,
-	rcLegendHtml = '',
+	rcRefreshTimeout,
+	rcRefreshEnabled = false,
 	rcNamespaceDropdown,
 
-	rcPrevDayHeading = false,
+	rcPrevDayHeading,
 	skippedRCIDs = [],
 	patrolledRCIDs = [],
 	monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
 
 	skipButtonHtml = '',
-	rcFeedMemHTML = '',
+	prevFeedHtml,
 	rcFeedMemUIDs = [],
 	// Difference UTC vs. wiki - fetched from siteinfo/timeoffset, in minutes
 	wikiTimeOffset = 0,
@@ -90,8 +89,9 @@
 	timeUtil,
 	dModules,
 
-	currentDiffRcid, krRTRC_TipTime,
-	$krRTRC_Tip, $krRTRC_MassPatrol, $krRTRC_Tiptext;
+	currentDiffRcid,
+	$body, $feed,
+	$krRTRC_MassPatrol;
 
 	// implied globals, legacy click handlers
 	window.$RCOptions_submit = undefined;
@@ -432,7 +432,7 @@
 	function krRTRC_RebindElements() {
 
 		// Re-apply "skipped" and "patrolled" classes
-		$('#krRTRC_RCOutput > .feed div.rcitem').each(function () {
+		$feed.find('div.rcitem').each(function () {
 
 			// Compare each diff-attribute to the array, if match mark item with the class
 
@@ -444,31 +444,49 @@
 		});
 
 		// The current diff in diff-view stays marked
-		$('#krRTRC_RCOutput > .feed div[rcid="' + currentDiffRcid + '"]').addClass('indiff');
+		$feed.find('div[rcid="' + currentDiffRcid + '"]').addClass('indiff');
 
 		// All http-links within the diff-view open in a new window
 		$('#krRTRC_DiffFrame > table.diff a').filter('a[href^="http://"], a[href^="https://"], a[href^="//"]').attr('target', '_blank');
 
 	}
 
-	function krRTRC_PushFrontend() {
-		$('#krRTRC_RCOutput').removeClass('placeholder');
-		$('#krRTRC_RCOutput > .feed').html(rcFeedMemHTML);
+	function krRTRC_PushFrontend(htmloutput) {
+		// Get current time + localtime adjustment
+		var msd = wikiTimeOffset * 60 * 1000,
+			// Last-update heading
+			lastupdate = new Date();
 
-		// rebind elements
-		krRTRC_RebindElements();
-		// reset day
-		rcPrevDayHeading = '';
+		lastupdate.setTime(lastupdate.getTime() + msd);
+
+		// TODO: Only do once
+		$body.removeClass('placeholder');
+
+		$feed.find('.mw-rtrc-feed-update').html(
+			krMsg('lastupdate') + ': ' + lastupdate.toUTCString() +
+			' | <a href="' + krRTRC_GeneratePermalink() + '">' +
+			krMsg('permalinktext') +
+			'</a>'
+		);
+
+		if (htmloutput !== prevFeedHtml) {
+			prevFeedHtml = htmloutput;
+			$feed.find('.mw-rtrc-feed-content').html(htmloutput);
+			krRTRC_RebindElements();
+		}
+
+		// Reset day
+		rcPrevDayHeading = undefined;
 		rcRefreshTimeout = setTimeout(krRTRC_Refresh, optRInt);
 		$('#krRTRC_loader').hide();
 	}
 
-	function krRTRC_ApplyIRCBL() {
+	function krRTRC_ApplyIRCBL(htmloutput, callback) {
 		// Only run if there's an update going on
 		if (isUpdating) {
 			rcFeedMemUIDs = [];
 
-			$(rcFeedMemHTML).find('div.item').each(function (index, el) {
+			$(htmloutput).find('div.item').each(function (index, el) {
 				rcFeedMemUIDs.push($(el).attr('user'));
 			});
 			rcFeedMemUIDs.shift();
@@ -508,8 +526,8 @@
 									}
 
 									// Apply blacklisted-class, and insert icon with tooltip
-									rcFeedMemHTML = $('<div>')
-										.html(rcFeedMemHTML)
+									htmloutput = $('<div>')
+										.html(htmloutput)
 										.find('div.item[user=' + i + '] .user')
 											.addClass('blacklisted')
 											.prepend('<img src="' + blacklistIconUrl + '" alt="" title="' + tooltip + '" />')
@@ -522,27 +540,24 @@
 						}
 
 						// Either way, push the feed to the frontend
-						krRTRC_PushFrontend();
-						$('#krRTRC_RCOutput>.feed').append('<small id="krRTRC_Dumpdate">CVN DB ' + krMsg('lastupdate') + ': ' + data.dumpdate + ' (UTC)</small>');
-						isUpdating = false;
+						callback(htmloutput);
+						$feed.find('.mw-rtrc-feed-cvninfo').text('CVN DB ' + krMsg('lastupdate') + ': ' + data.dumpdate + ' (UTC)');
 					},
 					error: function () {
 						// Ignore errors, just push to frontend
-						krRTRC_PushFrontend();
-						isUpdating = false;
+						callback();
 					}
 				});
 			} catch (e) {
 				// Ignore errors, just push to frontend
-				krRTRC_PushFrontend();
-				isUpdating = false;
+				callback();
 			}
 
 		}
 	}
 
 	function krRTRC_Refresh() {
-		if (rcRefreshEnabled  && !isUpdating) {
+		if (rcRefreshEnabled && !isUpdating) {
 
 			// Indicate updating
 			$('#krRTRC_loader').show();
@@ -554,36 +569,28 @@
 				dataType: 'xml',
 				success: function (rawback) {
 
-					var htmloutput,
-						// Last-update heading
-						lastupdate = new Date(),
-						// Get current time + localtime adjustment
-						msd = wikiTimeOffset * 60 * 1000;
-					lastupdate.setTime(lastupdate.getTime() + msd);
-					rcFeedMemHTML = '<div id="krRTRC_lastupdate">' + krMsg('lastupdate') + ': ' + lastupdate.toUTCString() + ' | <a href="' + krRTRC_GeneratePermalink() + '">' + krMsg('permalinktext') + '</a></div>';
+					var htmloutput = '',
+						$data = $(rawback);
 
 					// API errors ?
-					if ($(rawback).find('error').length) {
+					if ($data.find('error').length) {
 
-						mw.log('krRTRC_GetRCData()-> ' + $(rawback).find('rc').length + ' errors');
-						$('#krRTRC_RCOutput').removeClass('placeholder');
+						mw.log('krRTRC_GetRCData()-> ' + $data.find('rc').length + ' errors');
+						$body.removeClass('placeholder');
 
 						// Account doesnt have patrol flag
-						if ($(rawback).find('error').attr('code') === 'rcpermissiondenied') {
-							rcFeedMemHTML += '<h3>Downloading recent changes failed</h3><p>Please untick the "Unpatrolled only"-checkbox or request the Patroller-right on <a href="' + conf.wgPageName + '">' + conf.wgPageName + '</a>';
+						if ($data.find('error').attr('code') === 'rcpermissiondenied') {
+							htmloutput += '<h3>Downloading recent changes failed</h3><p>Please untick the "Unpatrolled only"-checkbox or request the Patroller-right on <a href="' + conf.wgPageName + '">' + conf.wgPageName + '</a>';
 
 						// Other error
 						} else {
-							rcFeedMemHTML += '<h3>Downloading recent changes failed</h3><p>Please check the settings above and try again. If you believe this is a bug, please <a href="//meta.wikimedia.org/w/index.php?title=User_talk:Krinkle/Tools&action=edit&section=new&editintro=User_talk:Krinkle/Tools/Editnotice&preload=User_talk:Krinkle/Tools/Preload" target="_blank"><strong>let me know</strong></a>.';
+							htmloutput += '<h3>Downloading recent changes failed</h3><p>Please check the settings above and try again. If you believe this is a bug, please <a href="//meta.wikimedia.org/w/index.php?title=User_talk:Krinkle/Tools&action=edit&section=new&editintro=User_talk:Krinkle/Tools/Editnotice&preload=User_talk:Krinkle/Tools/Preload" target="_blank"><strong>let me know</strong></a>.';
 						}
-						krRTRC_PushFrontend();
-						isUpdating = false;
 
 					// Everything is OK - with results
-					} else if ($(rawback).find('rc').length) {
+					} else if ($data.find('rc').length) {
 
-						htmloutput = '<div id="krRTRC_list">';
-						$(rawback).find('rc').each(function () {
+						$data.find('rc').each(function () {
 							htmloutput += krRTRC_BuildItem(
 								$(this).attr('type'),
 								$(this).attr('title'),
@@ -599,19 +606,19 @@
 								$(this).attr('newlen')
 							);
 						});
-						rcFeedMemHTML += htmloutput + '</div>';
-						if (optIRCBL) {
-							krRTRC_ApplyIRCBL();
-							// isUpdating is set to false within krRTRC_ApplyIRCBL()
-						} else {
-							krRTRC_PushFrontend();
-							isUpdating = false;
-						}
 
 					// Everything is OK - no results
 					} else {
-						rcFeedMemHTML += '<strong><em>' + krMsg('nomatches') + '</em></strong>';
-						krRTRC_PushFrontend();
+						htmloutput += '<strong><em>' + krMsg('nomatches') + '</em></strong>';
+					}
+
+					if (optIRCBL) {
+						krRTRC_ApplyIRCBL(htmloutput, function (modoutput) {
+							krRTRC_PushFrontend(modoutput || htmloutput);
+							isUpdating = false;
+						});
+					} else {
+						krRTRC_PushFrontend(htmloutput);
 						isUpdating = false;
 					}
 
@@ -728,41 +735,13 @@
 	}
 
 	function krRTRC_NextDiff() {
-		var $lis = $('#krRTRC_RCOutput > .feed div.rcitem:not(.indiff, .patrolled, .skipped)');
+		var $lis = $feed.find('div.rcitem:not(.indiff, .patrolled, .skipped)');
 		if (optAutoDiffTop) {
 			$lis.eq(0).find('a.rcitemlink').click();
 		} else {
 			// eq(-1) doesn't work somehow..
 			$lis.eq($lis.length - 1).find(' a.rcitemlink').click();
 		}
-	}
-
-	function krRTRC_TipIn($targetEl, uid, is_anon) {
-		var o, links;
-		o = $targetEl.offset();
-		if (is_anon) {
-			links = ' · <a target="_blank" title="Whois ' + uid + '?" href="//toolserver.org/~chm/whois.php?ip=' + uid + '">WHOIS</a>';
-		} else {
-			links = '';
-		}
-		links += ' · <a target="_blank" title="View cross-wiki contributions" href="//toolserver.org/~luxo/contributions/contributions.php?user=' + uid + '&blocks=true">CrossWiki</a>';
-		if (userHasDeletedhistoryRight) {
-			links += ' · <a target="_blank" title="View deleted contributions" href="' + getWikipageUrl('Special:DeletedContributions/' + uid) + '">DeletedContributions</a>';
-		}
-		$krRTRC_Tiptext.html('<a id="krRTRC_Tip_FilterAdd" onclick="$(\'#rc-options-rcuser\').val(\'' + uid + '\'); window.$RCOptions_submit.click();" uid="' + uid + '" title="Filter by ' + uid + '">[ + <small>filter</small>]</a>' + links);
-		$krRTRC_Tip.css({
-			left: o.left + 'px',
-			top: (o.top - 23) + 'px',
-			display: 'block'
-		}).show();
-		krRTRC_TipTime = setTimeout(krRTRC_TipOut, 3000);
-	}
-
-	function krRTRC_TipOut() {
-		if (krRTRC_TipTime) {
-			clearTimeout(krRTRC_TipTime);
-		}
-		$krRTRC_Tip.hide();
 	}
 
 	function krRTRC_ToggleMassPatrol(b) {
@@ -912,7 +891,6 @@
 				$('#mw-panel .portal').eq(0).find('li').eq(0).wrapInner('<span>')
 			);
 
-		rcLegendHtml = '<div id="krRTRC_RCLegend">' + krMsg('recentchanges-label-legend').replace('$1.', '') + ' <abbr class="newpage" title="' + krMsg('recentchanges-label-newpage') + '">N</abbr>' + krMsg('recentchanges-legend-newpage').replace('$1', '') + ', <!--<abbr class="minor" title="' + krMsg('recentchanges-label-minor') + '">m</abbr>' + krMsg('recentchanges-legend-minor').replace('$1', '') + ', <abbr class="bot" title="' + krMsg('recentchanges-label-bot') + '">b</abbr>' + krMsg('recentchanges-legend-bot').replace('$1', '') + ', --><abbr class="unpatrolled" title="' + krMsg('recentchanges-label-unpatrolled') + '">!</abbr>' + krMsg('recentchanges-legend-unpatrolled').replace('$1', '') + '<br />Colors: <div class="item patrolled inline-block">&nbsp;' + krMsg('markedaspatrolled') + '&nbsp;</div>, <div class="item indiff inline-block">&nbsp;' + krMsg('currentedit') + '&nbsp;</div>, <div class="item skipped inline-block">&nbsp;' + krMsg('skippededit') + '&nbsp;</div>, <div class="item aes inline-block">&nbsp;Edit with an Automatic Edit Summary&nbsp;</div><br />' + krMsg('abbreviations') + ': T - ' + krMsg('talkpagelinktext') + ', C - ' + krMsg('contributions') + '</div>';
 		rcNamespaceDropdown = '<select id="rc-options-namespace" name="rc-options-namespace">';
 		rcNamespaceDropdown += '<option value>' + krMsg('namespacesall') + '</option>';
 		rcNamespaceDropdown += '<option value="0">' + krMsg('blanknamespace') + '</option>';
@@ -1086,7 +1064,33 @@
 			'</fieldset></form>' +
 			'<a name="krRTRC_DiffTop" />' +
 			'<div class="mw-rtrc-diff" id="krRTRC_DiffFrame" style="display: none;"></div>' +
-			'<div id="krRTRC_RCOutput" class="placeholder plainlinks">' + rcLegendHtml + '</div>' +
+			'<div class="mw-rtrc-body placeholder plainlinks">' +
+				'<div class="mw-rtrc-feed">' +
+					'<div class="mw-rtrc-feed-update"></div>' +
+					'<div class="mw-rtrc-feed-content"></div>' +
+					'<small class="mw-rtrc-feed-cvninfo"></small>' +
+				'</div>' +
+				'<img src="' + ajaxLoaderUrl + '" id="krRTRC_loader" style="display: none;" />' +
+				'<div class="mw-rtrc-legend">' +
+					krMsg('recentchanges-label-legend').replace('$1.', '') +
+					' <abbr class="newpage" title="' + krMsg('recentchanges-label-newpage') + '">N</abbr>' +
+					krMsg('recentchanges-legend-newpage').replace('$1', '') + ', ' +
+					'<!--' +
+						'<abbr class="minor" title="' + krMsg('recentchanges-label-minor') + '">m</abbr>' +
+						krMsg('recentchanges-legend-minor').replace('$1', '') +
+						', <abbr class="bot" title="' + krMsg('recentchanges-label-bot') + '">b</abbr>' +
+						krMsg('recentchanges-legend-bot').replace('$1', '') + ', ' +
+					'-->' +
+					'<abbr class="unpatrolled" title="' + krMsg('recentchanges-label-unpatrolled') + '">!</abbr>' +
+					krMsg('recentchanges-legend-unpatrolled').replace('$1', '') +
+					'<br />Colors: <div class="item patrolled inline-block">&nbsp;' +
+					krMsg('markedaspatrolled') + '&nbsp;</div>, <div class="item indiff inline-block">&nbsp;' +
+					krMsg('currentedit') + '&nbsp;</div>, ' +
+					'<div class="item skipped inline-block">&nbsp;' + krMsg('skippededit') + '&nbsp;</div>, ' +
+					'<div class="item aes inline-block">&nbsp;Edit with an Automatic Edit Summary&nbsp;</div>' +
+					'<br />' + krMsg('abbreviations') + ': T - ' + krMsg('talkpagelinktext') + ', C - ' + krMsg('contributions') +
+				'</div>' +
+			'</div>' +
 			'<div style="clear: both;"></div>' +
 			'<div id="krRTRC_Footer">' +
 				'<div class="inside plainlinks" style="text-align: right;">' +
@@ -1098,20 +1102,15 @@
 				'</div>' +
 			'</div>' +
 		'</div>'
-		))
-			// Add helper element for switch checkboxes
-			.find('input.switch')
-				.after('<div class="switched"></div>')
-				.end();
+		));
 
+		// Add helper element for switch checkboxes
+		$wrapper.find('input.switch').after('<div class="switched"></div>');
 
 		$('#content').empty().append($wrapper);
 
-		$krRTRC_Tiptext = $('<span id="krRTRC_Tiptext"></span>');
-		$krRTRC_Tip = $('<div id="krRTRC_Tip" class="plainlinks"></div>').append($krRTRC_Tiptext);
-		$('body').append($krRTRC_Tip);
-
-		$('#krRTRC_RCOutput').prepend('<div class="feed"></div><img src="' + ajaxLoaderUrl + '" id="krRTRC_loader" style="display: none;" />');
+		$body = $wrapper.find('.mw-rtrc-body');
+		$feed = $body.find('.mw-rtrc-feed');
 	};
 
 	// function ProcesPermalink()
@@ -1171,7 +1170,7 @@
 					$('.patrollink a').click();
 				}
 
-				$('#krRTRC_RCOutput > .feed div.indiff').removeClass('indiff');
+				$feed.find('div.indiff').removeClass('indiff');
 				krRTRC_RebindElements();
 			});
 			return false;
@@ -1191,7 +1190,7 @@
 				if (optMassPatrol) {
 					$('.patrollink a').click();
 				}
-				$('#krRTRC_RCOutput > .feed div.indiff').removeClass('indiff');
+				$feed.find('div.indiff').removeClass('indiff');
 				krRTRC_RebindElements();
 			});
 			return false;
@@ -1222,7 +1221,7 @@
 					$el.empty().append(
 						$('<span style="color: green;"></span>').text(krMsg('markedaspatrolled'))
 					);
-					$('#krRTRC_RCOutput > .feed div[rcid="' + currentDiffRcid + '"]').addClass('patrolled');
+					$feed.find('div[rcid="' + currentDiffRcid + '"]').addClass('patrolled');
 
 					// Patrolling/Refreshing sometimes overlap eachother causing patrolled edits to show up in an 'unpatrolled only' feed.
 					// Make sure that any patrolled edits stay marked as such to prevent AutoDiff from picking a patrolled edit
@@ -1253,7 +1252,7 @@
 
 		// SkipDiff
 		$('#diffSkip').live('click', function () {
-			$('#krRTRC_RCOutput > .feed div[rcid=' + currentDiffRcid + ']').addClass('skipped');
+			$feed.find('div[rcid=' + currentDiffRcid + ']').addClass('skipped');
 			// Add to array, to reAddClass after refresh in krRTRC_RebindElements
 			skippedRCIDs.push(currentDiffRcid);
 			krRTRC_NextDiff(); // Load next
@@ -1261,7 +1260,7 @@
 
 		// UnskipDiff
 		$('#diffUnskip').live('click', function () {
-			$('#krRTRC_RCOutput > .feed div[rcid=' + currentDiffRcid + ']').removeClass('skipped');
+			$feed.find('div[rcid=' + currentDiffRcid + ']').removeClass('skipped');
 			// Remove from array, to no longer reAddClass after refresh
 			skippedRCIDs.splice(skippedRCIDs.indexOf(currentDiffRcid), 1);
 			//krRTRC_NextDiff(); // Load next ?
@@ -1294,32 +1293,6 @@
 				$('#rc-options-rcuser').val('');
 			}
 			window.$RCOptions_submit.click();
-		});
-
-		// Tip
-		$('#krRTRC_Tip')
-			.click(krRTRC_TipOut)
-			.hover(function () {
-				clearTimeout(krRTRC_TipTime);
-			}, function () {
-				krRTRC_TipTime = setTimeout(krRTRC_TipOut, 1000);
-			});
-
-		$('#krRTRC_list *').live('mouseover', function (e) {
-			var $hovEl;
-
-			if ($(e.target).is('.rcitem')) {
-				$hovEl = $(e.target);
-			} else if ($(e.target).parents('.rcitem').is('.rcitem')) {
-				$hovEl = $(e.target).parents('.rcitem');
-			}
-
-			if ($hovEl) {
-				krRTRC_TipIn($hovEl.find('.user'), $hovEl.find('.user').text(), $hovEl.hasClass('anoncontrib'));
-			} else {
-				krRTRC_TipOut();
-			}
-
 		});
 
 		// Mark as patrolled when rollbacking

@@ -158,24 +158,8 @@
 }
 
 .mw-rtrc-wrapper .button:hover,
-.mw-rtrc-wrapper .helpicon:hover,
-#krRTRC_Tiptext:hover {
+.mw-rtrc-wrapper .helpicon:hover {
 	cursor: pointer;
-}
-
-
-#krRTRC_Tip {
-	position: absolute;
-	top: 0;
-	right: 0;
-	display: none;
-}
-
-#krRTRC_Tiptext {
-	/* Reminder: Also update example in docs */
-	border: 3px solid rgb(136, 240, 36);
-	padding: 4px 24px 4px 8px;
-	background:#f9f9f9 url(//upload.wikimedia.org/wikipedia/commons/thumb/3/35/Button_normal.svg/12px-Button_normal.svg.png) top right no-repeat;
 }
 
 /* Settings */
@@ -332,37 +316,87 @@
 /*
 	RC OUTPUT
 */
-#krRTRC_RCOutput { position:relative; width:100%; margin:20px auto 70px auto }
-#krRTRC_RCOutput.placeholder { width:100%; height:600px; background:transparent url(//upload.wikimedia.org/wikipedia/commons/9/9d/RTRC_Placeholder.png) top center no-repeat }
-#krRTRC_RCOutput.placeholder * { display:none }
-#krRTRC_RCOutput .feed { position:relative; padding:2em 0; background:white;
-   font-size:14px; -moz-border-radius-topleft:11px; -webkit-border-top-left-radius:11px; -khtml-border-top-left-radius:11px; border-top-left-radius:11px;-moz-border-radius-topright:11px; -webkit-border-top-right-radius:11px; -khtml-border-top-right-radius:11px; border-top-right-radius:11px;-moz-box-shadow:rgba(200,200,200,1) 0 5px 15px; -webkit-box-shadow:rgba(200,200,200,1) 0 5px 15px; -khtml-box-shadow:rgba(200,200,200,1) 0 5px 15px; box-shadow:rgba(200,200,200,1) 0 5px 15px }
-#krRTRC_lastupdate { position:absolute; top:0.5em; left:10%; width:80%; font-size:smaller; text-align:center }
-#krRTRC_loader { position:absolute; top:0; right:0 }
-#krRTRC_Dumpdate { position:absolute; bottom:-3em; right:5px; text-align:right }
-#krRTRC_list { margin:0 0 -1.5em 0; width:100% }
-#krRTRC_list .item { padding:0px 5px; white-space:nowrap }
- .item:nth-child(odd)	{ background:#f3f3f3 }
+.mw-rtrc-body {
+	position: relative;
+	width: 100%;
+	margin: 20px auto 70px auto;
+}
+
+.mw-rtrc-body.placeholder {
+	width: 100%;
+	height: 600px;
+	background: transparent url(//upload.wikimedia.org/wikipedia/commons/9/9d/RTRC_Placeholder.png) top center no-repeat;
+}
+
+.mw-rtrc-body.placeholder > * {
+	display: none;
+}
+
+.mw-rtrc-feed {
+	position: relative;
+	padding: 2em 0;
+	background: #fff;
+	font-size: 14px;
+	border-top-left-radius: 11px;
+	border-top-right-radius:11px;
+	box-shadow: rgba(200, 200, 200, 1) 0 5px 15px;
+}
+
+.mw-rtrc-feed-update {
+	position: absolute;
+	top: 0.5em;
+	left: 10%;
+	width: 80%;
+	font-size: smaller;
+	text-align: center;
+}
+
+#krRTRC_loader {
+	position: absolute;
+	top: 0;
+	right: 0;
+}
+
+.mw-rtrc-feed-cvninfo {
+	position: absolute;
+	bottom: -3em;
+	right: 5px;
+	text-align: right;
+}
+
+.mw-rtrc-feed-content {
+	margin: 0 0 -1.5em 0;
+	width: 100%;
+}
+
+.mw-rtrc-feed-content .item {
+	padding: 0 5px;
+	white-space: nowrap;
+}
+
+.mw-rtrc-feed-content .item:nth-child(odd) {
+	background: #f3f3f3;
+}
 
 /* Acts like a table with table-rows, using divs to avoid fixed table-layout with forced width and oveflow issues */
-#krRTRC_list .item div { display:inline-block; overflow:hidden; padding:3px 0px }
-#krRTRC_list .item div[first] { width:38% }
-#krRTRC_list .item div[user] { width:21% }
-#krRTRC_list .item div[other] { width:35% }
-#krRTRC_list .item div[size] { width:6%;font-size:smaller; text-align:right }
+.mw-rtrc-feed-content .item div { display: inline-block; overflow: hidden; padding: 3px 0; }
+.mw-rtrc-feed-content .item div[first] { width: 38% }
+.mw-rtrc-feed-content .item div[user] { width: 21% }
+.mw-rtrc-feed-content .item div[other] { width: 35% }
+.mw-rtrc-feed-content .item div[size] { width: 6%;font-size: smaller; text-align: right }
 
 /* item classes */
- .item.aes { background:#fff0f0 }
- .item.aes .comment { font-weight:bold }
+.item.aes { background: #fff0f0 }
+.item.aes .comment { font-weight: bold }
 
- .item.skipped { background:#d6d9e9 !important }
- .item.patrolled { background:#d9e9d6 !important }
- .item.indiff { background:#ffce7b !important; border:1px solid orange }
+.item.skipped { background: #d6d9e9 !important }
+.item.patrolled { background: #d9e9d6 !important }
+.item.indiff { background: #ffce7b !important; border: 1px solid orange }
 
- .item .user.blacklisted	{ font-weight:bold; color:red !important }
- .item .user.blacklisted img	{ vertical-align:baseline }
+.item .user.blacklisted	{ font-weight: bold; color: red !important }
+.item .user.blacklisted img	{ vertical-align: baseline }
 
-#krRTRC_RCLegend {
+.mw-rtrc-legend {
 	margin: 5px auto;
 	padding: 5px 13px;
 	background: #fff;
