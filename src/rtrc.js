@@ -216,11 +216,6 @@
 		}
 	};
 
-	// Returns whether the given variable is an integer
-	function krRTRC_isInt(i) {
-		return parseInt(i, 10) === i;
-	}
-
 	// Searches an array for the giving string
 	// MUST be loose comparison
 	function krInArray(s, array) {
@@ -394,23 +389,23 @@
 		optUntill = isEmpty($.trim($('#rc-options-timeframe-rcuntill').val())) ? false : $.trim($('#rc-options-timeframe-rcuntill').val());
 
 		if (optOrder === 'older') {
-			if (krRTRC_isInt(parseInt(optUntill, 10)) && timeUtil.apiApplyWikiOffset(optUntill)) {
+			if (!isNaN(parseInt(optUntill, 10)) && timeUtil.apiApplyWikiOffset(optUntill)) {
 				optRcstart = '&rcstart=' + timeUtil.apiApplyWikiOffset(optUntill);
 			} else {
 				optRcstart = '';
 			}
-			if (krRTRC_isInt(parseInt(optFrom, 10)) && timeUtil.apiApplyWikiOffset(optFrom)) {
+			if (!isNaN(parseInt(optFrom, 10)) && timeUtil.apiApplyWikiOffset(optFrom)) {
 				optRcend = '&rcend=' + timeUtil.apiApplyWikiOffset(optFrom);
 			} else {
 				optRcend = '';
 			}
 		} else if (optOrder === 'newer') {
-			if (krRTRC_isInt(parseInt(optFrom, 10)) && timeUtil.apiApplyWikiOffset(optFrom)) {
+			if (!isNaN(parseInt(optFrom, 10)) && timeUtil.apiApplyWikiOffset(optFrom)) {
 				optRcstart = '&rcstart=' + timeUtil.apiApplyWikiOffset(optFrom);
 			} else {
 				optRcstart = '';
 			}
-			if (krRTRC_isInt(parseInt(optUntill, 10)) && timeUtil.apiApplyWikiOffset(optUntill)) {
+			if (!isNaN(parseInt(optUntill, 10)) && timeUtil.apiApplyWikiOffset(optUntill)) {
 				optRcend = '&rcend=' + timeUtil.apiApplyWikiOffset(optUntill);
 			} else {
 				optRcend = '';
