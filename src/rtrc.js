@@ -149,11 +149,6 @@
 		return i;
 	}
 
-	// Construct a URL to a page on the wiki
-	function getWikipageUrl(s) {
-		return mw.util.wikiGetlink(s);
-	}
-
 	timeUtil = {
 		// Create new Date instance from MediaWiki API timestamp string
 		newDateFromApi: function (s) {
@@ -322,8 +317,8 @@
 
 
 		item += '<div first>(' + diffLink + ') ' + typeSymbol + ' ';
-		item += timeUtil.getClocktimeFromApi(timestamp) + ' <a class="page" href="' + getWikipageUrl(title) + '?rcid=' + rcid + '" target="_blank">' + title + '</a></div>';
-		item += '<div user>&nbsp;<small>&middot;&nbsp;<a href="' + getWikipageUrl('User talk:' + user) + '" target="_blank">T</a> &middot; <a href="' + getWikipageUrl('Special:Contributions/' + user) + '" target="_blank">C</a>&nbsp;</small>&middot;&nbsp;<a class="user" href="' + getWikipageUrl('User:' + user) + '" target="_blank">' + user + '</a></div>';
+		item += timeUtil.getClocktimeFromApi(timestamp) + ' <a class="page" href="' + mw.util.wikiGetlink(title) + '?rcid=' + rcid + '" target="_blank">' + title + '</a></div>';
+		item += '<div user>&nbsp;<small>&middot;&nbsp;<a href="' + mw.util.wikiGetlink('User talk:' + user) + '" target="_blank">T</a> &middot; <a href="' + mw.util.wikiGetlink('Special:Contributions/' + user) + '" target="_blank">C</a>&nbsp;</small>&middot;&nbsp;<a class="user" href="' + mw.util.wikiGetlink('User:' + user) + '" target="_blank">' + user + '</a></div>';
 		item += '<div other>&nbsp;<span class="comment">' + mw.html.escape(comment) + '</span></div>';
 
 		if (diffsize > 0) {
@@ -908,7 +903,7 @@
 			'<div class="mw-rtrc-head">' +
 				'Real-Time Recent Changes <small>(' + appVersion + ')</small>' +
 				'<div class="mw-rtrc-head-links">' +
-					'<a target="_blank" href="' + getWikipageUrl('Special:Log/patrol') + '?user=' + encodeURIComponent(mw.user.name()) + '">' +
+					'<a target="_blank" href="' + mw.util.wikiGetlink('Special:Log/patrol') + '?user=' + encodeURIComponent(mw.user.name()) + '">' +
 						krMsg('mypatrollog').ucFirst() +
 					'</a>' +
 					'<a id="toggleHelp" href="#toggleHelp">Help</a>' +
