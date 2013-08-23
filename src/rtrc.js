@@ -38,10 +38,8 @@
 	userHasPatrolRight = false,
 	userHasDeletedhistoryRight = false,
 	userPatrolTokenCache = false,
-	apiRecentChangesQueryUrl = false,
 	rcRefreshTimeout,
 	rcRefreshEnabled = false,
-	rcNamespaceDropdown,
 
 	rcPrevDayHeading,
 	skippedRCIDs = [],
@@ -60,37 +58,46 @@
 	 * Feed options
 	 * -------------------------------------------------
 	 */
-	optLimit = '25',
-	optFiltAnon = false,
-	optFiltPatrol = false,
-	optUser = '',
-	optTypeEditoptUser = true,
-	optTypeNewpage = true,
-	optPage = '',
-	optRctype = '',
-	optFrom = false,
-	optUntill = false,
-	optRcshow = '',
-	optRcprop = '',
-	optRcstart = '',
-	optNS = '',
-	optOrder = 'desc',
-	optRcend = '',
-	optRInt = 3000,
-	optIRCBL = false,
+	defOpt = {
+		rc: {
+			// Timestamp
+			start: undefined,
+			// Timestamp
+			end: undefined,
+			// Direction "older" (descending) or "newer" (ascending)
+			dir: 'older',
+			// Array of namespace ids
+			namespace: undefined,
+			// User name
+			user: undefined,
+			// Tag ID
+			tag: undefined,
+			// Show filters: exclude, include, filter
+			showAnonOnly: false,
+			showUnpatrolledOnly: false,
+			limit: '25',
+			// Type filters are "show matches only"
+			typeEdit: false,
+			typeNew: false
+		},
 
-	optMassPatrol = false,
-	optAutoDiff = false,
-	optAutoDiffTop = false,
+		app: {
+			refresh: 3,
+			cvnDB: false,
+			massPatrol: false,
+			autoDiff: false,
+			autoDiffTop: false
+		}
+	},
+	opt = $(true, {}, defOpt),
 
-	optRcdir,
 	krRTRC_initFuncs,
 	krRTRC_initFuncs2,
 	timeUtil,
 	dModules,
 
 	currentDiffRcid,
-	$body, $feed,
+	$wrapper, $body, $feed,
 	$krRTRC_MassPatrol;
 
 	// implied globals, legacy click handlers
@@ -116,29 +123,6 @@
 	// Get interface message
 	function krMsg(key) {
 		return krMsgs[key] || key.ucFirst();
-	}
-
-	// Returns a GET-parameter as string
-	function getParamValue(s, url) {
-		return mw.util.getParamValue(s, url);
-	}
-
-	// Check if a variable is 'empty'
-	function isEmpty(v) {
-		var key;
-
-		if (v === '' || v === '0' || v === 0 || v === false || v === null || v === undefined) {
-			return true;
-		}
-
-		if (typeof v === 'object') {
-			for (key in v) {
-				return false;
-			}
-			return true;
-		}
-
-		return false;
 	}
 
 	// Prepends a leading zero if value is under 10
@@ -239,7 +223,8 @@
 		return '<div class="item"><div><strong>' + time.getDate() + ' ' + monthNames[time.getMonth()] + '</strong></div></div>';
 	}
 
-	function krRTRC_BuildItem(type, title, rcid, revid, old_revid, user, timestamp, comment,
+	function krRTRC_BuildItem(
+		type, title, rcid, revid, old_revid, user, timestamp, comment,
 		patrolled, anon, oldlen, newlen
 	) {
 		var diffsize, usertypeClass, el, typeSymbol, itemClass, diffLink, item;
@@ -247,8 +232,9 @@
 		// Get size difference in bytes (can be negative, zero or positive)
 		diffsize = (+newlen) - (+oldlen);
 
-		//patrolled-var is empty string if edit is patrolled, else undefined
-		patrolled = patrolled === '';
+		// patrolled is empty string if edit is patrolled, else undefined if it isn't
+		// patrolled or the user doesnt have the right to see that information
+		patrolled = patrolled !== undefined;
 
 		//anon-var is empty string if edit is by anon, else undefined
 		anon = anon === '';
@@ -257,24 +243,17 @@
 		typeSymbol = '&nbsp;';
 		itemClass = '';
 		diffLink = krMsg('diff');
-		if (type === 'edit') {
 
-			if (userHasPatrolRight) {
-				if (optFiltPatrol === 'on') {
-					typeSymbol = '<span class="unpatrolled">!</span>';
-				} else if (!patrolled) {
-					typeSymbol = '<span class="unpatrolled">!</span>';
-				}
+		if (type === 'new') {
+			typeSymbol += '<span class="newpage">N</span>';
+		}
+
+		if (type === 'edit' || type === 'new') {
+			if (userHasPatrolRight && !patrolled) {
+				typeSymbol += '<span class="unpatrolled">!</span>';
 			}
 
 			itemClass = 'rcitem';
-
-		} else if (type === 'new') {
-
-			itemClass = 'rcitem';
-
-			typeSymbol = '<span class="newpage">N</span>';
-
 		}
 
 		// strip HTML from comment
@@ -335,92 +314,234 @@
 		return item;
 	}
 
+	function readSettingsForm() {
+		// jQuery#serializeArray is nice, but doesn't include "value: false" for unchecked
+		// checkboxes that are not disabled. Using raw .elements instead and filtering
+		// out <fieldset>.
+		var $settings = $($wrapper.find('.mw-rtrc-settings')[0].elements).filter(':input');
 
-	function krRTRC_GetRCOptions() {
+		opt = $.extend(true, {}, defOpt);
 
-		optLimit = $('#rc-options-limit').val();
+		$settings.each(function (i, el) {
+			var name = el.name;
 
-		optFiltAnon = $('#rc-options-filter-anons').prop('checked');
-		optRcshow = optFiltAnon ? '|anon' : '';
+			switch (name) {
+			// RC
+			case 'limit':
+				opt.rc[name] = Number(el.value);
+				break;
+			case 'namespace':
+				// Can be "0".
+				// Value "" (all) is represented by undefined.
+				// TODO: Turn this into a multi-select, the API supports it.
+				opt.rc[name] = el.value.length ? Number(el.value) : undefined;
+				break;
+			case 'user':
+			case 'start':
+			case 'end':
+				opt.rc[name] = el.value || undefined;
+				break;
+			case 'showAnonOnly':
+			case 'showUnpatrolledOnly':
+			case 'typeEdit':
+			case 'typeNew':
+				opt.rc[name] = el.checked;
+				break;
+			case 'dir':
+				// There's more than 1 radio button with this name in this loop,
+				// use the value of the first (and only) checked one.
+				if (el.checked) {
+					opt.rc[name] = el.value;
+				}
+				break;
+			// APP
+			case 'cvnDB':
+				opt.app[name] = el.checked;
+				break;
+			case 'refresh':
+				opt.app[name] = Number(el.value);
+				break;
+			// Other settings (MassPatrol, AutoDiff, ..) are instantly toggled
+			// as opposed to on-apply
+			}
+		});
+	}
 
-		optFiltPatrol = $('#rc-options-filter-unpatrolled').prop('checked');
-		if (optFiltPatrol) {
-			optRcshow += '|!patrolled';
+	function fillSettingsForm(newOpt) {
+		var $settings = $($wrapper.find('.mw-rtrc-settings')[0].elements).filter(':input');
+
+		if (newOpt.rc) {
+			$.each(newOpt.rc, function (key, value) {
+				var $setting = $settings.filter(function () {
+						return this.name === key;
+					}),
+					setting = $setting[0];
+
+				if (!setting) {
+					return;
+				}
+
+				switch (key) {
+				case 'limit':
+					setting.value = value;
+					break;
+				case 'namespace':
+					if (value === undefined) {
+						// Value "" (all) is represented by undefined.
+						$setting.find('option').eq(0).prop('selected', true);
+					} else {
+						$setting.val(value);
+					}
+					break;
+				case 'user':
+				case 'start':
+				case 'end':
+					setting.value = value || '';
+					break;
+				case 'showAnonOnly':
+				case 'showUnpatrolledOnly':
+				case 'typeEdit':
+				case 'typeNew':
+					setting.checked = value;
+					break;
+				case 'dir':
+					if (setting.value === value) {
+						setting.checked = true;
+					}
+					break;
+				}
+			});
 		}
 
-		if (userHasPatrolRight) {
-			optRcprop = '|patrolled';
+		if (newOpt.app) {
+			$.each(newOpt.app, function (key, value) {
+				var setting = $settings.filter(function () {
+						return this.name === key;
+					})[0];
+
+				if (!setting) {
+					return;
+				}
+
+				switch (key) {
+				case 'cvnDB':
+					setting.checked = value;
+					break;
+				case 'refresh':
+					setting.value = value;
+					break;
+				}
+			});
 		}
 
-		optUser = $('#rc-options-rcuser').val() === '' ? false : $.trim($('#rc-options-rcuser').val());
-		if (!isEmpty(optUser)) {
-			optUser = '&rcuser=' + optUser;
-		} else {
-			optUser = '';
+	}
+
+	function getPermalink() {
+		var uri = new mw.Uri(mw.util.wikiGetlink(conf.wgPageName));
+		uri.extend({
+			opt: $.toJSON(opt),
+			kickstart: 1
+		});
+		return uri.toString();
+	}
+
+	// Read permalink into the program and reflect into settings form.
+	// TODO: Refactor into init, as this does more than read permalink.
+	// It also inits the settings form and handles kickstart
+	function readPermalink() {
+		var url = new mw.Uri(),
+			newOpt = url.query.opt,
+			kickstart = url.query.kickstart;
+
+		newOpt = newOpt ? $.parseJSON(newOpt): {};
+
+		newOpt = $.extend(true, {}, defOpt, newOpt);
+
+		fillSettingsForm(newOpt);
+
+		opt = newOpt;
+
+		if (kickstart === '1') {
+			krRTRC_hardRefresh();
+			window.location.hash = '';
+			window.location.hash = 'toggleHelp';
+		}
+	}
+
+	function getApiRcParams(rc) {
+		var rcprop = [
+				'flags',
+				'timestamp',
+				'user',
+				'title',
+				'comment',
+				'sizes',
+				'ids'
+			],
+			rcshow = ['!bot'],
+			rctype = [],
+			params = {};
+
+		params.rcdir = rc.dir;
+
+		if (rc.dir === 'older') {
+			if (rc.end !== undefined) {
+				params.rcstart = rc.end;
+			}
+			if (rc.start !== undefined) {
+				params.rcend = rc.start;
+			}
+		} else if (rc.dir === 'newer') {
+			if (rc.start !== undefined) {
+				params.rcstart = rc.start;
+			}
+			if (rc.end !== undefined) {
+				params.rcend = rc.end;
+			}
 		}
 
-		// Title filter option (rctitles) is no longer supported by MediaWiki (disabled),
+		if (rc.namespace !== undefined) {
+			params.rcnamespace = rc.namespace;
+		}
+
+		if (rc.user !== undefined) {
+			params.rcuser = rc.user;
+		}
+
+
+		// params.titles: Title filter option (rctitles) is no longer supported by MediaWiki,
 		// see https://bugzilla.wikimedia.org/show_bug.cgi?id=12394#c5.
 
-		optTypeEditoptUser = $('#rc-options-type-edit').prop('checked');
-		optTypeNewpage = $('#rc-options-type-newpage').prop('checked');
-		optRctype = [];
-		if (optTypeEditoptUser) {
-			optRctype.push('edit');
-		}
-		if (optTypeNewpage) {
-			optRctype.push('new');
-		}
-		optRctype = optRctype.join('|');
+		// params.tag
 
-		if (optRctype === '') {
-			// If all of, enable all
-			$('#rc-options-type-edit').click();
-			$('#rc-options-type-newpage').click();
-			optRctype = 'edit|new';
+		if (userHasPatrolRight) {
+			rcprop.push('patrolled');
 		}
 
-		optFrom = isEmpty($.trim($('#rc-options-timeframe-rcfrom').val())) ? false : $.trim($('#rc-options-timeframe-rcfrom').val());
-		optUntill = isEmpty($.trim($('#rc-options-timeframe-rcuntill').val())) ? false : $.trim($('#rc-options-timeframe-rcuntill').val());
+		params.rcprop = rcprop.join('|');
 
-		if (optOrder === 'older') {
-			if (!isNaN(parseInt(optUntill, 10)) && timeUtil.apiApplyWikiOffset(optUntill)) {
-				optRcstart = '&rcstart=' + timeUtil.apiApplyWikiOffset(optUntill);
-			} else {
-				optRcstart = '';
-			}
-			if (!isNaN(parseInt(optFrom, 10)) && timeUtil.apiApplyWikiOffset(optFrom)) {
-				optRcend = '&rcend=' + timeUtil.apiApplyWikiOffset(optFrom);
-			} else {
-				optRcend = '';
-			}
-		} else if (optOrder === 'newer') {
-			if (!isNaN(parseInt(optFrom, 10)) && timeUtil.apiApplyWikiOffset(optFrom)) {
-				optRcstart = '&rcstart=' + timeUtil.apiApplyWikiOffset(optFrom);
-			} else {
-				optRcstart = '';
-			}
-			if (!isNaN(parseInt(optUntill, 10)) && timeUtil.apiApplyWikiOffset(optUntill)) {
-				optRcend = '&rcend=' + timeUtil.apiApplyWikiOffset(optUntill);
-			} else {
-				optRcend = '';
-			}
+		if (rc.showAnonOnly) {
+			rcshow.push('anon');
 		}
 
-		optNS = $('#rc-options-namespace').val();
+		if (rc.showUnpatrolledOnly) {
+			rcshow.push('!patrolled');
+		}
 
-		optRcdir = $('input[name="rc-options-rcdir"]:checked').val();
-		optOrder = optRcdir === 'asc' ? 'newer' : 'older';
+		params.rcshow = rcshow.join('|');
 
-		optRInt = parseInt($('#rc-options-interval').val(), 10) * 1000;
+		params.rclimit = rc.limit;
 
-		optIRCBL = $('#rc-options-ircbl').prop('checked');
+		if (rc.typeEdit) {
+			rctype.push('edit');
+		}
 
-		optAutoDiff = $('#rc-options-autodiff').prop('checked');
-		optAutoDiffTop = $('#rc-options-autodiff-top').prop('checked');
+		if (rc.typeNew) {
+			rctype.push('new');
+		}
 
-		apiRecentChangesQueryUrl = apiUrl + '?action=query&format=xml&list=recentchanges' + optUser + '' + optPage + '&rctype=' + optRctype + '&rcshow=!bot' + optRcshow + '&rcprop=flags|timestamp|user|title|comment|sizes|ids' + optRcprop + '&rcnamespace=' + optNS + '&rclimit=' + optLimit + '&rcdir=' + optOrder + optRcstart + optRcend;
-		return apiRecentChangesQueryUrl;
+		params.rctype = rctype.length ? rctype.join('|') : 'edit|new';
+		return params;
 	}
 
 	// Called when the list is refreshed
@@ -459,7 +580,7 @@
 
 		$feed.find('.mw-rtrc-feed-update').html(
 			krMsg('lastupdate') + ': ' + lastupdate.toUTCString() +
-			' | <a href="' + krRTRC_GeneratePermalink() + '">' +
+			' | <a href="' + getPermalink() + '">' +
 			krMsg('permalinktext') +
 			'</a>'
 		);
@@ -472,7 +593,7 @@
 
 		// Reset day
 		rcPrevDayHeading = undefined;
-		rcRefreshTimeout = setTimeout(krRTRC_Refresh, optRInt);
+		rcRefreshTimeout = setTimeout(krRTRC_Refresh, opt.app.refresh * 1000);
 		$('#krRTRC_loader').hide();
 	}
 
@@ -552,74 +673,81 @@
 	}
 
 	function krRTRC_Refresh() {
+		var rcparams;
 		if (rcRefreshEnabled && !isUpdating) {
 
 			// Indicate updating
 			$('#krRTRC_loader').show();
 			isUpdating = true;
+
 			// Download recent changes
+
+			rcparams = getApiRcParams(opt.rc);
+			rcparams.format = 'xml';
+			rcparams.action = 'query';
+			rcparams.list = 'recentchanges';
+
 			$.ajax({
 				type: 'GET',
-				url: apiRecentChangesQueryUrl,
-				dataType: 'xml',
-				success: function (rawback) {
+				url: apiUrl,
+				data: rcparams,
+				dataType: 'xml'
+			}).done(function (rawback) {
 
-					var htmloutput = '',
-						$data = $(rawback);
+				var htmloutput = '',
+					$data = $(rawback);
 
-					// API errors ?
-					if ($data.find('error').length) {
+				// API errors ?
+				if ($data.find('error').length) {
 
-						mw.log('krRTRC_GetRCData()-> ' + $data.find('rc').length + ' errors');
-						$body.removeClass('placeholder');
+					mw.log('krRTRC_GetRCData()-> ' + $data.find('rc').length + ' errors');
+					$body.removeClass('placeholder');
 
-						// Account doesnt have patrol flag
-						if ($data.find('error').attr('code') === 'rcpermissiondenied') {
-							htmloutput += '<h3>Downloading recent changes failed</h3><p>Please untick the "Unpatrolled only"-checkbox or request the Patroller-right on <a href="' + conf.wgPageName + '">' + conf.wgPageName + '</a>';
+					// Account doesnt have patrol flag
+					if ($data.find('error').attr('code') === 'rcpermissiondenied') {
+						htmloutput += '<h3>Downloading recent changes failed</h3><p>Please untick the "Unpatrolled only"-checkbox or request the Patroller-right on <a href="' + conf.wgPageName + '">' + conf.wgPageName + '</a>';
 
-						// Other error
-						} else {
-							htmloutput += '<h3>Downloading recent changes failed</h3><p>Please check the settings above and try again. If you believe this is a bug, please <a href="//meta.wikimedia.org/w/index.php?title=User_talk:Krinkle/Tools&action=edit&section=new&editintro=User_talk:Krinkle/Tools/Editnotice&preload=User_talk:Krinkle/Tools/Preload" target="_blank"><strong>let me know</strong></a>.';
-						}
-
-					// Everything is OK - with results
-					} else if ($data.find('rc').length) {
-
-						$data.find('rc').each(function () {
-							htmloutput += krRTRC_BuildItem(
-								$(this).attr('type'),
-								$(this).attr('title'),
-								$(this).attr('rcid'),
-								$(this).attr('revid'),
-								$(this).attr('old_revid'),
-								$(this).attr('user'),
-								$(this).attr('timestamp'),
-								$(this).attr('comment'),
-								$(this).attr('patrolled'),
-								$(this).attr('anon'),
-								$(this).attr('oldlen'),
-								$(this).attr('newlen')
-							);
-						});
-
-					// Everything is OK - no results
+					// Other error
 					} else {
-						htmloutput += '<strong><em>' + krMsg('nomatches') + '</em></strong>';
+						htmloutput += '<h3>Downloading recent changes failed</h3><p>Please check the settings above and try again. If you believe this is a bug, please <a href="//meta.wikimedia.org/w/index.php?title=User_talk:Krinkle/Tools&action=edit&section=new&editintro=User_talk:Krinkle/Tools/Editnotice&preload=User_talk:Krinkle/Tools/Preload" target="_blank"><strong>let me know</strong></a>.';
 					}
 
-					if (optIRCBL) {
-						krRTRC_ApplyIRCBL(htmloutput, function (modoutput) {
-							krRTRC_PushFrontend(modoutput || htmloutput);
-							isUpdating = false;
-						});
-					} else {
-						krRTRC_PushFrontend(htmloutput);
-						isUpdating = false;
-					}
+				// Everything is OK - with results
+				} else if ($data.find('rc').length) {
 
-					window.$RCOptions_submit.prop('disabled', false).css('opacity', '1.0');
+					$data.find('rc').each(function () {
+						htmloutput += krRTRC_BuildItem(
+							$(this).attr('type'),
+							$(this).attr('title'),
+							$(this).attr('rcid'),
+							$(this).attr('revid'),
+							$(this).attr('old_revid'),
+							$(this).attr('user'),
+							$(this).attr('timestamp'),
+							$(this).attr('comment'),
+							$(this).attr('patrolled'),
+							$(this).attr('anon'),
+							$(this).attr('oldlen'),
+							$(this).attr('newlen')
+						);
+					});
+
+				// Everything is OK - no results
+				} else {
+					htmloutput += '<strong><em>' + krMsg('nomatches') + '</em></strong>';
 				}
 
+				if (opt.app.cvnDB) {
+					krRTRC_ApplyIRCBL(htmloutput, function (modoutput) {
+						krRTRC_PushFrontend(modoutput || htmloutput);
+						isUpdating = false;
+					});
+				} else {
+					krRTRC_PushFrontend(htmloutput);
+					isUpdating = false;
+				}
+
+				window.$RCOptions_submit.prop('disabled', false).css('opacity', '1.0');
 			});
 		}
 	}
@@ -627,111 +755,14 @@
 	function krRTRC_hardRefresh() {
 		rcRefreshEnabled = true;
 		$('#krRTRC_toggleRefresh').prop('checked', false);
-		krRTRC_GetRCOptions();
+		readSettingsForm();
 		clearTimeout(rcRefreshTimeout);
 		krRTRC_Refresh();
 	}
 
-	// Checks the GET-parameters and manipulates #krRTRC_RCOptions
-	// Also initiates jumpstart
-	function krRTRC_ProcesPermalink(l) {
-		var get;
-
-		get = getParamValue('rclimit', l);
-		$('#rc-options-limit option[value=' + get + ']').prop('selected', true);
-
-		get = getParamValue('rcshow_anon', l);
-		if (get === 'on') {
-			$('#rc-options-filter-anons').prop('checked', true);
-		}
-
-		get = getParamValue('rcshow_patrol', l);
-		if (get === 'on') {
-			$('#rc-options-filter-unpatrolled').prop('checked', true);
-		}
-
-		get = getParamValue('rcuser', l);
-		$('#rc-options-rcuser').val(get);
-
-		get = getParamValue('typeedit', l);
-		if (get === 'off') {
-			$('#rc-options-type-edit').prop('checked', false);
-		}
-
-		get = getParamValue('typenewpage', l);
-		if (get === 'off') {
-			$('#rc-options-type-newpage').prop('checked', false);
-		}
-
-		get = getParamValue('rcfrom', l);
-		$('#rc-options-timeframe-rcfrom').val(get);
-
-		get = getParamValue('rcuntill', l);
-		$('#rc-options-timeframe-rcuntill').val(get);
-
-		// optNS
-		get = getParamValue('rcnamespace', l);
-		$('#rc-options-namespace option[value=' + get + ']').prop('selected', true);
-
-		get = getParamValue('rcdir', l);
-		if (get === 'asc') {
-			$('#krRTRC_RCOptions input[name=rc-options-rcdir][value=asc]').prop('checked', true);
-			$('#krRTRC_RCOptions input[name=rc-options-rcdir][value=desc]').prop('checked', false);
-		}
-
-		get = getParamValue('ajaxint', l);
-		if (get !== '' && get !== ' ' && get !== null && get !== false) {
-			$('#rc-options-interval').val(get);
-		}
-
-		get = getParamValue('ircbl', l);
-		if (get === 'on') {
-			$('#rc-options-ircbl').prop('checked', true);
-		}
-
-		get = getParamValue('autodiff');
-		if (get === 'on') {
-			$('#rc-options-autodiff').prop('checked', true);
-		}
-
-		get = getParamValue('autodiff_top', l);
-		if (get === 'on') {
-			$('#rc-options-autodiff-top').prop('checked', true);
-		}
-
-		get = getParamValue('jumpstart', l);
-		if (get === 'on') {
-			get = krRTRC_GetRCOptions();
-			krRTRC_hardRefresh();
-			window.location.hash = '';
-			window.location.hash = 'toggleHelp';
-		}
-	}
-
-	// Checks the settings and returns a the permalink that would reproduce these settings manipulates #krRTRC_RCOptions
-	function krRTRC_GeneratePermalink() {
-		var a = '&rclimit=' + optLimit;
-		a += optFiltAnon === 'on' ? '&rcshow_anon=on' : '';
-		a += optFiltPatrol === 'on' ? '&rcshow_patrol=on' : '';
-		a += optUser || '';
-		a += optTypeEditoptUser ? '' : '&typeedit=off';
-		a += optTypeNewpage ? '' : '&typenewpage=off';
-		a += optPage || '';
-		a += !optFrom ? '' : ('&rcfrom=' + optFrom);
-		a += !optUntill ? '' : ('&rcuntill=' + optUntill);
-		a += optNS === '' ? '' : ('&rcnamespace=' + optNS);
-		a += '&rcdir=';
-		a += optRcdir === 'asc' ? 'asc' : 'desc';
-		a += Math.round(optRInt / 1000) !== 3 ? '&ajaxint=' + Math.round(optRInt / 1000) : '';
-		a += optIRCBL ? '&ircbl=on' : '';
-		a += optAutoDiff ? '&autodiff=on' : '';
-		a += optAutoDiffTop ? '&autodiff_top=on' : '';
-		return mw.util.wikiScript() + '?title=' + mw.util.wikiUrlencode(conf.wgPageName) + '&jumpstart=on&' + a;
-	}
-
 	function krRTRC_NextDiff() {
 		var $lis = $feed.find('div.rcitem:not(.indiff, .patrolled, .skipped)');
-		if (optAutoDiffTop) {
+		if (opt.app.autoDiffTop) {
 			$lis.eq(0).find('a.rcitemlink').click();
 		} else {
 			// eq(-1) doesn't work somehow..
@@ -741,15 +772,15 @@
 
 	function krRTRC_ToggleMassPatrol(b) {
 		if (b === true) {
-			optMassPatrol = true;
-			$krRTRC_MassPatrol.prop('checked', optMassPatrol);
+			opt.app.massPatrol = true;
+			$krRTRC_MassPatrol.prop('checked', true);
 			if (window.currentDiff === '') {
 				krRTRC_NextDiff();
 			} else {
 				$('.patrollink a').click();
 			}
 		} else {
-			optMassPatrol = false;
+			opt.app.massPatrol = false;
 			$krRTRC_MassPatrol.prop('checked', false);
 		}
 	}
@@ -871,7 +902,7 @@
 	//
 	// Prepares the page
 	krRTRC_initFuncs2[0] = function () {
-		var ns, $wrapper,
+		var ns, namespaceOptionsHtml,
 			fmNs = mw.config.get('wgFormattedNamespaces');
 
 		$('#p-namespaces ul')
@@ -886,17 +917,14 @@
 				$('#mw-panel .portal').eq(0).find('li').eq(0).wrapInner('<span>')
 			);
 
-		rcNamespaceDropdown = '<select id="rc-options-namespace" name="rc-options-namespace">';
-		rcNamespaceDropdown += '<option value>' + krMsg('namespacesall') + '</option>';
-		rcNamespaceDropdown += '<option value="0">' + krMsg('blanknamespace') + '</option>';
+		namespaceOptionsHtml += '<option value>' + krMsg('namespacesall') + '</option>';
+		namespaceOptionsHtml += '<option value="0">' + krMsg('blanknamespace') + '</option>';
 
 		for (ns in fmNs) {
 			if (ns > 0) {
-				rcNamespaceDropdown += '<option value="' + ns + '">' + fmNs[ns] + '</option>';
+				namespaceOptionsHtml += '<option value="' + ns + '">' + fmNs[ns] + '</option>';
 			}
 		}
-
-		rcNamespaceDropdown += '</select>';
 
 		$wrapper = $($.parseHTML(
 		'<div class="mw-rtrc-wrapper">' +
@@ -909,152 +937,145 @@
 					'<a id="toggleHelp" href="#toggleHelp">Help</a>' +
 				'</div>' +
 			'</div>' +
-			'<form><fieldset id="krRTRC_RCOptions" class="mw-rtrc-settings mw-rtrc-nohelp make-switch">' +
-				'<div class="panel">' +
-					'<label for="rc-options-limit" class="head">' + krMsg('limit') + '</label>' +
-					'<select id="rc-options-limit" name="rc-options-limit">' +
-						'<option value="10">10</option>' +
-						'<option value="25" selected>25</option>' +
-						'<option value="50">50</option>' +
-						'<option value="75">75</option>' +
-						'<option value="100">100</option>' +
-					'</select>' +
-				'</div>' +
-				'<div class="sep"></div>' +
-				'<div class="panel">' +
-					'<label class="head">' + krMsg('filter') + '</label>' +
-					'<div style="text-align: left;">' +
-						'<label>' +
-							'<input type="checkbox" id="rc-options-filter-anons" name="rc-options-filter-anons">' +
-							' ' + krMsg('anononly') +
+			'<form id="krRTRC_RCOptions" class="mw-rtrc-settings mw-rtrc-nohelp make-switch"><fieldset>' +
+				'<div class="panel-group">' +
+					'<div class="panel">' +
+						'<label for="mw-rtrc-settings-limit" class="head">' + krMsg('limit') + '</label>' +
+						'<select id="mw-rtrc-settings-limit" name="limit">' +
+							'<option value="10">10</option>' +
+							'<option value="25" selected>25</option>' +
+							'<option value="50">50</option>' +
+							'<option value="75">75</option>' +
+							'<option value="100">100</option>' +
+						'</select>' +
+					'</div>' +
+					'<div class="panel">' +
+						'<label class="head">' + krMsg('filter') + '</label>' +
+						'<div style="text-align: left;">' +
+							'<label>' +
+								'<input type="checkbox" name="showAnonOnly" />' +
+								' ' + krMsg('anononly') +
+							'</label>' +
+							'<br />' +
+							'<label>' +
+								'<input type="checkbox" name="showUnpatrolledOnly" />' +
+								' ' + krMsg('unpatrolledonly') +
+							'</label>' +
+						'</div>' +
+					'</div>' +
+					'<div class="panel">' +
+						'<label for="mw-rtrc-settings-user" class="head">' +
+							krMsg('userfilter-opt') +
+							'<span section="Userfilter" class="helpicon"></span>' +
 						'</label>' +
-						'<br />' +
-						'<label>' +
-							'<input type="checkbox" id="rc-options-filter-unpatrolled" name="rc-options-filter-unpatrolled"/>' +
-							' ' + krMsg('unpatrolledonly') +
+						'<div style="text-align: center;">' +
+							'<input type="text" size="16" id="mw-rtrc-settings-user" name="user" />' +
+							'<br />' +
+							'<input class="button button-small" type="button" id="mw-rtrc-settings-user-clr" value="' + krMsg('clear') + '" />' +
+						'</div>' +
+					'</div>' +
+					'<div class="panel">' +
+						'<label class="head">' + krMsg('type') + '</label>' +
+						'<div style="text-align: left;">' +
+							'<label>' +
+								'<input type="checkbox" name="typeEdit" checked />' +
+								' ' + krMsg('edits') +
+							'</label>' +
+							'<br />' +
+							'<label>' +
+								'<input type="checkbox" name="typeNew" checked />' +
+								' ' + krMsg('newpages') +
+							'</label>' +
+						'</div>' +
+					'</div>' +
+					'<div class="panel">' +
+						'<label class="head">' +
+							krMsg('timeframe-opt') +
+							'<span section="Timeframe" class="helpicon"></span>' +
 						'</label>' +
+						'<div style="text-align: right;">' +
+							'<label>' +
+								krMsg('from') + ': ' +
+								'<input type="text" size="14" name="start" />' +
+							'</label>' +
+							'<br />' +
+							'<label>' +
+								krMsg('untill') + ': ' +
+								'<input type="text" size="14" name="end" />' +
+							'</label>' +
+						'</div>' +
+					'</div>' +
+					'<div class="panel">' +
+						'<label for="mw-rtrc-settings-namespace" class="head">' +
+							krMsg('namespaces') +
+						'</label>' +
+						'<select id="mw-rtrc-settings-namespace" name="namespace">' +
+							namespaceOptionsHtml +
+						'</select>' +
+					'</div>' +
+					'<div class="panel">' +
+						'<label class="head">' +
+							krMsg('order') +
+							' <br />' +
+							'<span section="Order" class="helpicon"></span>' +
+						'</label>' +
+						'<div style="text-align: left;">' +
+							'<label>' +
+								'<input type="radio" name="dir" value="newer" />' +
+								' ' + krMsg('asc') +
+							'</label>' +
+							'<br />' +
+							'<label>' +
+								'<input type="radio" name="dir" value="older" checked />' +
+								' ' + krMsg('desc') +
+							'</label>' +
+						'</div>' +
+					'</div>' +
+					'<div class="panel">' +
+						'<label for="mw-rtrc-settings-refresh" class="head">' +
+							'R<br />' +
+							'<span section="Reload_Interval" class="helpicon"></span>' +
+						'</label>' +
+						'<input type="number" value="3" min="0" max="999" id="mw-rtrc-settings-refresh" name="refresh" />' +
+					'</div>' +
+					'<div class="panel">' +
+						'<label class="head" for="mw-rtrc-settings-cvnDB">' +
+							'CVN DB<br />' +
+							'<span section="IRC_Blacklist" class="helpicon"></span>' +
+						'</label>' +
+						'<input type="checkbox" id="mw-rtrc-settings-cvnDB" name="cvnDB" />' +
+					'</div>' +
+					'<div class="panel panel-last">' +
+						'<input class="button" type="button" id="RCOptions_submit" value="' + krMsg('apply') + '" />' +
 					'</div>' +
 				'</div>' +
-				'<div class="sep"></div>' +
-				'<div class="panel">' +
-					'<label for="rc-options-rcuser" class="head">' +
-						krMsg('userfilter-opt') +
-						'<span section="Userfilter" class="helpicon"></span>' +
-					'</label>' +
-					'<div style="text-align: center;">' +
-						'<input type="text" size="16" id="rc-options-rcuser" name="rc-options-rcuser" />' +
-						'<br />' +
-						'<input class="button button-small" type="button" id="RCOptions_RcuserClr" value="' + krMsg('clear') + '" />' +
-					'</div>' +
-				'</div>' +
-				'<div class="sep"></div>' +
-				'<div class="panel">' +
-					'<label class="head">' + krMsg('type') + '</label>' +
-					'<div style="text-align: left;">' +
-						'<label>' +
-							'<input type="checkbox" id="rc-options-type-edit" name="rc-options-type-edit" checked />' +
-							' ' + krMsg('edits') +
+				'<div class="panel-group panel-group-mini">' +
+					'<div class="panel">' +
+						'<label class="head">' +
+							'MassPatrol' +
+							'<span section="MassPatrol" class="helpicon"></span>' +
 						'</label>' +
-						'<br />' +
-						'<label>' +
-							'<input type="checkbox" id="rc-options-type-newpage" name="rc-options-type-newpage" checked />' +
-							' ' + krMsg('newpages') +
-						'</label>' +
-					'</div>' +
-				'</div>' +
-				'<div class="sep"></div>' +
-				'<div class="panel">' +
-					'<label class="head">' +
-						krMsg('timeframe-opt') +
-						'<span section="Timeframe" class="helpicon"></span>' +
-					'</label>' +
-					'<div style="text-align: right;">' +
-						'<label>' +
-							krMsg('from') + ': ' +
-							'<input type="text" size="14" id="rc-options-timeframe-rcfrom" name="rc-options-timeframe-rcfrom" />' +
-						'</label>' +
-						'<br />' +
-						'<label>' +
-							krMsg('untill') + ': ' +
-							'<input type="text" size="14" id="rc-options-timeframe-rcuntill" name="rc-options-timeframe-rcuntill" />' +
-						'</label>' +
-					'</div>' +
-				'</div>' +
-				'<div class="sep"></div>' +
-				'<div class="panel">' +
-					'<label for="rc-options-namespace" class="head">' +
-						krMsg('namespaces') +
-					'</label>' +
-					rcNamespaceDropdown +
-				'</div>' +
-				'<div class="sep"></div>' +
-				'<div class="panel">' +
-					'<label class="head">' +
-						krMsg('order') +
-						' <br />' +
-						'<span section="Order" class="helpicon"></span>' +
-					'</label>' +
-					'<div style="text-align: left;">' +
-						'<label>' +
-							'<input type="radio" name="rc-options-rcdir" value="asc" />' +
-							' ' + krMsg('asc') +
-						'</label>' +
-						'<br />' +
-						'<label>' +
-							'<input type="radio" name="rc-options-rcdir" value="desc" checked />' +
-							' ' + krMsg('desc') +
-						'</label>' +
-					'</div>' +
-				'</div>' +
-				'<div class="sep"></div>' +
-				'<div class="panel">' +
-					'<label for="rc-options-interval" class="head">' +
-						'R<br />' +
-						'<span section="Reload_Interval" class="helpicon"></span>' +
-					'</label>' +
-					'<input type="text" value="3" size="1" id="rc-options-interval" name="rc-options-interval" />' +
-				'</div>' +
-				'<div class="sep"></div>' +
-				'<div class="panel">' +
-					'<label class="head" for="rc-options-ircbl">' +
-						'IRCBL<br />' +
-						'<span section="IRC_Blacklist" class="helpicon"></span>' +
-					'</label>' +
-					'<input type="checkbox" id="rc-options-ircbl" name="rc-options-ircbl" />' +
-				'</div>' +
-				'<div class="sep"></div>' +
-				'<div class="panel panel-last">' +
-					'<input class="button" type="button" id="RCOptions_submit" value="' + krMsg('apply') + '" />' +
-				'</div>' +
-				'<hr style="clear: both;" />' +
-				'<div class="panel2">' +
-					'<label class="head">' +
-						'MassPatrol' +
-						'<span section="MassPatrol" class="helpicon"></span>' +
 						'<input id="krRTRC_MassPatrol" type="checkbox" class="switch" />' +
-					'</label>' +
-				'</div>' +
-				'<div class="sep2"></div>' +
-				'<div class="panel2">' +
-					'<label class="head">' +
-						'AutoDiff' +
-						'<span section="AutoDiff" class="helpicon"></span>' +
+					'</div>' +
+					'<div class="panel">' +
+						'<label class="head">' +
+							'AutoDiff' +
+							'<span section="AutoDiff" class="helpicon"></span>' +
+						'</label>' +
 						'<input type="checkbox" class="switch" id="rc-options-autodiff" />' +
-					'</label>' +
-				'</div>' +
-				'<div class="sep2"></div>' +
-				'<div class="panel2">' +
-					'<label class="head">' +
-						krMsg('loadfromtop') +
+					'</div>' +
+					'<div class="panel">' +
+						'<label class="head">' +
+							krMsg('loadfromtop') +
+						'</label>' +
 						'<input type="checkbox" class="switch" id="rc-options-autodiff-top" />' +
-					'</label>' +
-				'</div>' +
-				'<div class="sep2"></div>' +
-				'<div class="panel2">' +
-					'<label class="head">' +
-						'Pause' +
+					'</div>' +
+					'<div class="panel">' +
+						'<label class="head">' +
+							'Pause' +
+						'</label>' +
 						'<input id="krRTRC_toggleRefresh" class="switch" type="checkbox" />' +
-					'</label>' +
+					'</div>' +
 				'</div>' +
 			'</fieldset></form>' +
 			'<a name="krRTRC_DiffTop" />' +
@@ -1087,8 +1108,8 @@
 				'</div>' +
 			'</div>' +
 			'<div style="clear: both;"></div>' +
-			'<div id="krRTRC_Footer">' +
-				'<div class="inside plainlinks" style="text-align: right;">' +
+			'<div class="mw-rtrc-foot">' +
+				'<div class="plainlinks" style="text-align: right;">' +
 					'Real-Time Recent Changes by ' +
 					'<a href="//commons.wikimedia.org/wiki/User:Krinkle" class="external text" rel="nofollow">Krinkle</a>' +
 					' | <a href="//meta.wikimedia.org/wiki/User:Krinkle/Tools/Real-Time_Recent_Changes#Changelog" class="external text" rel="nofollow">' + krMsg('whatsnew') + '</a>' +
@@ -1110,7 +1131,7 @@
 
 	// function ProcesPermalink()
 	krRTRC_initFuncs2[1] = function () {
-		krRTRC_ProcesPermalink();
+		readPermalink();
 	};
 
 	// function Bindevents()
@@ -1123,7 +1144,6 @@
 		// Apply button
 		window.$RCOptions_submit.click(function () {
 			window.$RCOptions_submit.prop('disabled', true).css('opacity', '0.5');
-			krRTRC_GetRCOptions();
 			krRTRC_hardRefresh();
 			return false;
 		});
@@ -1161,7 +1181,7 @@
 					'<span class="tab"><a id="diffNext">' + krMsg('next').ucFirst() + ' &raquo;</a></span>' + skipButtonHtml + '</div>'
 				);
 
-				if (optMassPatrol) {
+				if (opt.app.massPatrol) {
 					$('.patrollink a').click();
 				}
 
@@ -1182,7 +1202,7 @@
 					skipButtonHtml = '<span class="tab"><a id="diffSkip">Skip</a></span>';
 				}
 				$('#krRTRC_DiffFrame').fadeIn().prepend('<h3>' + title + '</h3><div class="mw-rtrc-diff-tools"><span class="tab"><a id="diffClose">X</a></span><span class="tab"><a href="' + href + '" target="_blank" id="diffNewWindow">Open in Wiki</a></span><span class="tab"><a onclick="$(\'.patrollink a\').click()">[mark]</a></span><span class="tab"><a id="diffNext">' + krMsg('next').ucFirst() + ' &raquo;</a></span>' + skipButtonHtml + '</div>');
-				if (optMassPatrol) {
+				if (opt.app.massPatrol) {
 					$('.patrollink a').click();
 				}
 				$feed.find('div.indiff').removeClass('indiff');
@@ -1227,7 +1247,7 @@
 						patrolledRCIDs.shift();
 					}
 
-					if (optAutoDiff) {
+					if (opt.app.autoDiff) {
 						krRTRC_NextDiff();
 					}
 				}
@@ -1264,7 +1284,7 @@
 		// Show helpicons
 		$('#toggleHelp').click(function (e) {
 			e.preventDefault();
-			$('#krRTRC_RCOptions').toggleClass('mw-rtrc-nohelp');
+			$('#krRTRC_RCOptions').toggleClass('mw-rtrc-nohelp mw-rtrc-help');
 		});
 
 		// Link helpicons
@@ -1277,15 +1297,15 @@
 
 		// Clear rcuser-field
 		// If MassPatrol is active, warn that clearing rcuser will automatically disable MassPatrol f
-		$('#RCOptions_RcuserClr').click(function () {
-			if (optMassPatrol) {
+		$('#mw-rtrc-settings-user-clr').click(function () {
+			if (opt.app.massPatrol) {
 				var a = confirm(krMsg('masspatrol_userfilterconfirm'));
 				if (a) {
-					$('#rc-options-rcuser').val('');
+					$('#mw-rtrc-settings-user').val('');
 					krRTRC_ToggleMassPatrol(false);
 				}
 			} else {
-				$('#rc-options-rcuser').val('');
+				$('#mw-rtrc-settings-user').val('');
 			}
 			window.$RCOptions_submit.click();
 		});
@@ -1299,12 +1319,12 @@
 		// Button: MassPatrol
 		$krRTRC_MassPatrol = $('#krRTRC_MassPatrol').click(function () {
 			if (!this.checked) {
-				if (optMassPatrol) {
+				if (opt.app.massPatrol) {
 					krRTRC_ToggleMassPatrol(false);
 				}
 				return;
 			}
-			if (optAutoDiff) {
+			if (opt.app.autoDiff) {
 				krRTRC_ToggleMassPatrol(true);
 			} else {
 				var a = confirm(krMsg('masspatrol_autodiffneeded'));
@@ -1314,30 +1334,30 @@
 					return;
 				}
 				$('#rc-options-autodiff').prop('checked', true);
-				optAutoDiff = true;
+				opt.app.autoDiff = true;
 				krRTRC_ToggleMassPatrol(true);
 			}
 		});
 
 		// Button: AutoDiff
 		$('#rc-options-autodiff').click(function () {
-			if (optMassPatrol && optAutoDiff && !this.checked) {
+			if (opt.app.massPatrol && opt.app.autoDiff && !this.checked) {
 				var a = confirm(krMsg('autodiff_masspatrolneeds'));
 				if (!a) {
 					// Undo
 					this.checked = true;
 					return;
 				}
-				optAutoDiff = false;
+				opt.app.autoDiff = false;
 				krRTRC_ToggleMassPatrol(false);
 			} else {
-				optAutoDiff = this.checked;
+				opt.app.autoDiff = this.checked;
 			}
 		});
 
 		// Checkbox: AutoDiff from top
 		$('#rc-options-autodiff-top').click(function () {
-			optAutoDiffTop = !optAutoDiffTop;
+			opt.app.autoDiffTop = !opt.app.autoDiffTop;
 		});
 
 		// Button: Pause
@@ -1366,7 +1386,7 @@
 
 		$('html').addClass('mw-rtrc-available');
 		dModules = $.Deferred();
-		mw.loader.using(['mediawiki.util', 'mediawiki.action.history.diff'], dModules.resolve, dModules.reject);
+		mw.loader.using(['mediawiki.util', 'jquery.json', 'mediawiki.action.history.diff'], dModules.resolve, dModules.reject);
 
 		$.when(
 			!!(window.krMsgs = {}) || $.getScript('//toolserver.org/~krinkle/I18N/export.php?lang=' + conf.wgUserLanguage),

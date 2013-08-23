@@ -11,7 +11,7 @@
 #mw-panel,
 #left-navigation,
 #content,
-#krRTRC_Footer {
+.mw-rtrc-foot {
 	transition-duration: 250ms;
 	transition-timing-function: ease-out;
 }
@@ -20,14 +20,14 @@
 	transition-property: opacity;
 }
 
-#left-navigation,
-#content {
-	transition-property: margin-left;
-}
-
 .mw-rtrc-available #mw-panel {
 	opacity: 0;
 	pointer-events: none;
+}
+
+#left-navigation,
+#content {
+	transition-property: margin-left;
 }
 
 .mw-rtrc-available #left-navigation,
@@ -54,10 +54,7 @@
 
 /* Reset */
 
-.mw-rtrc-wrapper,
 .mw-rtrc-wrapper * {
-	margin: 0;
-	padding: 0 ;
 	outline: 0 !important;
 }
 
@@ -70,7 +67,6 @@
 
 .mw-rtrc-wrapper {
 	position: relative;
-	min-width: 865px;
 	background: rgb(247, 246, 248);
 	border-top: 30px solid #343434;
 	padding: 0 1em;
@@ -94,26 +90,22 @@
 	color: #ccc;
 }
 
-#krRTRC_Footer {
+.mw-rtrc-foot {
 	position: fixed;
 	left: 0;
 	bottom: 0;
-	width: 100%;
-	height: 30px;
+	right: 0;
 	opacity: 0.5;
 	background: rgba(255, 255, 255, 0.7);
+	padding: 6px 15px 6px 15px;
 	border-top: 1px solid #a1cef5;
 	text-align: center;
 	color: #343434;
 	transition-property: opacity, background;
 }
 
-#krRTRC_Footer:hover {
+.mw-rtrc-foot:hover {
 	opacity: 1;
-}
-
-#krRTRC_Footer .inside {
-	padding: 6px 15px 0 15px;
 }
 
 /* Buttons / Links */
@@ -165,59 +157,54 @@
 /* Settings */
 
 .mw-rtrc-settings {
-	clear: both;
 	margin: 0 auto;
-	padding: 0;
-	max-width: 975px;
+	min-width: 1000px;
+	text-align: center;
+}
+
+.mw-rtrc-settings fieldset {
+	display: inline-block;
 	background: #fff;
-	border: 0;
 	border-bottom-left-radius: 11px;
 	border-bottom-right-radius: 11px;
 	box-shadow: rgba(200, 200, 200, 1) 0 5px 15px;
+	text-align: left;
+	/* reset mw/fieldset */
+	margin: 0;
+	padding: 0;
+	border: 0;
+}
+
+.mw-rtrc-settings .panel-group {
+	display: table;
+}
+
+.mw-rtrc-settings .panel-group:first-child {
+	border-bottom: 1px solid #ddd;
 }
 
 .mw-rtrc-settings .panel {
-	float: left;
-	margin: 0;
+	display: table-cell;
+	width: 1px; /* auto doesn't work, cells will grow now from 1px */
+	vertical-align: top;
+	border-right: 1px solid #ddd;
 	padding: 3px 5px;
+	white-space: nowrap;
 	text-align: center;
+}
+
+.mw-rtrc-settings .panel-last {
+	border-right: 0;
 }
 
 .mw-rtrc-settings .panel .head {
 	display: block;
-	margin-bottom: 5px;
+	text-align: center;
 	font-weight: bold;
 }
 
-.mw-rtrc-settings .panel2 {
-	float: left;
-	margin: 0;
-	padding: 3px 5px 1px 5px;
-	min-height: 20px;
-}
-
-.mw-rtrc-settings .panel2 .head {
+.mw-rtrc-settings .panel-group-mini .head {
 	display: inline-block;
-	margin-bottom: 5px;
-	margin-right: 5px;
-	font-weight: bold;
-}
-
-.mw-rtrc-settings .sep {
-	float: left;
-	border-right: 2px ridge rgb(247, 246, 248);
-	height: 78px;
-}
-
-.mw-rtrc-settings .sep2 {
-	float: left;
-	border-right: 2px ridge rgb(247, 246, 248);
-	height: 33px;
-}
-
-.mw-rtrc-settings .panel-last {
-	float: right;
-	margin: 0 5px;
 }
 
 .mw-rtrc-settings .button {
@@ -241,6 +228,7 @@
 .mw-rtrc-settings .button:hover {
 	background-color: #428bca;
 	border-color: #428bca;
+	cursor: pointer;
 }
 .mw-rtrc-settings .button:active {
 	box-shadow: inset 0 4px 6px rgba(0, 0, 0, 0.250);
@@ -444,7 +432,7 @@
 	border-radius: 999px;
 	box-shadow: 0 .1em .1em rgba(0, 0, 0, .2) inset,
 		        0 .45em 0 .1em rgba(0, 0, 0, .05) inset;
-	font-size: 146%;
+	font-size: 150%;
 	transition-duration: .4s;
 	transition-property: padding, width, background-position, text-indent;
 }
@@ -457,6 +445,7 @@
 
 .mw-rtrc-settings .switch + div:before {
 	content: 'On';
+	text-align: left;
 	float: left;
 	margin: -.1em;
 	width: 1.65em;
@@ -492,6 +481,7 @@
 
 .mw-rtrc-settings .switch + div:after {
 	content: 'Off';
+	text-align: left;
 	float: left;
 	text-indent: .5em;
 	color: rgba(0, 0, 0, .45);
