@@ -463,8 +463,9 @@
 
 		if (kickstart === '1') {
 			krRTRC_hardRefresh();
-			window.location.hash = '';
-			window.location.hash = 'toggleHelp';
+			if ($wrapper[0].scrollIntoView) {
+				$wrapper[0].scrollIntoView();
+			}
 		}
 	}
 
