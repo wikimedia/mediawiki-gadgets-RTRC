@@ -1387,7 +1387,11 @@
 
 		$('html').addClass('mw-rtrc-available');
 		dModules = $.Deferred();
-		mw.loader.using(['mediawiki.util', 'jquery.json', 'mediawiki.action.history.diff'], dModules.resolve, dModules.reject);
+		mw.loader.using(
+			['mediawiki.util', 'jquery.json',  'mediawiki.Uri', 'mediawiki.action.history.diff'],
+			dModules.resolve,
+			dModules.reject
+		);
 
 		$.when(
 			!!(window.krMsgs = {}) || $.getScript('//toolserver.org/~krinkle/I18N/export.php?lang=' + conf.wgUserLanguage),
