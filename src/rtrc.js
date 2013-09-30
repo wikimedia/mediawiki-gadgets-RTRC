@@ -1081,27 +1081,27 @@
 						'<label class="head">' +
 							'MassPatrol' +
 							'<span section="MassPatrol" class="helpicon"></span>' +
+							'<input id="krRTRC_MassPatrol" type="checkbox" class="switch" />' +
 						'</label>' +
-						'<input id="krRTRC_MassPatrol" type="checkbox" class="switch" />' +
 					'</div>' +
 					'<div class="panel">' +
 						'<label class="head">' +
 							'AutoDiff' +
 							'<span section="AutoDiff" class="helpicon"></span>' +
+							'<input type="checkbox" class="switch" id="rc-options-autodiff" />' +
 						'</label>' +
-						'<input type="checkbox" class="switch" id="rc-options-autodiff" />' +
 					'</div>' +
 					'<div class="panel">' +
 						'<label class="head">' +
 							msg('autodiff_loadfromtop') +
+							'<input type="checkbox" class="switch" id="rc-options-autodiff-top" />' +
 						'</label>' +
-						'<input type="checkbox" class="switch" id="rc-options-autodiff-top" />' +
 					'</div>' +
 					'<div class="panel">' +
 						'<label class="head">' +
 							'Pause' +
+							'<input id="krRTRC_toggleRefresh" class="switch" type="checkbox" />' +
 						'</label>' +
-						'<input id="krRTRC_toggleRefresh" class="switch" type="checkbox" />' +
 					'</div>' +
 				'</div>' +
 			'</fieldset></form>' +
