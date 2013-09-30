@@ -30,9 +30,12 @@
 	transition-property: margin-left;
 }
 
-.mw-rtrc-available #left-navigation,
-.mw-rtrc-available #content {
+.mw-rtrc-available #left-navigation {
 	margin-left: 1em;
+}
+
+.mw-rtrc-available #content {
+	margin-left: 0;
 }
 
 .mw-rtrc-available #siteNotice,
