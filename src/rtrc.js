@@ -1411,7 +1411,7 @@
 			dModules.reject
 		);
 
-		$.getScript('http://tools.wmflabs.org/intuition/load.php?env=mw')
+		$.getScript('//tools.wmflabs.org/intuition/load.php?env=mw')
 			.done(function () {
 				mw.libs.intuition.load('rtrc')
 					.done(function () {
