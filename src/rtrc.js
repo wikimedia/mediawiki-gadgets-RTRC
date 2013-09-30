@@ -1411,17 +1411,19 @@
 			dModules.reject
 		);
 
-		$.getScript('//tools.wmflabs.org/intuition/load.php?env=mw')
-			.done(function () {
-				mw.libs.intuition.load('rtrc')
-					.done(function () {
-						message = $.proxy(mw.libs.intuition.message, null, 'rtrc');
-						msg = $.proxy(mw.libs.intuition.msg, null, 'rtrc');
-						dI18N.resolve();
-					})
-					.fail(dI18N.reject);
-			})
-			.fail(dI18N.reject);
+		$.ajax({
+			url: '//tools.wmflabs.org/intuition/load.php?env=mw',
+			dataType: 'script',
+			cache: true
+		}).done(function () {
+			mw.libs.intuition.load('rtrc')
+				.done(function () {
+					message = $.proxy(mw.libs.intuition.message, null, 'rtrc');
+					msg = $.proxy(mw.libs.intuition.msg, null, 'rtrc');
+					dI18N.resolve();
+				})
+				.fail(dI18N.reject);
+		}).fail(dI18N.reject);
 
 		$.when(dModules, dI18N, $.ready.promise()).done(function () {
 			var profile = $.client.profile();
