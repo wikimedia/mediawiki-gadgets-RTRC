@@ -578,7 +578,7 @@
 		$body.removeClass('placeholder');
 
 		$feed.find('.mw-rtrc-feed-update').html(
-			msg('lastupdate-rc') + ': ' + lastupdate.toUTCString() +
+			msg('lastupdate-rc', lastupdate.toUTCString()) +
 			' | <a href="' + getPermalink() + '">' +
 			msg('permalink') +
 			'</a>'
