@@ -796,17 +796,21 @@
 	function krRTRC_GetPatroltoken() {
 		$.ajax({
 			type: 'GET',
-			// added rctype=new because several wikis only do newpages, by getting all rcs changes are it'll return an edit and thus error instead of token. Unless there are wikis with RC-patrol but no NP-patrol (as supposed to both or the opposite), this will be just fine. If there are wikis without NP-patrol but with RC-patrol, we'll have to split up somewhere around here.
-			url: apiUrl + '?action=query&format=xml&list=recentchanges&rctoken=patrol&rclimit=1&rctype=new',
-			dataType: 'xml',
-			success: function (rawback) {
-				userPatrolTokenCache = $(rawback).find('rc').attr('patroltoken');
-				if (userPatrolTokenCache) {
-					userPatrolTokenCache = userPatrolTokenCache.replace('+', '%2B').replace('\\', '%5C');
-				} else {
-					userPatrolTokenCache = false;
-				}
-			}
+			url: apiUrl,
+			data: {
+				format: 'json',
+				action: 'query',
+				list: 'recentchanges',
+				rctoken: 'patrol',
+				rclimit: 1,
+				// Using rctype=new because some wikis only have patrolling of newpages enabled.
+				// If querying all changes returns an edit in that case, it won't have a token on it.
+				// This workaround works as long as there are no wikis with RC-patrol but no NP-patrol.
+				rctype: 'new'
+			},
+			dataType: 'json'
+		}).done(function (data) {
+			userPatrolTokenCache = data.query.recentchanges[0].patroltoken;
 		});
 	}
 
