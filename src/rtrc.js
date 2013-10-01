@@ -413,9 +413,15 @@
 
 		if (newOpt.app) {
 			$.each(newOpt.app, function (key, value) {
-				var setting = $settings.filter(function () {
+				var $setting = $settings.filter(function () {
 						return this.name === key;
-					})[0];
+					}),
+					setting = $setting[0];
+
+				if (!setting) {
+					setting = document.getElementById('rc-options-' + key);
+					$setting = $(setting);
+				}
 
 				if (!setting) {
 					return;
@@ -423,6 +429,9 @@
 
 				switch (key) {
 				case 'cvnDB':
+				case 'massPatrol':
+				case 'autoDiff':
+				case 'autoDiffTop':
 					setting.checked = value;
 					break;
 				case 'refresh':
@@ -753,7 +762,7 @@
 
 	function krRTRC_hardRefresh() {
 		rcRefreshEnabled = true;
-		$('#krRTRC_toggleRefresh').prop('checked', false);
+		$('#rc-options-pause').prop('checked', false);
 		readSettingsForm();
 		clearTimeout(rcRefreshTimeout);
 		krRTRC_Refresh();
@@ -1081,26 +1090,26 @@
 						'<label class="head">' +
 							'MassPatrol' +
 							'<span section="MassPatrol" class="helpicon"></span>' +
-							'<input id="krRTRC_MassPatrol" type="checkbox" class="switch" />' +
+							'<input type="checkbox" class="switch" id="rc-options-massPatrol" />' +
 						'</label>' +
 					'</div>' +
 					'<div class="panel">' +
 						'<label class="head">' +
 							'AutoDiff' +
 							'<span section="AutoDiff" class="helpicon"></span>' +
-							'<input type="checkbox" class="switch" id="rc-options-autodiff" />' +
+							'<input type="checkbox" class="switch" id="rc-options-autoDiff" />' +
 						'</label>' +
 					'</div>' +
 					'<div class="panel">' +
 						'<label class="head">' +
 							msg('autodiff_loadfromtop') +
-							'<input type="checkbox" class="switch" id="rc-options-autodiff-top" />' +
+							'<input type="checkbox" class="switch" id="rc-options-autoDiffTop" />' +
 						'</label>' +
 					'</div>' +
 					'<div class="panel">' +
 						'<label class="head">' +
 							'Pause' +
-							'<input id="krRTRC_toggleRefresh" class="switch" type="checkbox" />' +
+							'<input class="switch" type="checkbox" id="rc-options-pause" />' +
 						'</label>' +
 					'</div>' +
 				'</div>' +
@@ -1327,13 +1336,14 @@
 		});
 
 		// Mark as patrolled when rollbacking
-		// Note: As of MediaWiki r(unknown) rollbacking does already automatically patrol all reverted revisions. But by doing it anyway it saves a click for the AutoDiff-users
+		// Note: As of MediaWiki r(unknown) rollbacking does already automatically patrol all reverted revisions.
+		// But by doing it anyway it saves a click for the AutoDiff-users
 		$('.mw-rollback-link a').live('click', function () {
 			$('.patrollink a').click();
 		});
 
 		// Button: MassPatrol
-		$krRTRC_MassPatrol = $('#krRTRC_MassPatrol').click(function () {
+		$krRTRC_MassPatrol = $('#rc-options-massPatrol').click(function () {
 			if (!this.checked) {
 				if (opt.app.massPatrol) {
 					krRTRC_ToggleMassPatrol(false);
@@ -1349,14 +1359,14 @@
 					this.checked = false;
 					return;
 				}
-				$('#rc-options-autodiff').prop('checked', true);
+				$('#rc-options-autoDiff').prop('checked', true);
 				opt.app.autoDiff = true;
 				krRTRC_ToggleMassPatrol(true);
 			}
 		});
 
 		// Button: AutoDiff
-		$('#rc-options-autodiff').click(function () {
+		$('#rc-options-autoDiff').click(function () {
 			if (opt.app.massPatrol && opt.app.autoDiff && !this.checked) {
 				var a = confirm(msg('autodiff-disable-masspatrol'));
 				if (!a) {
@@ -1372,12 +1382,12 @@
 		});
 
 		// Checkbox: AutoDiff from top
-		$('#rc-options-autodiff-top').click(function () {
-			opt.app.autoDiffTop = !opt.app.autoDiffTop;
+		$('#rc-options-autoDiffTop').click(function () {
+			opt.app.autoDiffTop = this.checked;
 		});
 
 		// Button: Pause
-		$('#krRTRC_toggleRefresh').click(function () {
+		$('#rc-options-pause').click(function () {
 			if (this.checked) {
 				rcRefreshEnabled = false;
 				clearTimeout(rcRefreshTimeout);
