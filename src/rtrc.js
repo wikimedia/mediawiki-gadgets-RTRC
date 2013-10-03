@@ -5,7 +5,7 @@
  * @license http://krinkle.mit-license.org/
  * @author Timo Tijhof, 2010–2013
  */
-/*global confirm */
+/*global alert, confirm */
 (function ($, mw) {
 	'use strict';
 
@@ -100,7 +100,6 @@
 
 	currentDiffRcid,
 	$wrapper, $body, $feed,
-	$krRTRC_MassPatrol,
 	$RCOptions_submit;
 
 	/**
@@ -209,7 +208,7 @@
 	 * -------------------------------------------------
 	 */
 
-	function krRTRC_RCDayHead(time) {
+	function buildRcDayHead(time) {
 		var current = time.getDate();
 		if (current === rcPrevDayHeading) {
 			return '';
@@ -279,7 +278,7 @@
 	</div>
 */
 		// build & return item
-		item = krRTRC_RCDayHead(timeUtil.newDateFromApi(rc.timestamp));
+		item = buildRcDayHead(timeUtil.newDateFromApi(rc.timestamp));
 		item += '<div class="item ' + itemClass + usertypeClass + '" diff="' + rc.revid + '" rcid="' + rc.rcid + '" user="' + rc.user + '">';
 
 		if (rc.type === 'edit') {
@@ -288,7 +287,6 @@
 		} else if (rc.type === 'new') {
 			diffLink = '<a class="rcitemlink newPage" rcid="' + rc.rcid + '">new</a>';
 		}
-
 
 		item += '<div first>(' + diffLink + ') ' + typeSymbol + ' ';
 		item += timeUtil.getClocktimeFromApi(rc.timestamp) + ' <a class="page" href="' + mw.util.wikiGetlink(rc.title) + '?rcid=' + rc.rcid + '" target="_blank">' + rc.title + '</a></div>';
@@ -307,6 +305,32 @@
 
 		item += '</div>';
 		return item;
+	}
+
+	/**
+	 * @param {Object} newOpt
+	 * @param {string} [mode=normal] One of 'quiet' or 'normal'
+	 * @return {boolean} True if no changes were made, false otherwise
+	 */
+	function normaliseSettings(newOpt, mode) {
+		var mod = false;
+
+		// MassPatrol requires a filter to be active
+		if (newOpt.app.massPatrol && !newOpt.rc.user) {
+			newOpt.app.massPatrol = false;
+			mod = true;
+			if (mode !== 'quiet') {
+				alert(msg('masspatrol-requires-userfilter'));
+			}
+		}
+
+		// MassPatrol requires AutoDiff
+		if (newOpt.app.massPatrol && !newOpt.app.autoDiff) {
+			newOpt.app.autoDiff = true;
+			mod = true;
+		}
+
+		return !mod;
 	}
 
 	function readSettingsForm() {
@@ -351,15 +375,21 @@
 				break;
 			// APP
 			case 'cvnDB':
+			case 'massPatrol':
+			case 'autoDiff':
 				opt.app[name] = el.checked;
 				break;
 			case 'refresh':
 				opt.app[name] = Number(el.value);
 				break;
-			// Other settings (MassPatrol, AutoDiff, ..) are instantly toggled
-			// as opposed to on-apply
 			}
 		});
+
+		if (!normaliseSettings(opt)) {
+			// TODO: Optimise this, no need to repopulate the entire settings form
+			// if only 1 thing changed.
+			fillSettingsForm(opt);
+		}
 	}
 
 	function fillSettingsForm(newOpt) {
@@ -459,6 +489,8 @@
 		newOpt = newOpt ? $.parseJSON(newOpt): {};
 
 		newOpt = $.extend(true, {}, defOpt, newOpt);
+
+		normaliseSettings(newOpt, 'quiet');
 
 		fillSettingsForm(newOpt);
 
@@ -741,7 +773,6 @@
 	function krRTRC_hardRefresh() {
 		rcRefreshEnabled = true;
 		$('#rc-options-pause').prop('checked', false);
-		readSettingsForm();
 		clearTimeout(rcRefreshTimeout);
 		krRTRC_Refresh();
 	}
@@ -753,16 +784,11 @@
 
 	function krRTRC_ToggleMassPatrol(b) {
 		if (b === true) {
-			opt.app.massPatrol = true;
-			$krRTRC_MassPatrol.prop('checked', true);
 			if (window.currentDiff === '') {
 				krRTRC_NextDiff();
 			} else {
 				$('.patrollink a').click();
 			}
-		} else {
-			opt.app.massPatrol = false;
-			$krRTRC_MassPatrol.prop('checked', false);
 		}
 	}
 
@@ -1058,14 +1084,14 @@
 						'<label class="head">' +
 							'MassPatrol' +
 							'<span section="MassPatrol" class="helpicon"></span>' +
-							'<input type="checkbox" class="switch" id="rc-options-massPatrol" />' +
+							'<input type="checkbox" class="switch" name="massPatrol" />' +
 						'</label>' +
 					'</div>' +
 					'<div class="panel">' +
 						'<label class="head">' +
 							'AutoDiff' +
 							'<span section="AutoDiff" class="helpicon"></span>' +
-							'<input type="checkbox" class="switch" id="rc-options-autoDiff" />' +
+							'<input type="checkbox" class="switch" name="autoDiff" />' +
 						'</label>' +
 					'</div>' +
 					'<div class="panel">' +
@@ -1134,6 +1160,11 @@
 		// Apply button
 		$RCOptions_submit.click(function () {
 			$RCOptions_submit.prop('disabled', true).css('opacity', '0.5');
+
+			readSettingsForm();
+
+			krRTRC_ToggleMassPatrol(opt.app.massPatrol);
+
 			krRTRC_hardRefresh();
 			return false;
 		});
@@ -1288,16 +1319,7 @@
 		// Clear rcuser-field
 		// If MassPatrol is active, warn that clearing rcuser will automatically disable MassPatrol f
 		$('#mw-rtrc-settings-user-clr').click(function () {
-			if (opt.app.massPatrol) {
-				var a = confirm(msg('userfilter-disable-masspatrol'));
-				if (a) {
-					$('#mw-rtrc-settings-user').val('');
-					krRTRC_ToggleMassPatrol(false);
-				}
-			} else {
-				$('#mw-rtrc-settings-user').val('');
-			}
-			$RCOptions_submit.click();
+			$('#mw-rtrc-settings-user').val('');
 		});
 
 		// Mark as patrolled when rollbacking
@@ -1305,45 +1327,6 @@
 		// But by doing it anyway it saves a click for the AutoDiff-users
 		$('.mw-rollback-link a').live('click', function () {
 			$('.patrollink a').click();
-		});
-
-		// Button: MassPatrol
-		$krRTRC_MassPatrol = $('#rc-options-massPatrol').click(function () {
-			if (!this.checked) {
-				if (opt.app.massPatrol) {
-					krRTRC_ToggleMassPatrol(false);
-				}
-				return;
-			}
-			if (opt.app.autoDiff) {
-				krRTRC_ToggleMassPatrol(true);
-			} else {
-				var a = confirm(msg('masspatrol-enable-autodiff'));
-				if (!a) {
-					// Undo
-					this.checked = false;
-					return;
-				}
-				$('#rc-options-autoDiff').prop('checked', true);
-				opt.app.autoDiff = true;
-				krRTRC_ToggleMassPatrol(true);
-			}
-		});
-
-		// Button: AutoDiff
-		$('#rc-options-autoDiff').click(function () {
-			if (opt.app.massPatrol && opt.app.autoDiff && !this.checked) {
-				var a = confirm(msg('autodiff-disable-masspatrol'));
-				if (!a) {
-					// Undo
-					this.checked = true;
-					return;
-				}
-				opt.app.autoDiff = false;
-				krRTRC_ToggleMassPatrol(false);
-			} else {
-				opt.app.autoDiff = this.checked;
-			}
 		});
 
 		// Button: Pause
