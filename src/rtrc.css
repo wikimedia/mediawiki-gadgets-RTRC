@@ -17,7 +17,8 @@
 }
 
 #mw-panel {
-	transition-property: -webkit-transform, transform, opacity;
+	transition-property: -webkit-transform, opacity;
+	transition-property: transform, opacity;
 }
 
 .mw-rtrc-available #mw-panel {
