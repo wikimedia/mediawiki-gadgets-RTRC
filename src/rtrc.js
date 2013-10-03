@@ -100,10 +100,8 @@
 
 	currentDiffRcid,
 	$wrapper, $body, $feed,
-	$krRTRC_MassPatrol;
-
-	// implied globals, legacy click handlers
-	window.$RCOptions_submit = undefined;
+	$krRTRC_MassPatrol,
+	$RCOptions_submit;
 
 	/**
 	 * Utility functions
@@ -735,7 +733,7 @@
 					isUpdating = false;
 				}
 
-				window.$RCOptions_submit.prop('disabled', false).css('opacity', '1.0');
+				$RCOptions_submit.prop('disabled', false).css('opacity', '1.0');
 			});
 		}
 	}
@@ -1131,11 +1129,11 @@
 	// Binds events to the user interface
 	krRTRC_initFuncs2[2] = function () {
 
-		window.$RCOptions_submit = $('#RCOptions_submit');
+		$RCOptions_submit = $('#RCOptions_submit');
 
 		// Apply button
-		window.$RCOptions_submit.click(function () {
-			window.$RCOptions_submit.prop('disabled', true).css('opacity', '0.5');
+		$RCOptions_submit.click(function () {
+			$RCOptions_submit.prop('disabled', true).css('opacity', '0.5');
 			krRTRC_hardRefresh();
 			return false;
 		});
@@ -1299,7 +1297,7 @@
 			} else {
 				$('#mw-rtrc-settings-user').val('');
 			}
-			window.$RCOptions_submit.click();
+			$RCOptions_submit.click();
 		});
 
 		// Mark as patrolled when rollbacking
