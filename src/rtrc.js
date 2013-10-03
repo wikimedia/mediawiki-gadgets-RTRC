@@ -971,9 +971,12 @@
 			'<div class="mw-rtrc-head">' +
 				'Real-Time Recent Changes <small>(' + appVersion + ')</small>' +
 				'<div class="mw-rtrc-head-links">' +
-					'<a target="_blank" href="' + mw.util.wikiGetlink('Special:Log/patrol') + '?user=' + encodeURIComponent(mw.user.name()) + '">' +
-						msg('mypatrollog').ucFirst() +
-					'</a>' +
+					(!mw.user.isAnon() ? (
+						'<a target="_blank" href="' + mw.util.wikiGetlink('Special:Log/patrol') + '?user=' + encodeURIComponent(mw.user.name()) + '">' +
+							msg('mypatrollog').ucFirst() +
+						'</a>') :
+						''
+					) +
 					'<a id="toggleHelp" href="#toggleHelp">Help</a>' +
 				'</div>' +
 			'</div>' +
