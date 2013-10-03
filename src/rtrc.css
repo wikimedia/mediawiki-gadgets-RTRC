@@ -13,10 +13,13 @@
 #content,
 .mw-rtrc-foot,
 .mw-rtrc-wrapper {
+	-webkit-transition: display 250ms ease-out;
 	transition: display 250ms ease-out;
 }
 
 #mw-panel {
+	-webkit-transition-property: -webkit-transform, opacity;
+	-webkit-transition-property: transform, opacity;
 	transition-property: -webkit-transform, opacity;
 	transition-property: transform, opacity;
 }
@@ -30,6 +33,7 @@
 
 #left-navigation,
 #content {
+	-webkit-transition-property: margin-left;
 	transition-property: margin-left;
 }
 
@@ -73,6 +77,8 @@
 	line-height: 1.42;
 	color: #343434;
 	opacity: 0;
+	-webkit-transition-property: opacity;
+	-webkit-transition-delay: 255ms;
 	transition-property: opacity;
 	transition-delay: 255ms;
 }
@@ -106,6 +112,7 @@
 	border-top: 1px solid #a1cef5;
 	text-align: center;
 	color: #343434;
+	-webkit-transition-property: opacity, background;
 	transition-property: opacity, background;
 }
 
@@ -426,8 +433,10 @@
 	height: 1em;
 	overflow: hidden;
 	background: #fff;
+	background-image: -webkit-linear-gradient(rgba(0, 0, 0, .1), transparent),
+	                  -webkit-linear-gradient(0, #357ebd 50%, transparent 50%);
 	background-image: linear-gradient(rgba(0, 0, 0, .1), transparent),
-		              linear-gradient(90deg, #357ebd 50%, transparent 50%);
+	                  linear-gradient(90deg, #357ebd 50%, transparent 50%);
 	background-size: 200% 100%;
 	background-position: 100% 0;
 	background-origin: border-box;
@@ -454,11 +463,12 @@
 	width: 1.65em;
 	height: 1.65em;
 	background: #fff;
+	background-image: -webkit-linear-gradient(rgba(0, 0, 0, .2), transparent);
 	background-image: linear-gradient(rgba(0, 0, 0, .2), transparent);
 	border: 1px solid rgba(0,0,0,.35);
 	border-radius: inherit;
 	box-shadow: 0 .1em .1em .1em hsla(0, 0%, 100%, .8) inset,
-		        0 0 .5em rgba(0, 0, 0, .3);
+	            0 0 .5em rgba(0, 0, 0, .3);
 	color: white;
 	text-shadow: 0 -1px 1px rgba(0, 0, 0, .3);
 	text-indent: -2.5em;
@@ -470,8 +480,8 @@
 
 .mw-rtrc-settings .switch:focus + div {
 	box-shadow: 0 .1em .1em rgba(0, 0, 0, .2) inset,
-		        0 .45em 0 .1em rgba(0, 0, 0, .05) inset,
-		        0 0 .4em 1px rgba(255, 0, 0, .5);
+	            0 .45em 0 .1em rgba(0, 0, 0, .05) inset,
+	            0 0 .4em 1px rgba(255, 0, 0, .5);
 }
 
 .mw-rtrc-settings .switch + div:before,
