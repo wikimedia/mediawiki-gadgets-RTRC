@@ -228,7 +228,7 @@
 	function buildRcItem(rc) {
 		var diffsize, isPatrolled, isAnon,
 			typeSymbol, itemClass, diffLink,
-			comment,
+			commentHtml,
 			usertypeClass, el, item;
 
 		// Get size difference (can be negative, zero or positive)
@@ -255,13 +255,12 @@
 			itemClass = 'rcitem';
 		}
 
-		// strip HTML from comment
-		comment = rc.comment.replace(/<&#91;^>&#93;*>/g, '');
+		commentHtml = rc.parsedcomment;
 
-		// Check if comment is AES
-		if (comment.indexOf('[[COM:AES|←]]') === 0) {
+		// Check if edit summary is an AES
+		if (commentHtml.indexOf('<a href="/wiki/Commons:AES" class="mw-redirect" title="Commons:AES">\u2190</a>') === 0) {
+			// TODO: This is specific to commons.wikimedia.org
 			itemClass += ' aes';
-			comment = comment.replace('[[COM:AES|←]]', '← ');
 		}
 
 		// Anon-attribute
@@ -297,7 +296,7 @@
 		item += '<div first>(' + diffLink + ') ' + typeSymbol + ' ';
 		item += timeUtil.getClocktimeFromApi(rc.timestamp) + ' <a class="page" href="' + mw.util.wikiGetlink(rc.title) + '?rcid=' + rc.rcid + '" target="_blank">' + rc.title + '</a></div>';
 		item += '<div user>&nbsp;<small>&middot;&nbsp;<a href="' + mw.util.wikiGetlink('User talk:' + rc.user) + '" target="_blank">T</a> &middot; <a href="' + mw.util.wikiGetlink('Special:Contributions/' + rc.user) + '" target="_blank">C</a>&nbsp;</small>&middot;&nbsp;<a class="user" href="' + mw.util.wikiGetlink('User:' + rc.user) + '" target="_blank">' + rc.user + '</a></div>';
-		item += '<div other>&nbsp;<span class="comment">' + mw.html.escape(comment) + '</span></div>';
+		item += '<div other>&nbsp;<span class="comment">' + commentHtml + '</span></div>';
 
 		if (diffsize > 0) {
 			el = diffsize > 399 ? 'strong' : 'span';
@@ -483,7 +482,7 @@
 				'timestamp',
 				'user',
 				'title',
-				'comment',
+				'parsedcomment',
 				'sizes',
 				'ids'
 			],
