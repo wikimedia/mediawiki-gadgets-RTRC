@@ -14,7 +14,7 @@
 	 * -------------------------------------------------
 	 */
 	var
-	appVersion = 'v0.9.5',
+	appVersion = 'v0.9.6-alpha',
 	apiUrl = mw.util.wikiScript('api'),
 	conf = mw.config.get([
 		'wgAction',
