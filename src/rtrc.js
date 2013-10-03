@@ -691,28 +691,22 @@
 			// Download recent changes
 
 			rcparams = getApiRcParams(opt.rc);
-			rcparams.format = 'xml';
+			rcparams.format = 'json';
 			rcparams.action = 'query';
 			rcparams.list = 'recentchanges';
 
 			$.ajax({
-				type: 'GET',
 				url: apiUrl,
-				data: rcparams,
-				dataType: 'xml'
-			}).done(function (rawback) {
+				dataType: 'json',
+				data: rcparams
+			}).done(function (data) {
+				var recentchanges, htmloutput = '';
 
-				var htmloutput = '',
-					$data = $(rawback);
-
-				// API errors ?
-				if ($data.find('error').length) {
-
-					mw.log('krRTRC_GetRCData()-> ' + $data.find('rc').length + ' errors');
+				if (data.error) {
 					$body.removeClass('placeholder');
 
-					// Account doesnt have patrol flag
-					if ($data.find('error').attr('code') === 'rcpermissiondenied') {
+					// Account doesn't have patrol flag
+					if (data.error.code === 'rcpermissiondenied') {
 						htmloutput += '<h3>Downloading recent changes failed</h3><p>Please untick the "Unpatrolled only"-checkbox or request the Patroller-right on <a href="' + conf.wgPageName + '">' + conf.wgPageName + '</a>';
 
 					// Other error
@@ -720,29 +714,30 @@
 						htmloutput += '<h3>Downloading recent changes failed</h3><p>Please check the settings above and try again. If you believe this is a bug, please <a href="//meta.wikimedia.org/w/index.php?title=User_talk:Krinkle/Tools&action=edit&section=new&editintro=User_talk:Krinkle/Tools/Editnotice&preload=User_talk:Krinkle/Tools/Preload" target="_blank"><strong>let me know</strong></a>.';
 					}
 
-				// Everything is OK - with results
-				} else if ($data.find('rc').length) {
-
-					$data.find('rc').each(function () {
-						htmloutput += krRTRC_BuildItem(
-							$(this).attr('type'),
-							$(this).attr('title'),
-							$(this).attr('rcid'),
-							$(this).attr('revid'),
-							$(this).attr('old_revid'),
-							$(this).attr('user'),
-							$(this).attr('timestamp'),
-							$(this).attr('comment'),
-							$(this).attr('patrolled'),
-							$(this).attr('anon'),
-							$(this).attr('oldlen'),
-							$(this).attr('newlen')
-						);
-					});
-
-				// Everything is OK - no results
 				} else {
-					htmloutput += '<strong><em>' + msg('nomatches') + '</em></strong>';
+					recentchanges = data.query.recentchanges;
+
+					if (recentchanges.length) {
+						$.each(recentchanges, function (i, rc) {
+							htmloutput += krRTRC_BuildItem(
+								rc.type,
+								rc.title,
+								rc.rcid,
+								rc.revid,
+								rc.old_revid,
+								rc.user,
+								rc.timestamp,
+								rc.comment,
+								rc.patrolled,
+								rc.anon,
+								rc.oldlen,
+								rc.newlen
+							);
+						});
+					} else {
+						// Everything is OK - no results
+						htmloutput += '<strong><em>' + msg('nomatches') + '</em></strong>';
+					}
 				}
 
 				if (opt.app.cvnDB) {
@@ -1250,14 +1245,14 @@
 			$.ajax({
 				type: 'POST',
 				url: apiUrl,
+				dataType: 'json',
 				data: {
 					action: 'patrol',
 					format: 'json',
 					list: 'recentchanges',
 					rcid: currentDiffRcid,
 					token: userPatrolTokenCache
-				},
-				dataType: 'json'
+				}
 			}).done(function (data) {
 				if (!data || data.error) {
 					$el.empty().append(
