@@ -221,33 +221,34 @@
 		return '<div class="item"><div><strong>' + time.getDate() + ' ' + monthNames[time.getMonth()] + '</strong></div></div>';
 	}
 
-	function krRTRC_BuildItem(
-		type, title, rcid, revid, old_revid, user, timestamp, comment,
-		patrolled, anon, oldlen, newlen
-	) {
-		var diffsize, usertypeClass, el, typeSymbol, itemClass, diffLink, item;
+	/**
+	 * @param {Object} rc Recent change object from API
+	 * @return {string} HTML
+	 */
+	function buildRcItem(rc) {
+		var diffsize, isPatrolled, isAnon,
+			typeSymbol, itemClass, diffLink,
+			comment,
+			usertypeClass, el, item;
 
-		// Get size difference in bytes (can be negative, zero or positive)
-		diffsize = (+newlen) - (+oldlen);
+		// Get size difference (can be negative, zero or positive)
+		diffsize = rc.newlen - rc.oldlen;
 
-		// patrolled is empty string if edit is patrolled, else undefined if it isn't
-		// patrolled or the user doesnt have the right to see that information
-		patrolled = patrolled !== undefined;
-
-		//anon-var is empty string if edit is by anon, else undefined
-		anon = anon === '';
+		// Convert undefined/empty-string values from API into booleans
+		isPatrolled = rc.patrolled !== undefined;
+		isAnon = rc.anon !== undefined;
 
 		// typeSymbol, diffLink & itemClass
 		typeSymbol = '&nbsp;';
 		itemClass = '';
 		diffLink = mw.msg('diff');
 
-		if (type === 'new') {
+		if (rc.type === 'new') {
 			typeSymbol += '<span class="newpage">N</span>';
 		}
 
-		if (type === 'edit' || type === 'new') {
-			if (userHasPatrolRight && !patrolled) {
+		if (rc.type === 'edit' || rc.type === 'new') {
+			if (userHasPatrolRight && !isPatrolled) {
 				typeSymbol += '<span class="unpatrolled">!</span>';
 			}
 
@@ -255,7 +256,7 @@
 		}
 
 		// strip HTML from comment
-		comment = comment.replace(/<&#91;^>&#93;*>/g, '');
+		comment = rc.comment.replace(/<&#91;^>&#93;*>/g, '');
 
 		// Check if comment is AES
 		if (comment.indexOf('[[COM:AES|←]]') === 0) {
@@ -264,7 +265,7 @@
 		}
 
 		// Anon-attribute
-		if (anon) {
+		if (isAnon) {
 			usertypeClass = ' anoncontrib';
 		} else {
 			usertypeClass = ' usercontrib';
@@ -282,20 +283,20 @@
 	</div>
 */
 		// build & return item
-		item = krRTRC_RCDayHead(timeUtil.newDateFromApi(timestamp));
-		item += '<div class="item ' + itemClass + usertypeClass + '" diff="' + revid + '" rcid="' + rcid + '" user="' + user + '">';
+		item = krRTRC_RCDayHead(timeUtil.newDateFromApi(rc.timestamp));
+		item += '<div class="item ' + itemClass + usertypeClass + '" diff="' + rc.revid + '" rcid="' + rc.rcid + '" user="' + rc.user + '">';
 
-		if (type === 'edit') {
-			diffLink = mw.util.wikiScript() + '?diff=' + revid + '&oldif=' + old_revid + '&rcid=' + rcid;
-			diffLink = '<a class="rcitemlink diff" diff="' + revid + '" rcid="' + rcid + '" href="' + diffLink + '">' + mw.msg('diff') + '</a>';
-		} else if (type === 'new') {
-			diffLink = '<a class="rcitemlink newPage" rcid="' + rcid + '">new</a>';
+		if (rc.type === 'edit') {
+			diffLink = mw.util.wikiScript() + '?diff=' + rc.revid + '&oldif=' + rc.old_revid + '&rcid=' + rc.rcid;
+			diffLink = '<a class="rcitemlink diff" diff="' + rc.revid + '" rcid="' + rc.rcid + '" href="' + diffLink + '">' + mw.msg('diff') + '</a>';
+		} else if (rc.type === 'new') {
+			diffLink = '<a class="rcitemlink newPage" rcid="' + rc.rcid + '">new</a>';
 		}
 
 
 		item += '<div first>(' + diffLink + ') ' + typeSymbol + ' ';
-		item += timeUtil.getClocktimeFromApi(timestamp) + ' <a class="page" href="' + mw.util.wikiGetlink(title) + '?rcid=' + rcid + '" target="_blank">' + title + '</a></div>';
-		item += '<div user>&nbsp;<small>&middot;&nbsp;<a href="' + mw.util.wikiGetlink('User talk:' + user) + '" target="_blank">T</a> &middot; <a href="' + mw.util.wikiGetlink('Special:Contributions/' + user) + '" target="_blank">C</a>&nbsp;</small>&middot;&nbsp;<a class="user" href="' + mw.util.wikiGetlink('User:' + user) + '" target="_blank">' + user + '</a></div>';
+		item += timeUtil.getClocktimeFromApi(rc.timestamp) + ' <a class="page" href="' + mw.util.wikiGetlink(rc.title) + '?rcid=' + rc.rcid + '" target="_blank">' + rc.title + '</a></div>';
+		item += '<div user>&nbsp;<small>&middot;&nbsp;<a href="' + mw.util.wikiGetlink('User talk:' + rc.user) + '" target="_blank">T</a> &middot; <a href="' + mw.util.wikiGetlink('Special:Contributions/' + rc.user) + '" target="_blank">C</a>&nbsp;</small>&middot;&nbsp;<a class="user" href="' + mw.util.wikiGetlink('User:' + rc.user) + '" target="_blank">' + rc.user + '</a></div>';
 		item += '<div other>&nbsp;<span class="comment">' + mw.html.escape(comment) + '</span></div>';
 
 		if (diffsize > 0) {
@@ -719,20 +720,7 @@
 
 					if (recentchanges.length) {
 						$.each(recentchanges, function (i, rc) {
-							htmloutput += krRTRC_BuildItem(
-								rc.type,
-								rc.title,
-								rc.rcid,
-								rc.revid,
-								rc.old_revid,
-								rc.user,
-								rc.timestamp,
-								rc.comment,
-								rc.patrolled,
-								rc.anon,
-								rc.oldlen,
-								rc.newlen
-							);
+							htmloutput += buildRcItem(rc);
 						});
 					} else {
 						// Everything is OK - no results
