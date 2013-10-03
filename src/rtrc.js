@@ -927,18 +927,6 @@
 		var ns, namespaceOptionsHtml,
 			fmNs = mw.config.get('wgFormattedNamespaces');
 
-		$('#p-namespaces ul')
-			.find('li.selected')
-				.removeClass('new')
-				.find('a')
-					.text('RTRC')
-					.end()
-				.end()
-			.append(
-				// Transplant "Main Page" link from the now-hidden sidebar
-				$('#mw-panel .portal').eq(0).find('li').eq(0).wrapInner('<span>')
-			);
-
 		namespaceOptionsHtml += '<option value>' + mw.msg('namespacesall') + '</option>';
 		namespaceOptionsHtml += '<option value="0">' + mw.msg('blanknamespace') + '</option>';
 
@@ -1138,6 +1126,9 @@
 		$wrapper.find('input.switch').after('<div class="switched"></div>');
 
 		$('#content').empty().append($wrapper);
+		(window.requestAnimationFrame || setTimeout)(function () {
+			$('html').addClass('mw-rtrc-ready');
+		});
 
 		$body = $wrapper.find('.mw-rtrc-body');
 		$feed = $body.find('.mw-rtrc-feed');
@@ -1414,7 +1405,24 @@
 		(conf.wgCanonicalSpecialPageName === 'Blankpage' && conf.wgTitle.split('/', 2)[1] === 'RTRC')
 	) {
 
+		// These selectors from vector-hd conflict with mw-rtrc-available
+		$('.vector-animateLayout').removeClass('vector-animateLayout');
+
 		$('html').addClass('mw-rtrc-available');
+
+		$(function () {
+			$('#p-namespaces ul')
+				.find('li.selected')
+					.removeClass('new')
+					.find('a')
+						.text('RTRC')
+						.end()
+					.end()
+				.append(
+					// Transplant "Main Page" link from the now-hidden sidebar
+					$('#mw-panel .portal').eq(0).find('li').eq(0).wrapInner('<span>')
+				);
+		});
 
 		dModules = $.Deferred();
 		dI18N = $.Deferred();

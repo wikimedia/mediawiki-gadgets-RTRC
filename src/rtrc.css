@@ -11,17 +11,19 @@
 #mw-panel,
 #left-navigation,
 #content,
-.mw-rtrc-foot {
-	transition-duration: 250ms;
-	transition-timing-function: ease-out;
+.mw-rtrc-foot,
+.mw-rtrc-wrapper {
+	transition: display 250ms ease-out;
 }
 
 #mw-panel {
-	transition-property: opacity;
+	transition-property: -webkit-transform, transform, opacity;
 }
 
 .mw-rtrc-available #mw-panel {
 	opacity: 0;
+	-webkit-transform: translate(-12em, 0);
+	transform: translate(-12em, 0);
 	pointer-events: none;
 }
 
@@ -36,6 +38,9 @@
 
 .mw-rtrc-available #content {
 	margin-left: 0;
+
+	background: rgb(247, 246, 248);
+	padding: 0;
 }
 
 .mw-rtrc-available #siteNotice,
@@ -55,18 +60,7 @@
 	display: none;
 }
 
-/* Reset */
-
-.mw-rtrc-wrapper * {
-	outline: 0 !important;
-}
-
 /* Wrapper */
-
-.mw-rtrc-available #content {
-	background: rgb(247, 246, 248);
-	padding: 0;
-}
 
 .mw-rtrc-wrapper {
 	position: relative;
@@ -77,6 +71,13 @@
 	font-size: 14px;
 	line-height: 1.42;
 	color: #343434;
+	opacity: 0;
+	transition-property: opacity;
+	transition-delay: 255ms;
+}
+
+.mw-rtrc-ready .mw-rtrc-wrapper {
+	opacity: 1;
 }
 
 .mw-rtrc-wrapper .inline-block {
@@ -202,12 +203,12 @@
 
 .mw-rtrc-settings .panel .head {
 	display: block;
-	text-align: center;
 	font-weight: bold;
 }
 
 .mw-rtrc-settings .panel-group-mini .head {
 	display: inline-block;
+	text-align: left;
 }
 
 .mw-rtrc-settings .button {
@@ -406,7 +407,6 @@
 
 
 
-
 /**
  * On/Off switch checboxes.
  * Based on "iOS 6 style switch checkboxes" by Lea Verou http://lea.verou.me
@@ -448,7 +448,6 @@
 
 .mw-rtrc-settings .switch + div:before {
 	content: 'On';
-	text-align: left;
 	float: left;
 	margin: -.1em;
 	width: 1.65em;
@@ -476,9 +475,7 @@
 
 .mw-rtrc-settings .switch + div:before,
 .mw-rtrc-settings .switch + div:after {
-	font-weight: bold;
-	font-size: 60%;
-	line-height: 1.9;
+	font: bold 60%/1.9 sans-serif;
 	text-transform: uppercase;
 }
 
