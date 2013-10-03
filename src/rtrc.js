@@ -5,7 +5,7 @@
  * @license http://krinkle.mit-license.org/
  * @author Timo Tijhof, 2010–2013
  */
-/*global alert, confirm */
+/*global alert */
 (function ($, mw) {
 	'use strict';
 
