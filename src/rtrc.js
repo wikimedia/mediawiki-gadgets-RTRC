@@ -85,8 +85,7 @@
 			refresh: 3,
 			cvnDB: false,
 			massPatrol: false,
-			autoDiff: false,
-			autoDiffTop: false
+			autoDiff: false
 		}
 	},
 	opt = $(true, {}, defOpt),
@@ -431,7 +430,6 @@
 				case 'cvnDB':
 				case 'massPatrol':
 				case 'autoDiff':
-				case 'autoDiffTop':
 					setting.checked = value;
 					break;
 				case 'refresh':
@@ -752,12 +750,7 @@
 
 	function krRTRC_NextDiff() {
 		var $lis = $feed.find('div.rcitem:not(.indiff, .patrolled, .skipped)');
-		if (opt.app.autoDiffTop) {
-			$lis.eq(0).find('a.rcitemlink').click();
-		} else {
-			// eq(-1) doesn't work somehow..
-			$lis.eq($lis.length - 1).find(' a.rcitemlink').click();
-		}
+		$lis.eq(0).find('a.rcitemlink').click();
 	}
 
 	function krRTRC_ToggleMassPatrol(b) {
@@ -1079,12 +1072,6 @@
 					'</div>' +
 					'<div class="panel">' +
 						'<label class="head">' +
-							msg('autodiff_loadfromtop') +
-							'<input type="checkbox" class="switch" id="rc-options-autoDiffTop" />' +
-						'</label>' +
-					'</div>' +
-					'<div class="panel">' +
-						'<label class="head">' +
 							'Pause' +
 							'<input class="switch" type="checkbox" id="rc-options-pause" />' +
 						'</label>' +
@@ -1359,11 +1346,6 @@
 			} else {
 				opt.app.autoDiff = this.checked;
 			}
-		});
-
-		// Checkbox: AutoDiff from top
-		$('#rc-options-autoDiffTop').click(function () {
-			opt.app.autoDiffTop = this.checked;
 		});
 
 		// Button: Pause
