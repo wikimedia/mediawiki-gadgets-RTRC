@@ -1408,6 +1408,21 @@
 	 * -------------------------------------------------
 	 */
 
+	// On every page
+	$(function () {
+		if (!$('#t-rtrc').length) {
+			mw.util.addPortletLink(
+				'p-tb',
+				mw.util.wikiGetlink('Special:BlankPage/RTRC'),
+				'RTRC',
+				't-rtrc',
+				'Monitor and patrol recent changes in real-time',
+				null,
+				'#t-specialpages'
+			);
+		}
+	});
+
 	// If on the right page with the right action...
 	if (
 		(conf.wgTitle === 'Krinkle/RTRC' && conf.wgAction === 'view') ||
