@@ -739,7 +739,7 @@
 
 					// Other error
 					} else {
-						htmloutput += '<h3>Downloading recent changes failed</h3><p>Please check the settings above and try again. If you believe this is a bug, please <a href="//meta.wikimedia.org/w/index.php?title=User_talk:Krinkle/Tools&action=edit&section=new&editintro=User_talk:Krinkle/Tools/Editnotice&preload=User_talk:Krinkle/Tools/Preload" target="_blank"><strong>let me know</strong></a>.';
+						htmloutput += '<h3>Downloading recent changes failed</h3><p>Please check the settings above and try again. If you believe this is a bug, please <a href="//meta.wikimedia.org/w/index.php?title=User_talk:Krinkle/Tools&action=edit&section=new&preload=User_talk:Krinkle/Tools/Preload" target="_blank"><strong>let me know</strong></a>.';
 					}
 
 				} else {
@@ -1124,9 +1124,9 @@
 			'<div class="mw-rtrc-foot">' +
 				'<div class="plainlinks" style="text-align: right;">' +
 					'Real-Time Recent Changes by ' +
-					'<a href="//commons.wikimedia.org/wiki/User:Krinkle" class="external text" rel="nofollow">Krinkle</a>' +
-					' | <a href="//meta.wikimedia.org/wiki/User:Krinkle/Tools/Real-Time_Recent_Changes#Changelog" class="external text" rel="nofollow">' + msg('changelog') + '</a>' +
+					'<a href="//meta.wikimedia.org/wiki/User:Krinkle" class="external text" rel="nofollow">Krinkle</a>' +
 					' | <a href="//meta.wikimedia.org/wiki/User:Krinkle/Tools/Real-Time_Recent_Changes" class="external text" rel="nofollow">' + msg('documentation') + '</a>' +
+					' | <a href="//meta.wikimedia.org/wiki/User:Krinkle/Tools/Real-Time_Recent_Changes#Changelog" class="external text" rel="nofollow">' + msg('changelog') + '</a>' +
 					' | <a href="http://krinkle.mit-license.org" class="external text" rel="nofollow">License</a>' +
 				'</div>' +
 			'</div>' +
