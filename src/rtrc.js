@@ -75,7 +75,7 @@
 			// Show filters: exclude, include, filter
 			showAnonOnly: false,
 			showUnpatrolledOnly: false,
-			limit: '25',
+			limit: 25,
 			// Type filters are "show matches only"
 			typeEdit: false,
 			typeNew: false
@@ -470,11 +470,34 @@
 	}
 
 	function getPermalink() {
-		var uri = new mw.Uri(mw.util.wikiGetlink(conf.wgPageName));
+		var uri = new mw.Uri(mw.util.wikiGetlink(conf.wgPageName)),
+			reducedOpt = {};
+
+		$.each(opt.rc, function (key, value) {
+			if (defOpt.rc[key] !== value) {
+				if (!reducedOpt.rc) {
+					reducedOpt.rc = {};
+				}
+				reducedOpt.rc[key] = value;
+			}
+		});
+
+		$.each(opt.app, function (key, value) {
+			if (defOpt.app[key] !== value) {
+				if (!reducedOpt.app) {
+					reducedOpt.app = {};
+				}
+				reducedOpt.app[key] = value;
+			}
+		});
+
+		reducedOpt = $.toJSON(reducedOpt);
+
 		uri.extend({
-			opt: $.toJSON(opt),
+			opt: reducedOpt === '{}' ? undefined : reducedOpt,
 			kickstart: 1
 		});
+
 		return uri.toString();
 	}
 
