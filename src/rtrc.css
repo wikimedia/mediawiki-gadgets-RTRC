@@ -8,46 +8,6 @@
 
 /* Minimise MediaWiki frame */
 
-#mw-panel,
-#left-navigation,
-#content,
-.mw-rtrc-foot,
-.mw-rtrc-wrapper {
-	-webkit-transition: display 250ms ease-out;
-	transition: display 250ms ease-out;
-}
-
-#mw-panel {
-	-webkit-transition-property: -webkit-transform, opacity;
-	-webkit-transition-property: transform, opacity;
-	transition-property: -webkit-transform, opacity;
-	transition-property: transform, opacity;
-}
-
-.mw-rtrc-available #mw-panel {
-	opacity: 0;
-	-webkit-transform: translate(-12em, 0);
-	transform: translate(-12em, 0);
-	pointer-events: none;
-}
-
-#left-navigation,
-#content {
-	-webkit-transition-property: margin-left;
-	transition-property: margin-left;
-}
-
-.mw-rtrc-available #left-navigation {
-	margin-left: 1em;
-}
-
-.mw-rtrc-available #content {
-	margin-left: 0;
-
-	background: rgb(247, 246, 248);
-	padding: 0;
-}
-
 .mw-rtrc-available #siteNotice,
 .mw-rtrc-available .firstHeading,
 .mw-rtrc-available #bodyContent {
@@ -76,10 +36,8 @@
 	line-height: 1.42;
 	color: #343434;
 	opacity: 0;
-	-webkit-transition-property: opacity;
-	-webkit-transition-delay: 255ms;
-	transition-property: opacity;
-	transition-delay: 255ms;
+	-webkit-transition: opacity 250ms ease-out 255ms;
+	transition: opacity 250ms ease-out 255ms;
 }
 
 .mw-rtrc-ready .mw-rtrc-wrapper {
@@ -88,6 +46,11 @@
 
 .mw-rtrc-wrapper .inline-block {
 	display: inline-block;
+}
+
+.mw-rtrc-available #content {
+	background: rgb(247, 246, 248);
+	padding: 0;
 }
 
 .mw-rtrc-head {
@@ -111,12 +74,108 @@
 	border-top: 1px solid #a1cef5;
 	text-align: center;
 	color: #343434;
+	-webkit-transition: all 250ms ease-out;
 	-webkit-transition-property: opacity, background;
+	transition: all 250ms ease-out;
 	transition-property: opacity, background;
 }
 
 .mw-rtrc-foot:hover {
 	opacity: 1;
+}
+
+/* MediaWiki nav sidebar toggle */
+
+.mw-rtrc-available #mw-panel,
+.mw-rtrc-available #left-navigation,
+.mw-rtrc-available #content,
+.mw-rtrc-navtoggle-logo,
+.mw-rtrc-navtoggle {
+	-webkit-transition: all 250ms ease-out;
+	-webkit-transition-property: margin-left, left;
+	transition: all 250ms ease-out;
+	transition-property: margin-left, left;
+}
+
+.mw-rtrc-available #mw-panel {
+	-webkit-transition-property: -webkit-transform, opacity;
+	-webkit-transition-property: transform, opacity;
+	transition-property: -webkit-transform, opacity;
+	transition-property: transform, opacity;
+}
+
+.mw-rtrc-navtoggle-logo {
+	position: absolute;
+	top: 0;
+	left: -50px;
+}
+
+.mw-rtrc-navtoggle-logo a {
+	display: block;
+	width: 40px;
+	height: 40px;
+	background-size: contain;
+	background-repeat: no-repeat;
+	background-position: 0 50%;
+}
+
+.mw-rtrc-navtoggle {
+	position: absolute;
+	top: 10px;
+	left: 11em;
+	margin-left: 0;
+	border: 0 solid #aaa;
+	border-width: 0 0 0 5px;
+	width: 10px;
+	height: 15px;
+	cursor: pointer;
+}
+
+/* Triangle pointing inwards */
+.mw-rtrc-navtoggle:after {
+	content: " ";
+	width: 0;
+	height: 0;
+	position: absolute;
+	right: 0;
+	pointer-events: none;
+
+	border: 5px solid transparent;
+	border-right-color: #333;
+	top: 50%;
+	margin-top: -5px;
+}
+
+.mw-rtrc-navtoggle-collapsed .mw-rtrc-navtoggle-logo {
+	left: 5px;
+}
+
+.mw-rtrc-navtoggle-collapsed .mw-rtrc-navtoggle {
+	left: 0;
+	border-width: 0 5px 0 0;
+	margin-left: 55px;
+}
+
+/* Triangle pointing outwards */
+.mw-rtrc-navtoggle-collapsed .mw-rtrc-navtoggle:after {
+	left: 0;
+	border-right-color: transparent;
+	border-left-color: #333;
+}
+
+.mw-rtrc-navtoggle-collapsed #left-navigation {
+	margin-left: 1em;
+}
+
+.mw-rtrc-navtoggle-collapsed #content {
+	margin-left: 0;
+}
+
+.mw-rtrc-navtoggle-collapsed #mw-panel {
+	opacity: 0;
+	pointer-events: none;
+	-webkit-transform: translate(-12em, 0);
+	transform: translate(-12em, 0);
 }
 
 /* Buttons / Links */

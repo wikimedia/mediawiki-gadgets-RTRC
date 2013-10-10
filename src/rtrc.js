@@ -17,6 +17,7 @@
 	appVersion = 'v0.9.6-alpha',
 	apiUrl = mw.util.wikiScript('api'),
 	conf = mw.config.get([
+		'skin',
 		'wgAction',
 		'wgCanonicalSpecialPageName',
 		'wgPageName',
@@ -97,6 +98,8 @@
 	dI18N,
 	message,
 	msg,
+	navCollapsed,
+	navSupported,
 
 	currentDiffRcid,
 	$wrapper, $body, $feed,
@@ -836,6 +839,12 @@
 		});
 	}
 
+	function navToggle() {
+		navCollapsed = String(navCollapsed !== 'true');
+		$('html').toggleClass('mw-rtrc-navtoggle-collapsed');
+		localStorage.setItem('mw-rtrc-navtoggle-collapsed', navCollapsed);
+	}
+
 	// Init Phase 1 : When the DOM is ready
 	function krRTRC_init1() {
 		while (krRTRC_initFuncs.length) {
@@ -1396,25 +1405,28 @@
 
 		$('html').addClass('mw-rtrc-available');
 
+		navSupported = conf.skin === 'vector' && !!window.localStorage;
+
 		$(function () {
 			$('#p-namespaces ul')
 				.find('li.selected')
 					.removeClass('new')
 					.find('a')
-						.text('RTRC')
-						.end()
-					.end()
-				.append(
-					// Transplant "Main Page" link from the now-hidden sidebar
-					$('#mw-panel .portal').eq(0).find('li').eq(0).wrapInner('<span>')
-				);
+						.text('RTRC');
+
 		});
 
 		dModules = $.Deferred();
 		dI18N = $.Deferred();
 
 		mw.loader.using(
-			['mediawiki.util', 'mediawiki.jqueryMsg', 'jquery.json',  'mediawiki.Uri', 'mediawiki.action.history.diff'],
+			[
+				'jquery.json',
+				'mediawiki.action.history.diff',
+				'mediawiki.jqueryMsg',
+				'mediawiki.Uri',
+				'mediawiki.util'
+			],
 			dModules.resolve,
 			dModules.reject
 		);
@@ -1433,6 +1445,14 @@
 				.fail(dI18N.reject);
 		}).fail(dI18N.reject);
 
+		if (navSupported) {
+			// Apply stored setting
+			navCollapsed = localStorage.getItem('mw-rtrc-navtoggle-collapsed');
+			if (navCollapsed === 'true') {
+				$('html').toggleClass('mw-rtrc-navtoggle-collapsed');
+			}
+		}
+
 		$.when(dModules, dI18N, $.ready.promise()).done(function () {
 			var profile = $.client.profile();
 
@@ -1446,6 +1466,20 @@
 					)
 				);
 				return;
+			}
+
+			// Set up DOM for navtoggle
+			if (navSupported) {
+				$('body').append(
+					$('#p-logo')
+						.clone()
+							.removeAttr('id')
+							.addClass('mw-rtrc-navtoggle-logo'),
+					$('<div>')
+						.addClass('mw-rtrc-navtoggle')
+						.attr('title', msg('navtoggle-tooltip'))
+						.on('click', navToggle)
+				);
 			}
 
 			// Map over months
