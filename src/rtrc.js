@@ -1447,7 +1447,7 @@
 
 		if (navSupported) {
 			// Apply stored setting
-			navCollapsed = localStorage.getItem('mw-rtrc-navtoggle-collapsed');
+			navCollapsed = localStorage.getItem('mw-rtrc-navtoggle-collapsed') || 'true';
 			if (navCollapsed === 'true') {
 				$('html').toggleClass('mw-rtrc-navtoggle-collapsed');
 			}
