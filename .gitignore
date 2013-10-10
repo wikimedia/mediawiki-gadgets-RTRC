@@ -1,2 +1,3 @@
 .DS_Store
+.sizecache.json
 node_modules
