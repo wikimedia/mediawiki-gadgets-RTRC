@@ -32,5 +32,5 @@ module.exports = function (grunt) {
 	});
 
 	grunt.registerTask('test', ['jshint']);
-	grunt.registerTask('default', ['test']);
+	grunt.registerTask('default', ['test', 'compare_size']);
 };
