@@ -183,7 +183,7 @@
 			return '';
 		}
 		rcPrevDayHeading = current;
-		return '<div class="item"><div><strong>' + time.getDate() + ' ' + monthNames[time.getMonth()] + '</strong></div></div>';
+		return '<div class="mw-rtrc-heading"><div><strong>' + time.getDate() + ' ' + monthNames[time.getMonth()] + '</strong></div></div>';
 	}
 
 	/**
@@ -193,8 +193,7 @@
 	function buildRcItem(rc) {
 		var diffsize, isPatrolled, isAnon,
 			typeSymbol, itemClass, diffLink,
-			commentHtml,
-			usertypeClass, el, item;
+			commentHtml, el, item;
 
 		// Get size difference (can be negative, zero or positive)
 		diffsize = rc.newlen - rc.oldlen;
@@ -212,12 +211,8 @@
 			typeSymbol += '<span class="newpage">N</span>';
 		}
 
-		if (rc.type === 'edit' || rc.type === 'new') {
-			if (userHasPatrolRight && !isPatrolled) {
-				typeSymbol += '<span class="unpatrolled">!</span>';
-			}
-
-			itemClass = 'rcitem';
+		if ((rc.type === 'edit' || rc.type === 'new') && userHasPatrolRight && !isPatrolled) {
+			typeSymbol += '<span class="unpatrolled">!</span>';
 		}
 
 		commentHtml = rc.parsedcomment;
@@ -225,19 +220,19 @@
 		// Check if edit summary is an AES
 		if (commentHtml.indexOf('<a href="/wiki/Commons:AES" class="mw-redirect" title="Commons:AES">\u2190</a>') === 0) {
 			// TODO: This is specific to commons.wikimedia.org
-			itemClass += ' aes';
+			itemClass += ' mw-rtrc-item-aes';
 		}
 
 		// Anon-attribute
 		if (isAnon) {
-			usertypeClass = ' anoncontrib';
+			itemClass = ' mw-rtrc-item-anon';
 		} else {
-			usertypeClass = ' usercontrib';
+			itemClass = ' mw-rtrc-item-liu';
 		}
 /*
 	Example:
 
-	<div class="item rcitem patrolled" diff="0" user="Abc">
+	<div class="mw-rtrc-item mw-rtrc-item-patrolled" diff="0" user="Abc">
 		<div diff>(<a class="diff" diff="0" rcid="0" href="//">diff</a>)</div>
 		<div type><span class="unpatrolled">!</span></div>
 		<div timetitle>00:00 <a href="//?rcid=0" target="_blank">Abc</a></div>
@@ -248,7 +243,7 @@
 */
 		// build & return item
 		item = buildRcDayHead(timeUtil.newDateFromApi(rc.timestamp));
-		item += '<div class="item ' + itemClass + usertypeClass + '" diff="' + rc.revid + '" rcid="' + rc.rcid + '" user="' + rc.user + '">';
+		item += '<div class="mw-rtrc-item ' + itemClass + '" diff="' + rc.revid + '" rcid="' + rc.rcid + '" user="' + rc.user + '">';
 
 		if (rc.type === 'edit') {
 			diffLink = mw.util.wikiScript() + '?diff=' + rc.revid + '&oldif=' + rc.old_revid + '&rcid=' + rc.rcid;
@@ -576,19 +571,19 @@
 	function krRTRC_RebindElements() {
 
 		// Re-apply "skipped" and "patrolled" classes
-		$feed.find('div.rcitem').each(function () {
+		$feed.find('.mw-rtrc-item').each(function () {
 
 			// Compare each diff-attribute to the array, if match mark item with the class
 
 			if (krInArray($(this).attr('rcid'), skippedRCIDs)) {
-				$(this).addClass('skipped');
+				$(this).addClass('mw-rtrc-item-skipped');
 			} else if (krInArray($(this).attr('rcid'), patrolledRCIDs)) {
-				$(this).addClass('patrolled');
+				$(this).addClass('mw-rtrc-item-patrolled');
 			}
 		});
 
 		// The current diff in diff-view stays marked
-		$feed.find('div[rcid="' + currentDiffRcid + '"]').addClass('indiff');
+		$feed.find('.mw-rtrc-item[rcid="' + currentDiffRcid + '"]').addClass('mw-rtrc-item-current');
 
 		// All http-links within the diff-view open in a new window
 		$('#krRTRC_DiffFrame > table.diff a').filter('a[href^="http://"], a[href^="https://"], a[href^="//"]').attr('target', '_blank');
@@ -635,7 +630,7 @@
 
 		// Find all user names inside the feed
 		users = [];
-		$feedContent.filter('.item').each(function () {
+		$feedContent.filter('.mw-rtrc-item').each(function () {
 			var user = $(this).attr('user');
 			if (user) {
 				users.push(user);
@@ -687,7 +682,7 @@
 
 					// Apply blacklisted-class, and insert icon with tooltip
 					$feedContent
-						.filter('.item')
+						.filter('.mw-rtrc-item')
 						.filter(function () {
 							return $(this).attr('user') === name;
 						})
@@ -784,7 +779,7 @@
 	}
 
 	function krRTRC_NextDiff() {
-		var $lis = $feed.find('div.rcitem:not(.indiff, .patrolled, .skipped)');
+		var $lis = $feed.find('.mw-rtrc-item:not(.mw-rtrc-item-current, .mw-rtrc-item-patrolled, .mw-rtrc-item-skipped)');
 		$lis.eq(0).find('a.rcitemlink').click();
 	}
 
@@ -1124,11 +1119,11 @@
 				'</div>' +
 				'<img src="' + ajaxLoaderUrl + '" id="krRTRC_loader" style="display: none;" />' +
 				'<div class="mw-rtrc-legend">' +
-					'Colors: <div class="item patrolled inline-block">&nbsp;' +
-					mw.msg('markedaspatrolled') + '&nbsp;</div>, <div class="item indiff inline-block">&nbsp;' +
+					'Colors: <div class="mw-rtrc-item mw-rtrc-item-patrolled inline-block">&nbsp;' +
+					mw.msg('markedaspatrolled') + '&nbsp;</div>, <div class="mw-rtrc-item mw-rtrc-item-current inline-block">&nbsp;' +
 					msg('currentedit') + '&nbsp;</div>, ' +
-					'<div class="item skipped inline-block">&nbsp;' + msg('skippededit') + '&nbsp;</div>, ' +
-					'<div class="item aes inline-block">&nbsp;Edit with an Automatic Edit Summary&nbsp;</div>' +
+					'<div class="mw-rtrc-item mw-rtrc-item-skipped inline-block">&nbsp;' + msg('skippededit') + '&nbsp;</div>, ' +
+					'<div class="mw-rtrc-item mw-rtrc-item-aes inline-block">&nbsp;Edit with an Automatic Edit Summary&nbsp;</div>' +
 					'<br />Abbreviations: T - ' + mw.msg('talkpagelinktext') + ', C - ' + mw.msg('contributions', mw.user) +
 				'</div>' +
 			'</div>' +
@@ -1215,7 +1210,7 @@
 					$('.patrollink a').click();
 				}
 
-				$feed.find('div.indiff').removeClass('indiff');
+				$feed.find('.mw-rtrc-item-current').removeClass('mw-rtrc-item-current');
 				krRTRC_RebindElements();
 			});
 			return false;
@@ -1235,7 +1230,7 @@
 				if (opt.app.massPatrol) {
 					$('.patrollink a').click();
 				}
-				$feed.find('div.indiff').removeClass('indiff');
+				$feed.find('.mw-rtrc-item-current').removeClass('mw-rtrc-item-current');
 				krRTRC_RebindElements();
 			});
 			return false;
@@ -1297,7 +1292,7 @@
 
 		// SkipDiff
 		$('#diffSkip').live('click', function () {
-			$feed.find('div[rcid="' + currentDiffRcid + '"]').addClass('skipped');
+			$feed.find('.mw-rtrc-item[rcid="' + currentDiffRcid + '"]').addClass('mw-rtrc-item-skipped');
 			// Add to array, to reAddClass after refresh in krRTRC_RebindElements
 			skippedRCIDs.push(currentDiffRcid);
 			krRTRC_NextDiff(); // Load next
@@ -1305,7 +1300,7 @@
 
 		// UnskipDiff
 		$('#diffUnskip').live('click', function () {
-			$feed.find('div[rcid="' + currentDiffRcid + '"]').removeClass('skipped');
+			$feed.find('.mw-rtrc-item[rcid="' + currentDiffRcid + '"]').removeClass('mw-rtrc-item-skipped');
 			// Remove from array, to no longer reAddClass after refresh
 			skippedRCIDs.splice(skippedRCIDs.indexOf(currentDiffRcid), 1);
 			//krRTRC_NextDiff(); // Load next ?

@@ -370,9 +370,8 @@
 	cursor: pointer;
 }
 
-/*
-	RC OUTPUT
-*/
+/* Feed */
+
 .mw-rtrc-body {
 	position: relative;
 	width: 100%;
@@ -426,41 +425,56 @@
 	width: 100%;
 }
 
-.mw-rtrc-feed-content .item {
+.mw-rtrc-item,
+.mw-rtrc-heading {
 	padding: 0 5px;
 	white-space: nowrap;
 }
 
-.mw-rtrc-feed-content .item:nth-child(odd) {
+.mw-rtrc-item:nth-child(odd) {
 	background: #f3f3f3;
 }
 
-/* Acts like a table with table-rows, using divs to avoid fixed table-layout with forced width and oveflow issues */
-.mw-rtrc-feed-content .item div {
-	display: inline-block;
-	overflow: hidden;
-	padding: 3px 0;
-	vertical-align: middle;
+.mw-rtrc-item-aes {
+	background: #fff0f0;
 }
-.mw-rtrc-feed-content .item div[first] { width: 38% }
-.mw-rtrc-feed-content .item div[user] { width: 21% }
-.mw-rtrc-feed-content .item div[other] { width: 35% }
-.mw-rtrc-feed-content .item div[size] { width: 6%;font-size: smaller; text-align: right }
 
-/* item classes */
-.item.aes { background: #fff0f0 }
-.item.aes .comment { font-weight: bold }
+.mw-rtrc-item-aes .comment {
+	font-weight: bold;
+}
 
-.item.skipped { background: #d6d9e9 !important }
-.item.patrolled { background: #d9e9d6 !important }
-.item.indiff { background: #ffce7b !important; border: 1px solid orange }
+.mw-rtrc-item-skipped {
+	background: #d6d9e9;
+}
 
-.item .user.blacklisted	{
+.mw-rtrc-item-patrolled {
+	background: #d9e9d6;
+}
+
+.mw-rtrc-item-current {
+	background: #ffce7b;
+	border: 1px solid orange;
+}
+
+.mw-rtrc-item .user.blacklisted {
 	font-weight: bold;
 	color: red;
 	background: url(//upload.wikimedia.org/wikipedia/commons/thumb/f/f7/Nuvola_apps_important.svg/18px-Nuvola_apps_important.svg.png) 0 50% no-repeat;
 	padding-left: 20px;
 }
+
+/* Acts like a table with table-rows, using divs to avoid fixed table-layout with forced width and oveflow issues */
+.mw-rtrc-item div {
+	display: inline-block;
+	overflow: hidden;
+	padding: 3px 0;
+	vertical-align: middle;
+}
+
+.mw-rtrc-item div[first] { width: 38% }
+.mw-rtrc-item div[user] { width: 21% }
+.mw-rtrc-item div[other] { width: 35% }
+.mw-rtrc-item div[size] { width: 6%;font-size: smaller; text-align: right }
 
 .mw-rtrc-legend {
 	margin: 5px auto;
