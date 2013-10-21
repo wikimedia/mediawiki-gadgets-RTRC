@@ -32,8 +32,8 @@
 	background: rgb(247, 246, 248);
 	border-top: 30px solid #343434;
 	padding: 0 1em;
-	font-size: 14px;
-	line-height: 1.42;
+	font-size: 13px;
+	line-height: 1.4;
 	color: #343434;
 	opacity: 0;
 	-webkit-transition: opacity 250ms ease-out 255ms;
@@ -436,7 +436,12 @@
 }
 
 /* Acts like a table with table-rows, using divs to avoid fixed table-layout with forced width and oveflow issues */
-.mw-rtrc-feed-content .item div { display: inline-block; overflow: hidden; padding: 3px 0; }
+.mw-rtrc-feed-content .item div {
+	display: inline-block;
+	overflow: hidden;
+	padding: 3px 0;
+	vertical-align: middle;
+}
 .mw-rtrc-feed-content .item div[first] { width: 38% }
 .mw-rtrc-feed-content .item div[user] { width: 21% }
 .mw-rtrc-feed-content .item div[other] { width: 35% }
