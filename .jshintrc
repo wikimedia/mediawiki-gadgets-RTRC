@@ -14,8 +14,10 @@
 	"trailing": true,
 	"undef": true,
 	"unused": true,
+
 	// Environment
 	"browser": true,
+
 	// Legacy
 	"onevar": true,
 	"nomen": true,

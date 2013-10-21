@@ -274,7 +274,6 @@
 
 .mw-rtrc-settings .panel-group-mini .head {
 	display: inline-block;
-	text-align: left;
 }
 
 .mw-rtrc-settings .button {
@@ -451,8 +450,12 @@
 .item.patrolled { background: #d9e9d6 !important }
 .item.indiff { background: #ffce7b !important; border: 1px solid orange }
 
-.item .user.blacklisted	{ font-weight: bold; color: red !important }
-.item .user.blacklisted img	{ vertical-align: baseline }
+.item .user.blacklisted	{
+	font-weight: bold;
+	color: red;
+	background: url(//upload.wikimedia.org/wikipedia/commons/thumb/f/f7/Nuvola_apps_important.svg/18px-Nuvola_apps_important.svg.png) 0 50% no-repeat;
+	padding-left: 20px;
+}
 
 .mw-rtrc-legend {
 	margin: 5px auto;
@@ -504,6 +507,7 @@
 	box-shadow: 0 .1em .1em rgba(0, 0, 0, .2) inset,
 		        0 .45em 0 .1em rgba(0, 0, 0, .05) inset;
 	font-size: 150%;
+	text-align: left;
 	transition-duration: .4s;
 	transition-property: padding, width, background-position, text-indent;
 }

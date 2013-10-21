@@ -29,6 +29,9 @@
 	ajaxLoaderUrl = '//upload.wikimedia.org/wikipedia/commons/d/de/Ajax-loader.gif',
 	// 18x15
 	blacklistIconUrl = '//upload.wikimedia.org/wikipedia/commons/thumb/f/f7/Nuvola_apps_important.svg/18px-Nuvola_apps_important.svg.png',
+	cvnApiUrl = document.location.href.slice(0, 5) === 'https' ?
+		'https://tools.wmflabs.org/cvn/api.php' :
+		'http://cvn.wmflabs.org/api.php',
 	docUrl = '//meta.wikimedia.org/wiki/User:Krinkle/Tools/Real-Time_Recent_Changes?uselang=' + conf.wgUserLanguage,
 	patrolCacheSize = 20,
 
@@ -49,7 +52,6 @@
 
 	skipButtonHtml = '',
 	prevFeedHtml,
-	rcFeedMemUIDs = [],
 	// Difference UTC vs. wiki - fetched from siteinfo/timeoffset, in minutes
 	wikiTimeOffset = 0,
 	wikiId = 'unknown', // wgDBname
@@ -629,7 +631,12 @@
 
 	}
 
-	function krRTRC_PushFrontend(htmloutput) {
+	/**
+	 * @param {Object} update
+	 * @param {jQuery} update.$feedContent
+	 * @param {string} update.rawHtml
+	 */
+	function pushFeedContent(update) {
 		// Get current time + localtime adjustment
 		var msd = wikiTimeOffset * 60 * 1000,
 			// Last-update heading
@@ -647,9 +654,9 @@
 			'</a>'
 		);
 
-		if (htmloutput !== prevFeedHtml) {
-			prevFeedHtml = htmloutput;
-			$feed.find('.mw-rtrc-feed-content').html(htmloutput);
+		if (update.rawHtml !== prevFeedHtml) {
+			prevFeedHtml = update.rawHtml;
+			$feed.find('.mw-rtrc-feed-content').empty().append(update.$feedContent);
 			krRTRC_RebindElements();
 		}
 
@@ -659,79 +666,81 @@
 		$('#krRTRC_loader').hide();
 	}
 
-	function krRTRC_ApplyIRCBL(htmloutput, callback) {
-		// Only run if there's an update going on
-		if (isUpdating) {
-			rcFeedMemUIDs = [];
+	function applyCvnAnnotations($feedContent, callback) {
+		var users;
 
-			$(htmloutput).find('div.item').each(function (index, el) {
-				rcFeedMemUIDs.push($(el).attr('user'));
-			});
-			rcFeedMemUIDs.shift();
+		// Find all user names inside the feed
+		users = [];
+		$feedContent.filter('.item').each(function () {
+			var user = $(this).attr('user');
+			if (user) {
+				users.push(user);
+			}
+		});
 
-			// Parsing json could cause fatal error if url is not HTTP 200 OK (ie. HTTP 404 Error)
-			try {
-				$.ajax({
-					url: '//toolserver.org/~krinkle/CVN/API/?raw=0&format=json&uid=' + rcFeedMemUIDs.join('|'),
-					jsonp: 'jsoncallback',
-					dataType: 'jsonp',
-					success: function (data) {
+		if (!users.length) {
+			callback();
+			return;
+		}
 
-						// If none of the users appear in the database at all, then data.users is null
-						if (data.users) {
+		$.ajax({
+			url: cvnApiUrl,
+			data: {
+				users: users.join('|'),
+			},
+			dataType: 'jsonp'
+		})
+		.fail(function () {
+			callback();
+		})
+		.done(function (data) {
+			var d;
 
-							// Loop through all users
-							// i=username, val=object
-							$.each(data.users, function (i, val) {
-
-								// Only if blacklisted, otherwise dont highlight
-								if (val.usertype === 'bl') {
-
-									var tooltip = '';
-
-									// Get blacklist reason
-									if (val.reason) {
-										tooltip += msg('cvn-reason') + ': ' + val.reason + '. ';
-									} else {
-										tooltip += msg('cvn-reason') + ': ' + msg('cvn-reason-empty');
-									}
-
-									// Get blacklist adder
-									if (val.adder) {
-										tooltip += msg('cvn-adder') + ': ' + val.adder;
-									} else {
-										tooltip += msg('cvn-adder') + ': ' + msg('cvn-adder-empty');
-									}
-
-									// Apply blacklisted-class, and insert icon with tooltip
-									htmloutput = $('<div>')
-										.html(htmloutput)
-										.find('div.item[user=' + i + '] .user')
-											.addClass('blacklisted')
-											.prepend('<img src="' + blacklistIconUrl + '" alt="" title="' + tooltip + '" />')
-											.attr('title', tooltip)
-											.end()
-										.html();
-								}
-
-							});
-						}
-
-						// Either way, push the feed to the frontend
-						callback(htmloutput);
-						$feed.find('.mw-rtrc-feed-cvninfo').text('CVN DB ' + msg('lastupdate-cvn', data.dumpdate) + ': ' + data.dumpdate + ' (UTC)');
-					},
-					error: function () {
-						// Ignore errors, just push to frontend
-						callback();
-					}
-				});
-			} catch (e) {
-				// Ignore errors, just push to frontend
+			if (!data.users) {
 				callback();
+				return;
 			}
 
-		}
+			// Loop through all users
+			$.each(data.users, function (name, user) {
+				var tooltip;
+
+				// Only if blacklisted, otherwise dont highlight
+				if (user.type === 'blacklist') {
+					tooltip = '';
+
+					if (user.comment) {
+						tooltip += msg('cvn-reason') + ': ' + user.comment + '. ';
+					} else {
+						tooltip += msg('cvn-reason') + ': ' + msg('cvn-reason-empty');
+					}
+
+					if (user.adder) {
+						tooltip += msg('cvn-adder') + ': ' + user.adder;
+					} else {
+						tooltip += msg('cvn-adder') + ': ' + msg('cvn-adder-empty');
+					}
+
+					// Apply blacklisted-class, and insert icon with tooltip
+					$feedContent
+						.filter('.item')
+						.filter(function () {
+							return $(this).attr('user') === name;
+						})
+						.find('.user')
+						.addClass('blacklisted')
+						.attr('title', tooltip);
+				}
+
+			});
+
+			// Either way, push the feed to the frontend
+			callback();
+
+			d = new Date();
+			d.setTime(data.lastUpdate * 1000);
+			$feed.find('.mw-rtrc-feed-cvninfo').text('CVN DB ' + msg('lastupdate-cvn', d.toUTCString()));
+		});
 	}
 
 	function krRTRC_Refresh() {
@@ -754,18 +763,18 @@
 				dataType: 'json',
 				data: rcparams
 			}).done(function (data) {
-				var recentchanges, htmloutput = '';
+				var recentchanges, $feedContent, feedContentHTML = '';
 
 				if (data.error) {
 					$body.removeClass('placeholder');
 
 					// Account doesn't have patrol flag
 					if (data.error.code === 'rcpermissiondenied') {
-						htmloutput += '<h3>Downloading recent changes failed</h3><p>Please untick the "Unpatrolled only"-checkbox or request the Patroller-right on <a href="' + conf.wgPageName + '">' + conf.wgPageName + '</a>';
+						feedContentHTML += '<h3>Downloading recent changes failed</h3><p>Please untick the "Unpatrolled only"-checkbox or request the Patroller-right on <a href="' + conf.wgPageName + '">' + conf.wgPageName + '</a>';
 
 					// Other error
 					} else {
-						htmloutput += '<h3>Downloading recent changes failed</h3><p>Please check the settings above and try again. If you believe this is a bug, please <a href="//meta.wikimedia.org/w/index.php?title=User_talk:Krinkle/Tools&action=edit&section=new&preload=User_talk:Krinkle/Tools/Preload" target="_blank"><strong>let me know</strong></a>.';
+						feedContentHTML += '<h3>Downloading recent changes failed</h3><p>Please check the settings above and try again. If you believe this is a bug, please <a href="//meta.wikimedia.org/w/index.php?title=User_talk:Krinkle/Tools&action=edit&section=new&preload=User_talk:Krinkle/Tools/Preload" target="_blank"><strong>let me know</strong></a>.';
 					}
 
 				} else {
@@ -773,21 +782,28 @@
 
 					if (recentchanges.length) {
 						$.each(recentchanges, function (i, rc) {
-							htmloutput += buildRcItem(rc);
+							feedContentHTML += buildRcItem(rc);
 						});
 					} else {
 						// Everything is OK - no results
-						htmloutput += '<strong><em>' + msg('nomatches') + '</em></strong>';
+						feedContentHTML += '<strong><em>' + msg('nomatches') + '</em></strong>';
 					}
 				}
 
+				$feedContent = $($.parseHTML(feedContentHTML));
 				if (opt.app.cvnDB) {
-					krRTRC_ApplyIRCBL(htmloutput, function (modoutput) {
-						krRTRC_PushFrontend(modoutput || htmloutput);
+					applyCvnAnnotations($feedContent, function () {
+						pushFeedContent({
+							$feedContent: $feedContent,
+							rawHtml: feedContentHTML
+						});
 						isUpdating = false;
 					});
 				} else {
-					krRTRC_PushFrontend(htmloutput);
+					pushFeedContent({
+						$feedContent: $feedContent,
+						rawHtml: feedContentHTML
+					});
 					isUpdating = false;
 				}
 
@@ -1101,11 +1117,11 @@
 						'<input type="number" value="3" min="0" max="999" id="mw-rtrc-settings-refresh" name="refresh" />' +
 					'</div>' +
 					'<div class="panel">' +
-						'<label class="head" for="mw-rtrc-settings-cvnDB">' +
+						'<label class="head">' +
 							'CVN DB<br />' +
 							'<span section="IRC_Blacklist" class="helpicon"></span>' +
+							'<input type="checkbox" class="switch" name="cvnDB" />' +
 						'</label>' +
-						'<input type="checkbox" id="mw-rtrc-settings-cvnDB" name="cvnDB" />' +
 					'</div>' +
 					'<div class="panel panel-last">' +
 						'<input class="button" type="button" id="RCOptions_submit" value="' + msg('apply') + '" />' +
@@ -1136,7 +1152,7 @@
 			'</fieldset></form>' +
 			'<a name="krRTRC_DiffTop" />' +
 			'<div class="mw-rtrc-diff" id="krRTRC_DiffFrame" style="display: none;"></div>' +
-			'<div class="mw-rtrc-body placeholder plainlinks">' +
+			'<div class="mw-rtrc-body placeholder">' +
 				'<div class="mw-rtrc-feed">' +
 					'<div class="mw-rtrc-feed-update"></div>' +
 					'<div class="mw-rtrc-feed-content"></div>' +
