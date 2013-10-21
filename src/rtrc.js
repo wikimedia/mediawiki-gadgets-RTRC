@@ -27,8 +27,6 @@
 	]),
 	// 32x32px
 	ajaxLoaderUrl = '//upload.wikimedia.org/wikipedia/commons/d/de/Ajax-loader.gif',
-	// 18x15
-	blacklistIconUrl = '//upload.wikimedia.org/wikipedia/commons/thumb/f/f7/Nuvola_apps_important.svg/18px-Nuvola_apps_important.svg.png',
 	cvnApiUrl = document.location.href.slice(0, 5) === 'https' ?
 		'https://tools.wmflabs.org/cvn/api.php' :
 		'http://cvn.wmflabs.org/api.php',
