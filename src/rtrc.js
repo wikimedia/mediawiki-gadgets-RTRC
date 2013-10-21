@@ -101,6 +101,7 @@
 	navCollapsed,
 	navSupported,
 
+	currentDiff,
 	currentDiffRcid,
 	$wrapper, $body, $feed,
 	$RCOptions_submit;
@@ -789,7 +790,7 @@
 
 	function krRTRC_ToggleMassPatrol(b) {
 		if (b === true) {
-			if (window.currentDiff === '') {
+			if (!currentDiff) {
 				krRTRC_NextDiff();
 			} else {
 				$('.patrollink a').click();
@@ -1183,21 +1184,18 @@
 		// Close Diff
 		$('#diffClose').live('click', function () {
 			$('#krRTRC_DiffFrame').fadeOut('fast');
-			window.currentDiff = '';
-			currentDiffRcid = '';
+			currentDiff = currentDiffRcid = false;
 		});
 
 		// Load diffview on (diff)-link click
-		window.currentDiff = '';
-		currentDiffRcid = '';
 		$('a.diff').live('click', function () {
-			window.currentDiff = $(this).attr('diff');
+			currentDiff = $(this).attr('diff');
 			currentDiffRcid = $(this).attr('rcid');
 			var title = $(this).parent().find('>a.page').text(),
 				href = $(this).parent().find('>a.diff').attr('href');
 			$('#krRTRC_DiffFrame')
 			.removeAttr('style'/* this resets style="max-height: 400;" from a.newPage below */)
-			.load(mw.util.wikiScript() + '?action=render&diff=' + window.currentDiff + '&diffonly=1&uselang=' + conf.wgUserLanguage, function () {
+			.load(mw.util.wikiScript() + '?action=render&diff=' + currentDiff + '&diffonly=1&uselang=' + conf.wgUserLanguage, function () {
 				$(this).html($(this).html().replace('diffonly=', 'krinkle=').replace('diffonly=', 'krinkle='));
 				if (krInArray(currentDiffRcid, skippedRCIDs)) {
 					skipButtonHtml = '<span class="tab"><a id="diffUnskip">Unskip</a></span>';
@@ -1299,7 +1297,7 @@
 
 		// SkipDiff
 		$('#diffSkip').live('click', function () {
-			$feed.find('div[rcid=' + currentDiffRcid + ']').addClass('skipped');
+			$feed.find('div[rcid="' + currentDiffRcid + '"]').addClass('skipped');
 			// Add to array, to reAddClass after refresh in krRTRC_RebindElements
 			skippedRCIDs.push(currentDiffRcid);
 			krRTRC_NextDiff(); // Load next
@@ -1307,7 +1305,7 @@
 
 		// UnskipDiff
 		$('#diffUnskip').live('click', function () {
-			$feed.find('div[rcid=' + currentDiffRcid + ']').removeClass('skipped');
+			$feed.find('div[rcid="' + currentDiffRcid + '"]').removeClass('skipped');
 			// Remove from array, to no longer reAddClass after refresh
 			skippedRCIDs.splice(skippedRCIDs.indexOf(currentDiffRcid), 1);
 			//krRTRC_NextDiff(); // Load next ?
