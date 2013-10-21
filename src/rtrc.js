@@ -154,41 +154,6 @@
 			// Adjust object to difference
 			d.setTime(d.getTime() + msd);
 			return leadingZero(d.getHours()) + ':' + leadingZero(d.getMinutes()); // Return clocktime with leading zeros
-		},
-
-		// Adjust MediaWiki API timestamp string to local timezone
-		// Example: "20100424013000" => "20100424011000"
-		apiApplyWikiOffset: function (s) {
-			var d, msd;
-			// Possible number/integer to string
-			s = String(s);
-			// Convert to Date()-readable
-			s = s.substr(0, 4) + '/' +
-				s.substr(4, 2) + '/' +
-				s.substr(6, 2) + ' ' +
-				s.substr(8, 2) + ':' +
-				s.substr(10, 2) + ':' +
-				s.substr(12, 2);
-			d = new Date(s);
-			// String(d): 'Invalid Date'
-			// d.getTime(): NaN
-			// Number(d): NaN
-			if (isNaN(d)) {
-				mw.log('timeUtil.apiApplyWikiOffset: Invalid Date');
-				return false;
-			}
-			// Get difference in miliseconds
-			msd = wikiTimeOffset * 60 * 1000;
-			// Adjust object to difference
-			d.setTime(d.getTime() - msd);
-			// Return longtime with leading zeros
-			return '' +
-				d.getFullYear() + '' +
-				leadingZero(d.getMonth() + 1) + '' +
-				leadingZero(d.getDate()) + '' +
-				leadingZero(d.getHours()) + '' +
-				leadingZero(d.getMinutes()) + '' +
-				leadingZero(d.getSeconds());
 		}
 	};
 
