@@ -26,9 +26,10 @@
 		'wgUserLanguage'
 	]),
 	// 32x32px
-	ajaxLoaderUrl = '//upload.wikimedia.org/wikipedia/commons/d/de/Ajax-loader.gif',
 	cvnApiUrl = '//cvn.wmflabs.org/api.php',
+	intuitionLoadUrl = '//tools.wmflabs.org/intuition/load.php?env=mw',
 	docUrl = '//meta.wikimedia.org/wiki/User:Krinkle/Tools/Real-Time_Recent_Changes?uselang=' + conf.wgUserLanguage,
+	ajaxLoaderUrl = '//upload.wikimedia.org/wikipedia/commons/d/de/Ajax-loader.gif',
 	patrolCacheSize = 20,
 
 	/**
@@ -1405,7 +1406,7 @@
 		);
 
 		$.ajax({
-			url: '//tools.wmflabs.org/intuition/load.php?env=mw',
+			url: intuitionLoadUrl,
 			dataType: 'script',
 			cache: true
 		}).done(function () {
