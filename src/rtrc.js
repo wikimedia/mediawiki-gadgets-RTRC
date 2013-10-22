@@ -1130,8 +1130,9 @@
 				'<div class="plainlinks" style="text-align: right;">' +
 					'Real-Time Recent Changes by ' +
 					'<a href="//meta.wikimedia.org/wiki/User:Krinkle" class="external text" rel="nofollow">Krinkle</a>' +
-					' | <a href="//meta.wikimedia.org/wiki/User:Krinkle/Tools/Real-Time_Recent_Changes" class="external text" rel="nofollow">' + msg('documentation') + '</a>' +
-					' | <a href="//meta.wikimedia.org/wiki/User:Krinkle/Tools/Real-Time_Recent_Changes#Changelog" class="external text" rel="nofollow">' + msg('changelog') + '</a>' +
+					' | <a href="//meta.wikimedia.org/wiki/User:Krinkle/Tools/Real-Time_Recent_Changes" class="external text" rel="nofollow">' + message('documentation').escaped() + '</a>' +
+					' | <a href="https://github.com/Krinkle/mw-gadget-rtrc/releases" class="external text" rel="nofollow">' + message('changelog').escaped() + '</a>' +
+					' | <a href="https://github.com/Krinkle/mw-gadget-rtrc/issues" class="external text" rel="nofollow">Feedback</a>' +
 					' | <a href="http://krinkle.mit-license.org" class="external text" rel="nofollow">License</a>' +
 				'</div>' +
 			'</div>' +
