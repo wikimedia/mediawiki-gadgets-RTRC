@@ -727,7 +727,7 @@
 
 					// Account doesn't have patrol flag
 					if (data.error.code === 'rcpermissiondenied') {
-						feedContentHTML += '<h3>Downloading recent changes failed</h3><p>Please untick the "Unpatrolled only"-checkbox or request the Patroller-right on <a href="' + conf.wgPageName + '">' + conf.wgPageName + '</a>';
+						feedContentHTML += '<h3>Downloading recent changes failed</h3><p>Please untick the "Unpatrolled only"-checkbox or request the Patroller-right.</a>';
 
 					// Other error
 					} else {
