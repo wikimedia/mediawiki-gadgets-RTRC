@@ -203,7 +203,6 @@
 		// typeSymbol, diffLink & itemClass
 		typeSymbol = '&nbsp;';
 		itemClass = '';
-		diffLink = mw.msg('diff');
 
 		if (rc.type === 'new') {
 			typeSymbol += '<span class="newpage">N</span>';
@@ -244,10 +243,13 @@
 		item += '<div class="mw-rtrc-item ' + itemClass + '" diff="' + rc.revid + '" rcid="' + rc.rcid + '" user="' + rc.user + '">';
 
 		if (rc.type === 'edit') {
-			diffLink = mw.util.wikiScript() + '?diff=' + rc.revid + '&oldif=' + rc.old_revid + '&rcid=' + rc.rcid;
-			diffLink = '<a class="rcitemlink diff" diff="' + rc.revid + '" rcid="' + rc.rcid + '" href="' + diffLink + '">' + mw.msg('diff') + '</a>';
+			diffLink = '<a class="rcitemlink diff" diff="' + rc.revid + '" rcid="' + rc.rcid + '" href="' +
+				mw.util.wikiScript() + '?diff=' + rc.revid + '&oldif=' + rc.old_revid + '&rcid=' + rc.rcid +
+				'">' + mw.message('diff').escaped() + '</a>';
 		} else if (rc.type === 'new') {
 			diffLink = '<a class="rcitemlink newPage" rcid="' + rc.rcid + '">new</a>';
+		} else {
+			diffLink = mw.message('diff').escaped();
 		}
 
 		item += '<div first>(' + diffLink + ') ' + typeSymbol + ' ';
@@ -605,9 +607,9 @@
 		$body.removeClass('placeholder');
 
 		$feed.find('.mw-rtrc-feed-update').html(
-			msg('lastupdate-rc', lastupdate.toUTCString()) +
+			message('lastupdate-rc', lastupdate.toUTCString()).escaped() +
 			' | <a href="' + getPermalink() + '">' +
-			msg('permalink') +
+			message('permalink').escaped() +
 			'</a>'
 		);
 
@@ -743,7 +745,7 @@
 						});
 					} else {
 						// Everything is OK - no results
-						feedContentHTML += '<strong><em>' + msg('nomatches') + '</em></strong>';
+						feedContentHTML += '<strong><em>' + message('nomatches').escaped() + '</em></strong>';
 					}
 				}
 
@@ -949,8 +951,8 @@
 		var ns, namespaceOptionsHtml,
 			fmNs = mw.config.get('wgFormattedNamespaces');
 
-		namespaceOptionsHtml += '<option value>' + mw.msg('namespacesall') + '</option>';
-		namespaceOptionsHtml += '<option value="0">' + mw.msg('blanknamespace') + '</option>';
+		namespaceOptionsHtml += '<option value>' + mw.message('namespacesall').escaped() + '</option>';
+		namespaceOptionsHtml += '<option value="0">' + mw.message('blanknamespace').escaped() + '</option>';
 
 		for (ns in fmNs) {
 			if (ns > 0) {
@@ -965,17 +967,17 @@
 				'<div class="mw-rtrc-head-links">' +
 					(!mw.user.isAnon() ? (
 						'<a target="_blank" href="' + mw.util.wikiGetlink('Special:Log/patrol') + '?user=' + encodeURIComponent(mw.user.name()) + '">' +
-							msg('mypatrollog').ucFirst() +
+							message('mypatrollog').escaped().ucFirst() +
 						'</a>') :
 						''
 					) +
-					'<a id="toggleHelp" href="#toggleHelp">Help</a>' +
+					'<a id="mw-rtrc-toggleHelp">Help</a>' +
 				'</div>' +
 			'</div>' +
 			'<form id="krRTRC_RCOptions" class="mw-rtrc-settings mw-rtrc-nohelp make-switch"><fieldset>' +
 				'<div class="panel-group">' +
 					'<div class="panel">' +
-						'<label for="mw-rtrc-settings-limit" class="head">' + msg('limit') + '</label>' +
+						'<label for="mw-rtrc-settings-limit" class="head">' + message('limit').escaped() + '</label>' +
 						'<select id="mw-rtrc-settings-limit" name="limit">' +
 							'<option value="10">10</option>' +
 							'<option value="25" selected>25</option>' +
@@ -985,64 +987,64 @@
 						'</select>' +
 					'</div>' +
 					'<div class="panel">' +
-						'<label class="head">' + msg('filter') + '</label>' +
+						'<label class="head">' + message('filter').escaped() + '</label>' +
 						'<div style="text-align: left;">' +
 							'<label>' +
 								'<input type="checkbox" name="showAnonOnly" />' +
-								' ' + msg('showAnonOnly') +
+								' ' + message('showAnonOnly').escaped() +
 							'</label>' +
 							'<br />' +
 							'<label>' +
 								'<input type="checkbox" name="showUnpatrolledOnly" />' +
-								' ' + msg('showUnpatrolledOnly') +
+								' ' + message('showUnpatrolledOnly').escaped() +
 							'</label>' +
 						'</div>' +
 					'</div>' +
 					'<div class="panel">' +
 						'<label for="mw-rtrc-settings-user" class="head">' +
-							msg('userfilter') +
+							message('userfilter').escaped() +
 							'<span section="Userfilter" class="helpicon"></span>' +
 						'</label>' +
 						'<div style="text-align: center;">' +
 							'<input type="text" size="16" id="mw-rtrc-settings-user" name="user" />' +
 							'<br />' +
-							'<input class="button button-small" type="button" id="mw-rtrc-settings-user-clr" value="' + msg('clear') + '" />' +
+							'<input class="button button-small" type="button" id="mw-rtrc-settings-user-clr" value="' + message('clear').escaped() + '" />' +
 						'</div>' +
 					'</div>' +
 					'<div class="panel">' +
-						'<label class="head">' + msg('type') + '</label>' +
+						'<label class="head">' + message('type').escaped() + '</label>' +
 						'<div style="text-align: left;">' +
 							'<label>' +
 								'<input type="checkbox" name="typeEdit" checked />' +
-								' ' + msg('typeEdit') +
+								' ' + message('typeEdit').escaped() +
 							'</label>' +
 							'<br />' +
 							'<label>' +
 								'<input type="checkbox" name="typeNew" checked />' +
-								' ' + msg('typeNew') +
+								' ' + message('typeNew').escaped() +
 							'</label>' +
 						'</div>' +
 					'</div>' +
 					'<div class="panel">' +
 						'<label class="head">' +
-							msg('timeframe') +
+							message('timeframe').escaped() +
 							'<span section="Timeframe" class="helpicon"></span>' +
 						'</label>' +
 						'<div style="text-align: right;">' +
 							'<label>' +
-								msg('time-from') + ': ' +
+								message('time-from').escaped() + ': ' +
 								'<input type="text" size="14" name="start" />' +
 							'</label>' +
 							'<br />' +
 							'<label>' +
-								msg('time-untill') + ': ' +
+								message('time-untill').escaped() + ': ' +
 								'<input type="text" size="14" name="end" />' +
 							'</label>' +
 						'</div>' +
 					'</div>' +
 					'<div class="panel">' +
 						'<label for="mw-rtrc-settings-namespace" class="head">' +
-							mw.msg('namespaces') +
+							mw.message('namespaces').escaped() +
 						'</label>' +
 						'<select id="mw-rtrc-settings-namespace" name="namespace">' +
 							namespaceOptionsHtml +
@@ -1050,19 +1052,19 @@
 					'</div>' +
 					'<div class="panel">' +
 						'<label class="head">' +
-							msg('order') +
+							message('order').escaped() +
 							' <br />' +
 							'<span section="Order" class="helpicon"></span>' +
 						'</label>' +
 						'<div style="text-align: left;">' +
 							'<label>' +
 								'<input type="radio" name="dir" value="newer" />' +
-								' ' + msg('asc') +
+								' ' + message('asc').escaped() +
 							'</label>' +
 							'<br />' +
 							'<label>' +
 								'<input type="radio" name="dir" value="older" checked />' +
-								' ' + msg('desc') +
+								' ' + message('desc').escaped() +
 							'</label>' +
 						'</div>' +
 					'</div>' +
@@ -1081,7 +1083,7 @@
 						'</label>' +
 					'</div>' +
 					'<div class="panel panel-last">' +
-						'<input class="button" type="button" id="RCOptions_submit" value="' + msg('apply') + '" />' +
+						'<input class="button" type="button" id="RCOptions_submit" value="' + message('apply').escaped() + '" />' +
 					'</div>' +
 				'</div>' +
 				'<div class="panel-group panel-group-mini">' +
@@ -1118,11 +1120,11 @@
 				'<img src="' + ajaxLoaderUrl + '" id="krRTRC_loader" style="display: none;" />' +
 				'<div class="mw-rtrc-legend">' +
 					'Colors: <div class="mw-rtrc-item mw-rtrc-item-patrolled inline-block">&nbsp;' +
-					mw.msg('markedaspatrolled') + '&nbsp;</div>, <div class="mw-rtrc-item mw-rtrc-item-current inline-block">&nbsp;' +
-					msg('currentedit') + '&nbsp;</div>, ' +
-					'<div class="mw-rtrc-item mw-rtrc-item-skipped inline-block">&nbsp;' + msg('skippededit') + '&nbsp;</div>, ' +
+					mw.message('markedaspatrolled').escaped() + '&nbsp;</div>, <div class="mw-rtrc-item mw-rtrc-item-current inline-block">&nbsp;' +
+					message('currentedit').escaped() + '&nbsp;</div>, ' +
+					'<div class="mw-rtrc-item mw-rtrc-item-skipped inline-block">&nbsp;' + message('skippededit').escaped() + '&nbsp;</div>, ' +
 					'<div class="mw-rtrc-item mw-rtrc-item-aes inline-block">&nbsp;Edit with an Automatic Edit Summary&nbsp;</div>' +
-					'<br />Abbreviations: T - ' + mw.msg('talkpagelinktext') + ', C - ' + mw.msg('contributions', mw.user) +
+					'<br />Abbreviations: T - ' + mw.message('talkpagelinktext').escaped() + ', C - ' + mw.message('contributions', mw.user).escaped() +
 				'</div>' +
 			'</div>' +
 			'<div style="clear: both;"></div>' +
@@ -1202,7 +1204,7 @@
 						'<span class="tab"><a onclick="(function(){ if($(\'.patrollink a\').length){ $(\'.patrollink a\').click(); } else { $(\'#diffSkip\').click(); } })();">[mark]</a></span>' :
 						''
 					) +
-					'<span class="tab"><a id="diffNext">' + mw.msg('next').ucFirst() + ' &raquo;</a></span>' + skipButtonHtml + '</div>'
+					'<span class="tab"><a id="diffNext">' + mw.message('next').escaped().ucFirst() + ' &raquo;</a></span>' + skipButtonHtml + '</div>'
 				);
 
 				if (opt.app.massPatrol) {
@@ -1225,7 +1227,7 @@
 				} else {
 					skipButtonHtml = '<span class="tab"><a id="diffSkip">Skip</a></span>';
 				}
-				$('#krRTRC_DiffFrame').fadeIn().prepend('<h3>' + title + '</h3><div class="mw-rtrc-diff-tools"><span class="tab"><a id="diffClose">X</a></span><span class="tab"><a href="' + href + '" target="_blank" id="diffNewWindow">Open in Wiki</a></span><span class="tab"><a onclick="$(\'.patrollink a\').click()">[mark]</a></span><span class="tab"><a id="diffNext">' + mw.msg('next').ucFirst() + ' &raquo;</a></span>' + skipButtonHtml + '</div>');
+				$('#krRTRC_DiffFrame').fadeIn().prepend('<h3>' + title + '</h3><div class="mw-rtrc-diff-tools"><span class="tab"><a id="diffClose">X</a></span><span class="tab"><a href="' + href + '" target="_blank" id="diffNewWindow">Open in Wiki</a></span><span class="tab"><a onclick="$(\'.patrollink a\').click()">[mark]</a></span><span class="tab"><a id="diffNext">' + mw.message('next').escaped().ucFirst() + ' &raquo;</a></span>' + skipButtonHtml + '</div>');
 				if (opt.app.massPatrol) {
 					$('.patrollink a').click();
 				}
@@ -1306,7 +1308,7 @@
 		});
 
 		// Show helpicons
-		$('#toggleHelp').click(function (e) {
+		$('#mw-rtrc-toggleHelp').click(function (e) {
 			e.preventDefault();
 			$('#krRTRC_RCOptions').toggleClass('mw-rtrc-nohelp mw-rtrc-help');
 		});
