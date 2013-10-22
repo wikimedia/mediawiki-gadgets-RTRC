@@ -1034,22 +1034,23 @@
 						'<div style="text-align: right;">' +
 							'<label>' +
 								message('time-from').escaped() + ': ' +
-								'<input type="text" size="14" name="start" />' +
+								'<input type="text" size="18" name="start" />' +
 							'</label>' +
 							'<br />' +
 							'<label>' +
 								message('time-untill').escaped() + ': ' +
-								'<input type="text" size="14" name="end" />' +
+								'<input type="text" size="18" name="end" />' +
 							'</label>' +
 						'</div>' +
 					'</div>' +
 					'<div class="panel">' +
-						'<label for="mw-rtrc-settings-namespace" class="head">' +
+						'<label  class="head">' +
 							mw.message('namespaces').escaped() +
-						'</label>' +
-						'<select id="mw-rtrc-settings-namespace" name="namespace">' +
+							' <br />' +
+							'<select class="mw-rtrc-settings-namespace" name="namespace">' +
 							namespaceOptionsHtml +
-						'</select>' +
+							'</select>' +
+						'</label>' +
 					'</div>' +
 					'<div class="panel">' +
 						'<label class="head">' +
@@ -1074,7 +1075,7 @@
 							'R<br />' +
 							'<span section="Reload_Interval" class="helpicon"></span>' +
 						'</label>' +
-						'<input type="number" value="3" min="0" max="999" id="mw-rtrc-settings-refresh" name="refresh" />' +
+						'<input type="number" value="3" min="0" max="99" id="mw-rtrc-settings-refresh" name="refresh" />' +
 					'</div>' +
 					'<div class="panel">' +
 						'<label class="head">' +

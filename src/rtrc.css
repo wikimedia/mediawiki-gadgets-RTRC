@@ -245,6 +245,10 @@
 	border: 0;
 }
 
+.mw-rtrc-settings-namespace {
+	max-width: 80px;
+}
+
 .mw-rtrc-settings .panel-group {
 	display: table;
 }
