@@ -27,9 +27,7 @@
 	]),
 	// 32x32px
 	ajaxLoaderUrl = '//upload.wikimedia.org/wikipedia/commons/d/de/Ajax-loader.gif',
-	cvnApiUrl = document.location.href.slice(0, 5) === 'https' ?
-		'https://tools.wmflabs.org/cvn/api.php' :
-		'http://cvn.wmflabs.org/api.php',
+	cvnApiUrl = '//cvn.wmflabs.org/api.php',
 	docUrl = '//meta.wikimedia.org/wiki/User:Krinkle/Tools/Real-Time_Recent_Changes?uselang=' + conf.wgUserLanguage,
 	patrolCacheSize = 20,
 
