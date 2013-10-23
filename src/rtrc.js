@@ -37,7 +37,6 @@
 	 * -------------------------------------------------
 	 */
 	userHasPatrolRight = false,
-	userHasDeletedhistoryRight = false,
 	userPatrolTokenCache = false,
 	rcRefreshTimeout,
 	rcRefreshEnabled = false,
@@ -849,9 +848,6 @@
 		mw.user.getRights(function (rights) {
 			if ($.inArray('patrol', rights) !== -1) {
 				userHasPatrolRight = true;
-			}
-			if ($.inArray('deletedhistory', rights) !== -1) {
-				userHasDeletedhistoryRight = true;
 			}
 		});
 	};
