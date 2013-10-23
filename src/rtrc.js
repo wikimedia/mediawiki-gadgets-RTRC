@@ -25,10 +25,10 @@
 		'wgTitle',
 		'wgUserLanguage'
 	]),
-	// 32x32px
 	cvnApiUrl = '//cvn.wmflabs.org/api.php',
 	intuitionLoadUrl = '//tools.wmflabs.org/intuition/load.php?env=mw',
 	docUrl = '//meta.wikimedia.org/wiki/User:Krinkle/Tools/Real-Time_Recent_Changes?uselang=' + conf.wgUserLanguage,
+	// 32x32px
 	ajaxLoaderUrl = '//upload.wikimedia.org/wikipedia/commons/d/de/Ajax-loader.gif',
 	patrolCacheSize = 20,
 
@@ -1406,19 +1406,21 @@
 			dModules.reject
 		);
 
-		$.ajax({
-			url: intuitionLoadUrl,
-			dataType: 'script',
-			cache: true
-		}).done(function () {
-			mw.libs.intuition.load('rtrc')
-				.done(function () {
-					message = $.proxy(mw.libs.intuition.message, null, 'rtrc');
-					msg = $.proxy(mw.libs.intuition.msg, null, 'rtrc');
-					dI18N.resolve();
-				})
-				.fail(dI18N.reject);
-		}).fail(dI18N.reject);
+		if (!mw.libs.getIntuition) {
+			mw.libs.getIntuition = $.ajax({ url: intuitionLoadUrl, dataType: 'script', cache: true });
+		}
+
+		mw.libs.getIntuition
+			.done(function () {
+				mw.libs.intuition.load('rtrc')
+					.done(function () {
+						message = $.proxy(mw.libs.intuition.message, null, 'rtrc');
+						msg = $.proxy(mw.libs.intuition.msg, null, 'rtrc');
+						dI18N.resolve();
+					})
+					.fail(dI18N.reject);
+			})
+			.fail(dI18N.reject);
 
 		if (navSupported) {
 			// Apply stored setting
