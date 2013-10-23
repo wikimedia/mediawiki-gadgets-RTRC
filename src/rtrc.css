@@ -439,7 +439,8 @@
 	background: #f3f3f3;
 }
 
-.mw-rtrc-item-aes {
+.mw-rtrc-item-aes,
+.mw-rtrc-item-aes:nth-child(odd) {
 	background: #fff0f0;
 }
 
@@ -447,15 +448,18 @@
 	font-weight: bold;
 }
 
-.mw-rtrc-item-skipped {
+.mw-rtrc-item-skipped,
+.mw-rtrc-item-skipped:nth-child(odd) {
 	background: #d6d9e9;
 }
 
-.mw-rtrc-item-patrolled {
+.mw-rtrc-item-patrolled,
+.mw-rtrc-item-patrolled:nth-child(odd) {
 	background: #d9e9d6;
 }
 
-.mw-rtrc-item-current {
+.mw-rtrc-item-current,
+.mw-rtrc-item-current:nth-child(odd) {
 	background: #ffce7b;
 	border: 1px solid orange;
 }
