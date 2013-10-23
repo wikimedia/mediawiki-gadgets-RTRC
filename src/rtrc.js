@@ -796,8 +796,8 @@
 
 	function krRTRC_GetPatroltoken() {
 		$.ajax({
-			type: 'GET',
 			url: apiUrl,
+			dataType: 'json',
 			data: {
 				format: 'json',
 				action: 'query',
@@ -808,8 +808,7 @@
 				// If querying all changes returns an edit in that case, it won't have a token on it.
 				// This workaround works as long as there are no wikis with RC-patrol but no NP-patrol.
 				rctype: 'new'
-			},
-			dataType: 'json'
+			}
 		}).done(function (data) {
 			userPatrolTokenCache = data.query.recentchanges[0].patroltoken;
 		});
@@ -847,25 +846,12 @@
 	//
 	// Checks the userrights of the current user via the API
 	krRTRC_initFuncs[0] = function () {
-		$.ajax({
-			type: 'GET',
-			url: apiUrl + '?action=query&meta=userinfo&uiprop=rights&format=xml',
-			dataType: 'xml',
-			success: function (rawback) {
-				if ($(rawback).find('r:contains("patrol")').length) {
-					$(rawback).find('r:contains("patrol")').each(function () {
-						if ($(this).text() === 'patrol' && !userHasPatrolRight) {
-							userHasPatrolRight = true;
-						}
-					});
-				}
-				if ($(rawback).find('r:contains("deletedhistory")').length) {
-					$(rawback).find('r:contains("deletedhistory")').each(function () {
-						if ($(this).text() === 'deletedhistory' && !userHasDeletedhistoryRight) {
-							userHasDeletedhistoryRight = true;
-						}
-					});
-				}
+		mw.user.getRights(function (rights) {
+			if ($.inArray('patrol', rights) !== -1) {
+				userHasPatrolRight = true;
+			}
+			if ($.inArray('deletedhistory', rights) !== -1) {
+				userHasDeletedhistoryRight = true;
 			}
 		});
 	};
