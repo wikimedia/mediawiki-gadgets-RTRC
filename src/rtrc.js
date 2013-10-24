@@ -39,6 +39,7 @@
 	 */
 	userHasPatrolRight = false,
 	userPatrolTokenCache = false,
+	rcTags = [],
 	rcRefreshTimeout,
 	rcRefreshEnabled = false,
 
@@ -329,6 +330,7 @@
 			case 'user':
 			case 'start':
 			case 'end':
+			case 'tag':
 				opt.rc[name] = el.value || undefined;
 				break;
 			case 'showAnonOnly':
@@ -392,6 +394,7 @@
 				case 'user':
 				case 'start':
 				case 'end':
+				case 'tag':
 					setting.value = value || '';
 					break;
 				case 'showAnonOnly':
@@ -542,7 +545,9 @@
 		// params.titles: Title filter option (rctitles) is no longer supported by MediaWiki,
 		// see https://bugzilla.wikimedia.org/show_bug.cgi?id=12394#c5.
 
-		// params.tag
+		if (rc.tag !== undefined) {
+			params.rctag = rc.tag;
+		}
 
 		if (userHasPatrolRight) {
 			rcprop.push('patrolled');
@@ -801,17 +806,24 @@
 
 	// Build the main interface
 	function buildInterface() {
-		var ns, namespaceOptionsHtml,
+		var namespaceOptionsHtml, tagOptionsHtml,
+			key,
 			fmNs = mw.config.get('wgFormattedNamespaces');
 
-		namespaceOptionsHtml += '<option value>' + mw.message('namespacesall').escaped() + '</option>';
+		namespaceOptionsHtml = '<option value>' + mw.message('namespacesall').escaped() + '</option>';
 		namespaceOptionsHtml += '<option value="0">' + mw.message('blanknamespace').escaped() + '</option>';
 
-		for (ns in fmNs) {
-			if (ns > 0) {
-				namespaceOptionsHtml += '<option value="' + ns + '">' + fmNs[ns] + '</option>';
+		for (key in fmNs) {
+			if (key > 0) {
+				namespaceOptionsHtml += '<option value="' + key + '">' + fmNs[key] + '</option>';
 			}
 		}
+
+		tagOptionsHtml = '<option value selected>' + message('select-placeholder').escaped() + '</option>';
+		for (key = 0; key < rcTags.length; key++) {
+			tagOptionsHtml += '<option value="' + mw.html.escape(rcTags[key]) + '">' + mw.html.escape(rcTags[key]) + '</option>';
+		}
+
 
 		$wrapper = $($.parseHTML(
 		'<div class="mw-rtrc-wrapper">' +
@@ -899,7 +911,7 @@
 						'<label  class="head">' +
 							mw.message('namespaces').escaped() +
 							' <br />' +
-							'<select class="mw-rtrc-settings-namespace" name="namespace">' +
+							'<select class="mw-rtrc-setting-select" name="namespace">' +
 							namespaceOptionsHtml +
 							'</select>' +
 						'</label>' +
@@ -941,6 +953,14 @@
 					'</div>' +
 				'</div>' +
 				'<div class="panel-group panel-group-mini">' +
+					'<div class="panel">' +
+						'<label class="head">' +
+							message('tag').escaped() +
+							' <select class="mw-rtrc-setting-select" name="tag">' +
+							tagOptionsHtml +
+							'</select>' +
+						'</label>' +
+					'</div>' +
 					'<div class="panel">' +
 						'<label class="head">' +
 							'MassPatrol' +
@@ -1287,6 +1307,24 @@
 			data = data.query.allmessages;
 			for (var i = 0; i < data.length; i ++) {
 				mw.messages.set(data[i].name, data[i]['*']);
+			}
+		}));
+
+		promises.push($.ajax({
+			url: apiUrl,
+			dataType: 'json',
+			data: {
+				format: 'json',
+				action: 'query',
+				list: 'tags',
+				tgprop: 'displayname'
+			}
+		}).done(function (data) {
+			var tags = data.query && data.query.tags;
+			if (tags) {
+				rcTags = $.map(tags, function (tag) {
+					return tag.name;
+				});
 			}
 		}));
 
