@@ -23,7 +23,8 @@
 		'wgPageName',
 		'wgServer',
 		'wgTitle',
-		'wgUserLanguage'
+		'wgUserLanguage',
+		'wgDBname'
 	]),
 	cvnApiUrl = '//cvn.wmflabs.org/api.php',
 	intuitionLoadUrl = '//tools.wmflabs.org/intuition/load.php?env=mw',
@@ -48,9 +49,6 @@
 
 	skipButtonHtml = '',
 	prevFeedHtml,
-	// Difference UTC vs. wiki - fetched from siteinfo/timeoffset, in minutes
-	wikiTimeOffset = 0,
-	wikiId = 'unknown', // wgDBname
 	isUpdating = false,
 
 	/**
@@ -133,26 +131,38 @@
 		// Create new Date instance from MediaWiki API timestamp string
 		newDateFromApi: function (s) {
 			// Possible number/integer to string
-			s = String(s)
-				// Convert to Date-readable
-				// Example: "2010-04-25T23:24:02Z" => "2010/04/25 23:24:02"
-				.replace('-', '/')
-				.replace('-', '/')
-				.replace('T', ' ')
-				.replace('Z', '');
-			return new Date(s);
+			var t = Date.UTC(
+				// "2010-04-25T23:24:02Z" => 2010, 3, 25, 23, 24, 2
+				parseInt(s.slice(0, 4), 10), // Year
+				parseInt(s.slice(5, 7), 10) - 1, // Month
+				parseInt(s.slice(8, 10), 10), // Day
+				parseInt(s.slice(11, 13), 10), // Hour
+				parseInt(s.slice(14, 16), 10), // Minutes
+				parseInt(s.slice(17, 19), 10) // Seconds
+			);
+			return new Date(t);
+		},
+
+		/**
+		 * Apply user offset.
+		 *
+		 * Only use this if you're extracting individual values
+		 * from the object (e.g. getUTCDay or getUTCMinutes).
+		 * The full timestamp will incorrectly claim "GMT".
+		 */
+		applyUserOffset: function (d) {
+			// There is no way to set a timezone in javascript, so we instead pretend the real unix
+			// time is different and then get the values from
+			d.setTime(d.getTime() + (Number(mw.user.options.get('timecorrection').split('|')[1]) * 60 * 1000));
+			return d;
 		},
 
 		// Get clocktime string adjusted to timezone of wiki
 		// from MediaWiki timestamp string
 		getClocktimeFromApi: function (s) {
-			var d, msd;
-			d = timeUtil.newDateFromApi(s);
-			// Get difference in miliseconds
-			msd = wikiTimeOffset * 60 * 1000;
-			// Adjust object to difference
-			d.setTime(d.getTime() + msd);
-			return leadingZero(d.getHours()) + ':' + leadingZero(d.getMinutes()); // Return clocktime with leading zeros
+			var d = timeUtil.applyUserOffset(timeUtil.newDateFromApi(s));
+			// Return clocktime with leading zeros
+			return leadingZero(d.getUTCHours()) + ':' + leadingZero(d.getUTCMinutes());
 		}
 	};
 
@@ -596,18 +606,11 @@
 	 * @param {string} update.rawHtml
 	 */
 	function pushFeedContent(update) {
-		// Get current time + localtime adjustment
-		var msd = wikiTimeOffset * 60 * 1000,
-			// Last-update heading
-			lastupdate = new Date();
-
-		lastupdate.setTime(lastupdate.getTime() + msd);
-
 		// TODO: Only do once
 		$body.removeClass('placeholder');
 
 		$feed.find('.mw-rtrc-feed-update').html(
-			message('lastupdate-rc', lastupdate.toUTCString()).escaped() +
+			message('lastupdate-rc', new Date().toLocaleString()).escaped() +
 			' | <a href="' + getPermalink() + '">' +
 			message('permalink').escaped() +
 			'</a>'
@@ -859,26 +862,10 @@
 		krRTRC_GetPatroltoken();
 	};
 
-	// function GetSiteInfo()
-	//
-	// Downloads siteinfo via the API
-	krRTRC_initFuncs[2] = function () {
-		$.ajax({
-			type: 'GET',
-			url: apiUrl + '?action=query&meta=siteinfo&format=xml',
-			dataType: 'xml',
-			success: function (rawback) {
-				wikiTimeOffset = $(rawback).find('general').attr('timeoffset');
-				wikiId = $(rawback).find('general').attr('wikiid');
-				document.title = 'RTRC: ' + wikiId;
-			}
-		});
-	};
-
 	// function GetIntMsgs()
 	//
 	// Downloads interface messages via the API
-	krRTRC_initFuncs[3] = function () {
+	krRTRC_initFuncs[2] = function () {
 
 		$.ajax({
 			url: apiUrl,
@@ -1351,16 +1338,33 @@
 		}
 	});
 
+	function showUnsupported() {
+		$('#content').empty().append(
+			$('<p>').addClass('errorbox').text(
+				'This program requires functionality not supported in this browser.'
+			)
+		);
+	}
+
 	// If on the right page with the right action...
 	if (
 		(conf.wgTitle === 'Krinkle/RTRC' && conf.wgAction === 'view') ||
 		(conf.wgCanonicalSpecialPageName === 'Blankpage' && conf.wgTitle.split('/', 2)[1] === 'RTRC')
 	) {
 
+		document.title = 'RTRC: ' + conf.wgDBname;
+
+		// Feature test
+		if (!Date.UTC) {
+			$(showUnsupported);
+			return;
+		}
+
 		// These selectors from vector-hd conflict with mw-rtrc-available
 		$('.vector-animateLayout').removeClass('vector-animateLayout');
 
 		$('html').addClass('mw-rtrc-available');
+
 
 		navSupported = conf.skin === 'vector' && !!window.localStorage;
 
@@ -1415,15 +1419,9 @@
 		$.when(dModules, dI18N, $.ready.promise()).done(function () {
 			var profile = $.client.profile();
 
-			// Reject bad browsers
-			// TODO: Check versions as well, or better yet: feature detection
-			if (profile.name === 'msie' && profile.versionNumber < 9) {
-				$('#mw-content-text').empty().append(
-					$('<p>').addClass('errorbox').text(
-						'Internet Explorer 8 and below are not supported. ' +
-							'Please use a modern browser such as Chrome, Firefox or Safari.'
-					)
-				);
+			// Reject bad browsers that pass the feature test
+			if (profile.name === 'msie' && profile.versionNumber < 8) {
+				showUnsupported();
 				return;
 			}
 
