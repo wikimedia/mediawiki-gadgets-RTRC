@@ -819,7 +819,7 @@
 			}
 		}
 
-		tagOptionsHtml = '<option value selected>' + message('select-placeholder').escaped() + '</option>';
+		tagOptionsHtml = '<option value selected>' + message('select-placeholder-none').escaped() + '</option>';
 		for (key = 0; key < rcTags.length; key++) {
 			tagOptionsHtml += '<option value="' + mw.html.escape(rcTags[key]) + '">' + mw.html.escape(rcTags[key]) + '</option>';
 		}
