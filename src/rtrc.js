@@ -939,7 +939,7 @@
 							'R<br />' +
 							'<span section="Reload_Interval" class="helpicon"></span>' +
 						'</label>' +
-						'<input type="number" value="3" min="0" max="99" id="mw-rtrc-settings-refresh" name="refresh" />' +
+						'<input type="number" value="3" min="0" max="99" size="2" id="mw-rtrc-settings-refresh" name="refresh" />' +
 					'</div>' +
 					'<div class="panel">' +
 						'<label class="head">' +
