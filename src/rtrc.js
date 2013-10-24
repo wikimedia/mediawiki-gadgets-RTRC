@@ -87,15 +87,12 @@
 	},
 	opt = $(true, {}, defOpt),
 
-	krRTRC_initFuncs,
-	krRTRC_initFuncs2,
 	timeUtil,
-	dModules,
-	dI18N,
 	message,
 	msg,
 	navCollapsed,
-	navSupported,
+	navSupported = conf.skin === 'vector' && !!window.localStorage,
+	nextFrame = window.requestAnimationFrame || setTimeout,
 
 	currentDiff,
 	currentDiffRcid,
@@ -796,128 +793,14 @@
 		}
 	}
 
-	function krRTRC_GetPatroltoken() {
-		$.ajax({
-			url: apiUrl,
-			dataType: 'json',
-			data: {
-				format: 'json',
-				action: 'query',
-				list: 'recentchanges',
-				rctoken: 'patrol',
-				rclimit: 1,
-				// Using rctype=new because some wikis only have patrolling of newpages enabled.
-				// If querying all changes returns an edit in that case, it won't have a token on it.
-				// This workaround works as long as there are no wikis with RC-patrol but no NP-patrol.
-				rctype: 'new'
-			}
-		}).done(function (data) {
-			userPatrolTokenCache = data.query.recentchanges[0].patroltoken;
-		});
-	}
-
 	function navToggle() {
 		navCollapsed = String(navCollapsed !== 'true');
 		$('html').toggleClass('mw-rtrc-navtoggle-collapsed');
 		localStorage.setItem('mw-rtrc-navtoggle-collapsed', navCollapsed);
 	}
 
-	// Init Phase 1 : When the DOM is ready
-	function krRTRC_init1() {
-		while (krRTRC_initFuncs.length) {
-			(krRTRC_initFuncs.shift())();
-		}
-	}
-
-	// Init Phase 2 : Called in GetIntMsgs()
-	function krRTRC_init2() {
-		while (krRTRC_initFuncs2.length) {
-			(krRTRC_initFuncs2.shift())();
-		}
-	}
-
-
-/**
- * App Initiate Functions (Phase 1, pre IntMsg)
- * -------------------------------------------------
- */
-	// CheckRights, GetPatrol, GetSiteinfo, GetIntMsg
-	krRTRC_initFuncs = [];
-
-	// function CheckRights()
-	//
-	// Checks the userrights of the current user via the API
-	krRTRC_initFuncs[0] = function () {
-		mw.user.getRights(function (rights) {
-			if ($.inArray('patrol', rights) !== -1) {
-				userHasPatrolRight = true;
-			}
-		});
-	};
-
-	// function GetPatroltoken()
-	//
-	// Requests a patroltoken via the API
-	krRTRC_initFuncs[1] = function () {
-		krRTRC_GetPatroltoken();
-	};
-
-	// function GetIntMsgs()
-	//
-	// Downloads interface messages via the API
-	krRTRC_initFuncs[2] = function () {
-
-		$.ajax({
-			url: apiUrl,
-			dataType: 'json',
-			data: {
-				action: 'query',
-				format: 'json',
-				meta: 'allmessages',
-				amlang: conf.wgUserLanguage,
-				ammessages: ([
-					'ascending abbrev',
-					'blanknamespace',
-					'contributions',
-					'descending abbrev',
-					'diff',
-					'hide',
-					'markaspatrolleddiff',
-					'markedaspatrolled',
-					'markedaspatrollederror',
-					'namespaces',
-					'namespacesall',
-					'next',
-					'recentchanges-label-bot',
-					'recentchanges-label-minor',
-					'recentchanges-label-newpage',
-					'recentchanges-label-unpatrolled',
-					'show',
-					'talkpagelinktext'
-				].join('|'))
-			}
-		}).done(function (data) {
-			data = data.query.allmessages;
-			for (var i = 0; i < data.length; i ++) {
-				mw.messages.set(data[i].name, data[i]['*']);
-			}
-
-			// Interface messages ready, excecute init phase 2
-			krRTRC_init2();
-		});
-	};
-
-/**
- * App Initiate Functions (Phase 2, post IntMsg)
- * -------------------------------------------------
- */
-	// Buildpage, ProcesPermalink, Bindevent
-	krRTRC_initFuncs2 = [];
-
-	// function BuildPage()
-	//
-	// Prepares the page
-	krRTRC_initFuncs2[0] = function () {
+	// Build the main interface
+	function buildInterface() {
 		var ns, namespaceOptionsHtml,
 			fmNs = mw.config.get('wgFormattedNamespaces');
 
@@ -1116,23 +999,16 @@
 		$wrapper.find('input.switch').after('<div class="switched"></div>');
 
 		$('#content').empty().append($wrapper);
-		(window.requestAnimationFrame || setTimeout)(function () {
+		nextFrame(function () {
 			$('html').addClass('mw-rtrc-ready');
 		});
 
 		$body = $wrapper.find('.mw-rtrc-body');
 		$feed = $body.find('.mw-rtrc-feed');
-	};
+	}
 
-	// function ProcesPermalink()
-	krRTRC_initFuncs2[1] = function () {
-		readPermalink();
-	};
-
-	// function Bindevents()
-	//
-	// Binds events to the user interface
-	krRTRC_initFuncs2[2] = function () {
+	// Bind event hanlders in the user interface
+	function bindInterface() {
 
 		$RCOptions_submit = $('#RCOptions_submit');
 
@@ -1315,13 +1191,198 @@
 			rcRefreshEnabled = true;
 			krRTRC_hardRefresh();
 		});
+	}
 
-	};
+	function showUnsupported() {
+		$('#content').empty().append(
+			$('<p>').addClass('errorbox').text(
+				'This program requires functionality not supported in this browser.'
+			)
+		);
+	}
+
+	function showFail() {
+		$('#content').empty().append(
+			$('<p>').addClass('errorbox').text('An unexpected error occurred.')
+		);
+	}
+
+
+/**
+ * App initialisation
+ * -------------------------------------------------
+ */
 
 	/**
-	 * Fire it off when the DOM is ready...
-	 * -------------------------------------------------
+	 * Fetches all external data we need.
+	 *
+	 * This runs in parallel with loading of modules and i18n.
+	 *
+	 * @return {jQuery.Promise}
 	 */
+	function initData() {
+		var dRights = $.Deferred(),
+			promises = [ dRights.promise() ];
+
+		// Get userrights
+		mw.loader.using('mediawiki.user', function () {
+			mw.user.getRights(function (rights) {
+				if ($.inArray('patrol', rights) !== -1) {
+					userHasPatrolRight = true;
+				}
+				dRights.resolve();
+			});
+		});
+
+		// Get a patroltoken
+		promises.push($.ajax({
+			url: apiUrl,
+			dataType: 'json',
+			data: {
+				format: 'json',
+				action: 'query',
+				list: 'recentchanges',
+				rctoken: 'patrol',
+				rclimit: 1,
+				// Using rctype=new because some wikis only have patrolling of newpages enabled.
+				// If querying all changes returns an edit in that case, it won't have a token on it.
+				// This workaround works as long as there are no wikis with RC-patrol but no NP-patrol.
+				rctype: 'new'
+			}
+		}).done(function (data) {
+			userPatrolTokenCache = data.query.recentchanges[0].patroltoken;
+		}));
+
+		// Get MediaWiki interface messages
+		promises.push($.ajax({
+			url: apiUrl,
+			dataType: 'json',
+			data: {
+				action: 'query',
+				format: 'json',
+				meta: 'allmessages',
+				amlang: conf.wgUserLanguage,
+				ammessages: ([
+					'ascending abbrev',
+					'blanknamespace',
+					'contributions',
+					'descending abbrev',
+					'diff',
+					'hide',
+					'markaspatrolleddiff',
+					'markedaspatrolled',
+					'markedaspatrollederror',
+					'namespaces',
+					'namespacesall',
+					'next',
+					'recentchanges-label-bot',
+					'recentchanges-label-minor',
+					'recentchanges-label-newpage',
+					'recentchanges-label-unpatrolled',
+					'show',
+					'talkpagelinktext'
+				].join('|'))
+			}
+		}).done(function (data) {
+			data = data.query.allmessages;
+			for (var i = 0; i < data.length; i ++) {
+				mw.messages.set(data[i].name, data[i]['*']);
+			}
+		}));
+
+		return $.when.apply(null, promises);
+	}
+
+	/**
+	 * @return {jQuery.Promise}
+	 */
+	function init() {
+		var dModules, dI18N;
+
+		// Transform title and navigation tabs
+		document.title = 'RTRC: ' + conf.wgDBname;
+		$(function () {
+			$('#p-namespaces ul')
+				.find('li.selected')
+					.removeClass('new')
+					.find('a')
+						.text('RTRC');
+
+		});
+
+		// Feature test
+		if (!Date.UTC) {
+			$(showUnsupported);
+			return;
+		}
+
+		// These selectors from vector-hd conflict with mw-rtrc-available
+		$('.vector-animateLayout').removeClass('vector-animateLayout');
+
+		$('html').addClass('mw-rtrc-available');
+
+		if (navSupported) {
+			// Apply stored setting
+			navCollapsed = localStorage.getItem('mw-rtrc-navtoggle-collapsed') || 'true';
+			if (navCollapsed === 'true') {
+				$('html').toggleClass('mw-rtrc-navtoggle-collapsed');
+			}
+		}
+
+		dModules = $.Deferred();
+		mw.loader.using(
+			[
+				'jquery.json',
+				'mediawiki.action.history.diff',
+				'mediawiki.jqueryMsg',
+				'mediawiki.Uri',
+				'mediawiki.user',
+				'mediawiki.util'
+			],
+			dModules.resolve,
+			dModules.reject
+		);
+
+		if (!mw.libs.getIntuition) {
+			mw.libs.getIntuition = $.ajax({ url: intuitionLoadUrl, dataType: 'script', cache: true });
+		}
+
+		dI18N = mw.libs.getIntuition
+			.then(function () {
+				return mw.libs.intuition.load('rtrc');
+			})
+			.then(function () {
+				message = $.proxy(mw.libs.intuition.message, null, 'rtrc');
+				msg = $.proxy(mw.libs.intuition.msg, null, 'rtrc');
+				return this;
+			});
+
+		$.when(initData(), dModules, dI18N, $.ready).fail(showFail).done(function () {
+
+			// Set up DOM for navtoggle
+			if (navSupported) {
+				// Needs i18n and $.ready
+				$('body').append(
+					$('#p-logo')
+						.clone()
+							.removeAttr('id')
+							.addClass('mw-rtrc-navtoggle-logo'),
+					$('<div>')
+						.addClass('mw-rtrc-navtoggle')
+						.attr('title', msg('navtoggle-tooltip'))
+						.on('click', navToggle)
+				);
+			}
+
+			// Map over months
+			monthNames = msg('months').split(',');
+
+			buildInterface();
+			readPermalink();
+			bindInterface();
+		});
+	}
+
 
 	// On every page
 	$(function () {
@@ -1338,113 +1399,12 @@
 		}
 	});
 
-	function showUnsupported() {
-		$('#content').empty().append(
-			$('<p>').addClass('errorbox').text(
-				'This program requires functionality not supported in this browser.'
-			)
-		);
-	}
-
 	// If on the right page with the right action...
 	if (
 		(conf.wgTitle === 'Krinkle/RTRC' && conf.wgAction === 'view') ||
 		(conf.wgCanonicalSpecialPageName === 'Blankpage' && conf.wgTitle.split('/', 2)[1] === 'RTRC')
 	) {
-
-		document.title = 'RTRC: ' + conf.wgDBname;
-
-		// Feature test
-		if (!Date.UTC) {
-			$(showUnsupported);
-			return;
-		}
-
-		// These selectors from vector-hd conflict with mw-rtrc-available
-		$('.vector-animateLayout').removeClass('vector-animateLayout');
-
-		$('html').addClass('mw-rtrc-available');
-
-
-		navSupported = conf.skin === 'vector' && !!window.localStorage;
-
-		$(function () {
-			$('#p-namespaces ul')
-				.find('li.selected')
-					.removeClass('new')
-					.find('a')
-						.text('RTRC');
-
-		});
-
-		dModules = $.Deferred();
-		dI18N = $.Deferred();
-
-		mw.loader.using(
-			[
-				'jquery.json',
-				'mediawiki.action.history.diff',
-				'mediawiki.jqueryMsg',
-				'mediawiki.Uri',
-				'mediawiki.util'
-			],
-			dModules.resolve,
-			dModules.reject
-		);
-
-		if (!mw.libs.getIntuition) {
-			mw.libs.getIntuition = $.ajax({ url: intuitionLoadUrl, dataType: 'script', cache: true });
-		}
-
-		mw.libs.getIntuition
-			.done(function () {
-				mw.libs.intuition.load('rtrc')
-					.done(function () {
-						message = $.proxy(mw.libs.intuition.message, null, 'rtrc');
-						msg = $.proxy(mw.libs.intuition.msg, null, 'rtrc');
-						dI18N.resolve();
-					})
-					.fail(dI18N.reject);
-			})
-			.fail(dI18N.reject);
-
-		if (navSupported) {
-			// Apply stored setting
-			navCollapsed = localStorage.getItem('mw-rtrc-navtoggle-collapsed') || 'true';
-			if (navCollapsed === 'true') {
-				$('html').toggleClass('mw-rtrc-navtoggle-collapsed');
-			}
-		}
-
-		$.when(dModules, dI18N, $.ready.promise()).done(function () {
-			var profile = $.client.profile();
-
-			// Reject bad browsers that pass the feature test
-			if (profile.name === 'msie' && profile.versionNumber < 8) {
-				showUnsupported();
-				return;
-			}
-
-			// Set up DOM for navtoggle
-			if (navSupported) {
-				$('body').append(
-					$('#p-logo')
-						.clone()
-							.removeAttr('id')
-							.addClass('mw-rtrc-navtoggle-logo'),
-					$('<div>')
-						.addClass('mw-rtrc-navtoggle')
-						.attr('title', msg('navtoggle-tooltip'))
-						.on('click', navToggle)
-				);
-			}
-
-			// Map over months
-			monthNames = msg('months').split(',');
-
-			// Start first phase of init
-			krRTRC_init1();
-		});
+		init();
 	}
 
 }(jQuery, mediaWiki));
