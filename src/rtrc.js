@@ -10,7 +10,7 @@
 	'use strict';
 
 	/**
-	 * App configuration
+	 * Configuration
 	 * -------------------------------------------------
 	 */
 	var
@@ -34,14 +34,13 @@
 	patrolCacheSize = 20,
 
 	/**
-	 * App state
+	 * State
 	 * -------------------------------------------------
 	 */
 	userHasPatrolRight = false,
 	userPatrolTokenCache = false,
 	rcTags = [],
-	rcRefreshTimeout,
-	rcRefreshEnabled = false,
+	updateFeedTimeout,
 
 	rcPrevDayHeading,
 	skippedRCIDs = [],
@@ -480,7 +479,7 @@
 		opt = newOpt;
 
 		if (kickstart === '1') {
-			krRTRC_hardRefresh();
+			updateFeedNow();
 			if ($wrapper[0].scrollIntoView) {
 				$wrapper[0].scrollIntoView();
 			}
@@ -606,9 +605,8 @@
 			$feed.find('.mw-rtrc-feed-content').empty().append(update.$feedContent);
 		}
 
-		// Reset day
-		rcPrevDayHeading = undefined;
-		rcRefreshTimeout = setTimeout(krRTRC_Refresh, opt.app.refresh * 1000);
+		// Schedule next update
+		updateFeedTimeout = setTimeout(updateFeed, opt.app.refresh * 1000);
 		$('#krRTRC_loader').hide();
 	}
 
@@ -689,9 +687,15 @@
 		});
 	}
 
-	function krRTRC_Refresh() {
+	function updateFeedNow() {
+		$('#rc-options-pause').prop('checked', false);
+		clearTimeout(updateFeedTimeout);
+		updateFeed();
+	}
+
+	function updateFeed() {
 		var rcparams;
-		if (rcRefreshEnabled && !isUpdating) {
+		if (!isUpdating) {
 
 			// Indicate updating
 			$('#krRTRC_loader').show();
@@ -743,6 +747,9 @@
 						// Everything is OK - no results
 						feedContentHTML += '<strong><em>' + message('nomatches').escaped() + '</em></strong>';
 					}
+
+					// Reset day
+					rcPrevDayHeading = undefined;
 				}
 
 				$feedContent = $($.parseHTML(feedContentHTML));
@@ -765,13 +772,6 @@
 				$RCOptions_submit.prop('disabled', false).css('opacity', '1.0');
 			});
 		}
-	}
-
-	function krRTRC_hardRefresh() {
-		rcRefreshEnabled = true;
-		$('#rc-options-pause').prop('checked', false);
-		clearTimeout(rcRefreshTimeout);
-		krRTRC_Refresh();
 	}
 
 	function krRTRC_NextDiff() {
@@ -1039,7 +1039,7 @@
 
 			krRTRC_ToggleMassPatrol(opt.app.massPatrol);
 
-			krRTRC_hardRefresh();
+			updateFeedNow();
 			return false;
 		});
 
@@ -1265,12 +1265,10 @@
 		// Button: Pause
 		$('#rc-options-pause').click(function () {
 			if (this.checked) {
-				rcRefreshEnabled = false;
-				clearTimeout(rcRefreshTimeout);
+				clearTimeout(updateFeedTimeout);
 				return;
 			}
-			rcRefreshEnabled = true;
-			krRTRC_hardRefresh();
+			updateFeedNow();
 		});
 	}
 
@@ -1289,10 +1287,10 @@
 	}
 
 
-/**
- * App initialisation
- * -------------------------------------------------
- */
+	/**
+	 * Init functions
+	 * -------------------------------------------------
+	 */
 
 	/**
 	 * Fetches all external data we need.
@@ -1396,7 +1394,7 @@
 	 * @return {jQuery.Promise}
 	 */
 	function init() {
-		var dModules, dI18N;
+		var dModules, dI18N, featureTest;
 
 		// Transform title and navigation tabs
 		document.title = 'RTRC: ' + conf.wgDBname;
@@ -1406,11 +1404,16 @@
 					.removeClass('new')
 					.find('a')
 						.text('RTRC');
-
 		});
 
-		// Feature test
-		if (!Date.UTC) {
+		featureTest = !!(
+			// For timeUtil
+			Date.UTC &&
+			// For CSS :before and :before
+			$.support.modernizr4rtrc.generatedcontent
+		);
+
+		if (!featureTest) {
 			$(showUnsupported);
 			return;
 		}
@@ -1483,6 +1486,11 @@
 	}
 
 
+	/**
+	 * Execution
+	 * -------------------------------------------------
+	 */
+
 	// On every page
 	$(function () {
 		if (!$('#t-rtrc').length) {
@@ -1498,7 +1506,66 @@
 		}
 	});
 
-	// If on the right page with the right action...
+	/**
+	 * Modernizr 2.6.2 (Custom Build) | MIT & BSD
+	 * Build: http://modernizr.com/download/#-generatedcontent-teststyles
+	 *
+	 * Customized further for inclusion in mw-gadget-rtrc:
+	 * - Remove unused utilities.
+	 * - Export to jQuery.support.modernizr4rtrc instead of window.Modernizr.
+	 */
+	(function () {
+		var docElement = document.documentElement,
+			mod = 'modernizr',
+			smile = ':)';
+
+		function injectElementWithStyles(rule, callback, nodes, testnames) {
+			var style, ret, node, docOverflow,
+			div = document.createElement('div'),
+			body = document.body,
+			fakeBody = body || document.createElement('body');
+
+			if (parseInt(nodes, 10)) {
+				while (nodes--) {
+					node = document.createElement('div');
+					node.id = testnames ? testnames[nodes] : mod + (nodes + 1);
+					div.appendChild(node);
+				}
+			}
+
+			style = ['&#173;', '<style id="s', mod, '">', rule, '</style>'].join('');
+			div.id = mod;
+			(body ? div : fakeBody).innerHTML += style;
+			fakeBody.appendChild(div);
+			if (!body) {
+				fakeBody.style.background = '';
+				fakeBody.style.overflow = 'hidden';
+				docOverflow = docElement.style.overflow;
+				docElement.style.overflow = 'hidden';
+				docElement.appendChild(fakeBody);
+			}
+
+			ret = callback(div, rule);
+			if (!body) {
+				fakeBody.parentNode.removeChild(fakeBody);
+				docElement.style.overflow = docOverflow;
+			} else {
+				div.parentNode.removeChild(div);
+			}
+
+			return !!ret;
+		}
+
+		$.support.modernizr4rtrc = {
+			generatedcontent: (function () {
+				return injectElementWithStyles(['#', mod, '{font:0/0 a}#', mod, ':after{content:"', smile, '";visibility:hidden;font:3px/1 a}'].join(''), function (node) {
+					return node.offsetHeight >= 3;
+				});
+			}())
+		};
+	})();
+
+	// Initialise if in the right context
 	if (
 		(conf.wgTitle === 'Krinkle/RTRC' && conf.wgAction === 'view') ||
 		(conf.wgCanonicalSpecialPageName === 'Blankpage' && conf.wgTitle.split('/', 2)[1] === 'RTRC')
