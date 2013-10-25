@@ -1051,61 +1051,119 @@
 		});
 
 		// Load diffview on (diff)-link click
-		$('a.diff').live('click', function () {
-			var $item = $(this).closest('.mw-rtrc-item'),
+		$('a.diff').live('click', function (e) {
+			var $item = $(this).closest('.mw-rtrc-item').addClass('mw-rtrc-item-current'),
 				title = $item.find('.page').text(),
-				href = $(this).attr('href');
+				href = $(this).attr('href'),
+				$frame = $('#krRTRC_DiffFrame');
+
+			$feed.find('.mw-rtrc-item-current').not($item).removeClass('mw-rtrc-item-current');
 
 			currentDiff = Number($item.data('diff'));
 			currentDiffRcid = Number($item.data('rcid'));
 
-			$('#krRTRC_DiffFrame')
-			.removeAttr('style'/* this resets style="max-height: 400;" from a.newPage below */)
-			.load(mw.util.wikiScript() + '?action=render&diff=' + currentDiff + '&diffonly=1&uselang=' + conf.wgUserLanguage, function () {
-				$(this).html($(this).html().replace('diffonly=', 'krinkle=').replace('diffonly=', 'krinkle='));
+			// Reset style="max-height: 400;" from a.newPage below
+			$frame.fadeOut().removeAttr('style');
+
+			$.ajax({
+				url: mw.util.wikiScript(),
+				dataType: 'html',
+				data: {
+					action: 'render',
+					diff: currentDiff,
+					diffonly: '1',
+					uselang: conf.wgUserLanguage
+				}
+			}).fail(function (jqXhr) {
+				$frame
+					.stop(true, true)
+					.append(jqXhr.responseText || 'Loading diff failed.')
+					.fadeIn();
+			}).done(function (data) {
 				if ($.inArray(currentDiffRcid, skippedRCIDs) !== -1) {
 					skipButtonHtml = '<span class="tab"><a id="diffUnskip">Unskip</a></span>';
 				} else {
 					skipButtonHtml = '<span class="tab"><a id="diffSkip">Skip</a></span>';
 				}
-				$('#krRTRC_DiffFrame').fadeIn().prepend(
-					'<h3>' + title + '</h3><div class="mw-rtrc-diff-tools"><span class="tab"><a id="diffClose">X</a></span><span class="tab"><a href="' + href + '" target="_blank" id="diffNewWindow">Open in Wiki</a></span>' +
-					(userPatrolTokenCache ?
-						'<span class="tab"><a onclick="(function(){ if($(\'.patrollink a\').length){ $(\'.patrollink a\').click(); } else { $(\'#diffSkip\').click(); } })();">[mark]</a></span>' :
-						''
-					) +
-					'<span class="tab"><a id="diffNext">' + mw.message('next').escaped().ucFirst() + ' &raquo;</a></span>' + skipButtonHtml + '</div>'
-				);
+
+				$frame
+					.stop(true, true)
+					.html(data)
+					.prepend(
+						'<h3>' + mw.html.escape(title) + '</h3>' +
+						'<div class="mw-rtrc-diff-tools">' +
+							'<span class="tab"><a id="diffClose">X</a></span>' +
+							'<span class="tab"><a href="' + href + '" target="_blank" id="diffNewWindow">Open in Wiki</a></span>' +
+							(userPatrolTokenCache ?
+								'<span class="tab"><a onclick="(function(){ if($(\'.patrollink a\').length){ $(\'.patrollink a\').click(); } else { $(\'#diffSkip\').click(); } })();">[mark]</a></span>' :
+								''
+							) +
+							'<span class="tab"><a id="diffNext">' + mw.message('next').escaped().ucFirst() + ' &raquo;</a></span>' +
+							skipButtonHtml +
+						'</div>'
+					)
+					.fadeIn();
 
 				if (opt.app.massPatrol) {
-					$('.patrollink a').click();
+					$frame.find('.patrollink a').click();
 				}
-
-				$feed.find('.mw-rtrc-item-current').removeClass('mw-rtrc-item-current');
 			});
-			return false;
+
+			e.preventDefault();
 		});
 
-		$('a.newPage').live('click', function () {
-			var $item = $(this).closest('.mw-rtrc-item'),
+		$('a.newPage').live('click', function (e) {
+			var $item = $(this).closest('.mw-rtrc-item').addClass('mw-rtrc-item-current'),
 				title = $item.find('.page').text(),
-				href = $item.find('.page').attr('href');
+				href = $item.find('.page').attr('href'),
+				$frame = $('#krRTRC_DiffFrame');
+
+			$feed.find('.mw-rtrc-item-current').not($item).removeClass('mw-rtrc-item-current');
 
 			currentDiffRcid = Number($item.data('rcid'));
 
-			$('#krRTRC_DiffFrame').css('max-height', '400px').load(href + '&action=render&uselang=' + conf.wgUserLanguage, function () {
+			$frame.fadeOut().css('max-height', '400px');
+
+			$.ajax({
+				url: href,
+				dataType: 'html',
+				data: {
+					action: 'render',
+					uselang: conf.wgUserLanguage
+				}
+			}).fail(function (jqXhr) {
+				$frame
+					.stop(true, true)
+					.append(jqXhr.responseText || 'Loading diff failed.')
+					.fadeIn();
+			}).done(function (data) {
 				if ($.inArray(currentDiffRcid, skippedRCIDs) !== -1) {
 					skipButtonHtml = '<span class="tab"><a id="diffUnskip">Unskip</a></span>';
 				} else {
 					skipButtonHtml = '<span class="tab"><a id="diffSkip">Skip</a></span>';
 				}
-				$('#krRTRC_DiffFrame').fadeIn().prepend('<h3>' + title + '</h3><div class="mw-rtrc-diff-tools"><span class="tab"><a id="diffClose">X</a></span><span class="tab"><a href="' + href + '" target="_blank" id="diffNewWindow">Open in Wiki</a></span><span class="tab"><a onclick="$(\'.patrollink a\').click()">[mark]</a></span><span class="tab"><a id="diffNext">' + mw.message('next').escaped().ucFirst() + ' &raquo;</a></span>' + skipButtonHtml + '</div>');
+
+				$frame
+					.stop(true, true)
+					.html(data)
+					.prepend(
+						'<h3>' + title + '</h3>' +
+						'<div class="mw-rtrc-diff-tools">' +
+							'<span class="tab"><a id="diffClose">X</a></span>' +
+							'<span class="tab"><a href="' + href + '" target="_blank" id="diffNewWindow">Open in Wiki</a></span>' +
+							'<span class="tab"><a onclick="$(\'.patrollink a\').click()">[mark]</a></span>' +
+							'<span class="tab"><a id="diffNext">' + mw.message('next').escaped().ucFirst() + ' &raquo;</a></span>' +
+							skipButtonHtml +
+						'</div>'
+					)
+					.fadeIn();
+
 				if (opt.app.massPatrol) {
-					$('.patrollink a').click();
+					$frame.find('.patrollink a').click();
 				}
-				$feed.find('.mw-rtrc-item-current').removeClass('mw-rtrc-item-current');
 			});
-			return false;
+
+			e.preventDefault();
 		});
 
 		// Mark as patrolled
