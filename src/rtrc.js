@@ -34,12 +34,18 @@
 	patrolCacheSize = 20,
 
 	/**
-	 * State
+	 * Info from the wiki
 	 * -------------------------------------------------
 	 */
 	userHasPatrolRight = false,
 	userPatrolTokenCache = false,
 	rcTags = [],
+	wikiTimeOffset,
+
+	/**
+	 * State
+	 * -------------------------------------------------
+	 */
 	updateFeedTimeout,
 
 	rcPrevDayHeading,
@@ -147,9 +153,17 @@
 		 * The full timestamp will incorrectly claim "GMT".
 		 */
 		applyUserOffset: function (d) {
+			var offset = mw.user.options.get('timecorrection');
+			// This preference has no default value, it is null for users that don't
+			// override the site's default timeoffset.
+			if (offset) {
+				offset = Number(offset.split('|')[1]);
+			} else {
+				offset = wikiTimeOffset;
+			}
 			// There is no way to set a timezone in javascript, so we instead pretend the real unix
-			// time is different and then get the values from
-			d.setTime(d.getTime() + (Number(mw.user.options.get('timecorrection').split('|')[1]) * 60 * 1000));
+			// time is different and then get the values from that.
+			d.setTime(d.getTime() + (offset * 60 * 1000));
 			return d;
 		},
 
@@ -1385,6 +1399,18 @@
 					return tag.name;
 				});
 			}
+		}));
+
+		promises.push($.ajax({
+			url: apiUrl,
+			dataType: 'json',
+			data: {
+				format: 'json',
+				action: 'query',
+				meta: 'siteinfo'
+			}
+		}).done(function (data) {
+			wikiTimeOffset = (data.query && data.query.general.timeoffset) || 0;
 		}));
 
 		return $.when.apply(null, promises);
