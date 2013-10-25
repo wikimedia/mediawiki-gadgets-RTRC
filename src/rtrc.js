@@ -709,6 +709,15 @@
 				url: apiUrl,
 				dataType: 'json',
 				data: rcparams
+			}).fail(function () {
+				var feedContentHTML = '<h3>Downloading recent changes failed</h3>';
+				pushFeedContent({
+					$feedContent: $(feedContentHTML),
+					rawHtml: feedContentHTML
+				});
+				isUpdating = false;
+				$RCOptions_submit.prop('disabled', false).css('opacity', '1.0');
+
 			}).done(function (data) {
 				var recentchanges, $feedContent, feedContentHTML = '';
 
