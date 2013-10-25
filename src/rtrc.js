@@ -48,7 +48,6 @@
 	patrolledRCIDs = [],
 	monthNames,
 
-	skipButtonHtml = '',
 	prevFeedHtml,
 	isUpdating = false,
 
@@ -1080,6 +1079,7 @@
 					.append(jqXhr.responseText || 'Loading diff failed.')
 					.fadeIn();
 			}).done(function (data) {
+				var skipButtonHtml;
 				if ($.inArray(currentDiffRcid, skippedRCIDs) !== -1) {
 					skipButtonHtml = '<span class="tab"><a id="diffUnskip">Unskip</a></span>';
 				} else {
@@ -1137,6 +1137,7 @@
 					.append(jqXhr.responseText || 'Loading diff failed.')
 					.fadeIn();
 			}).done(function (data) {
+				var skipButtonHtml;
 				if ($.inArray(currentDiffRcid, skippedRCIDs) !== -1) {
 					skipButtonHtml = '<span class="tab"><a id="diffUnskip">Unskip</a></span>';
 				} else {
