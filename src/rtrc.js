@@ -566,11 +566,11 @@
 		return params;
 	}
 
-	// Called when the list is refreshed
-	function krRTRC_RebindElements() {
+	// Called when the feed is regenerated before being inserted in the document
+	function applyRtrcAnnotations($feedContent) {
 
-		// Re-apply "skipped" and "patrolled" classes
-		$feed.find('.mw-rtrc-item').each(function () {
+		// Re-apply item classes
+		$feedContent.filter('.mw-rtrc-item').each(function () {
 			var $el = $(this),
 				rcid = Number($el.data('rcid'));
 
@@ -579,15 +579,10 @@
 				$el.addClass('mw-rtrc-item-skipped');
 			} else if ($.inArray(rcid, patrolledRCIDs) !== -1) {
 				$el.addClass('mw-rtrc-item-patrolled');
+			} else if (rcid === currentDiffRcid) {
+				$el.addClass('mw-rtrc-item-current');
 			}
 		});
-
-		// The current diff in diff-view stays marked
-		$feed.find('.mw-rtrc-item[data-rcid="' + currentDiffRcid + '"]').addClass('mw-rtrc-item-current');
-
-		// All http-links within the diff-view open in a new window
-		$('#krRTRC_DiffFrame > table.diff a').filter('a[href^="http://"], a[href^="https://"], a[href^="//"]').attr('target', '_blank');
-
 	}
 
 	/**
@@ -608,8 +603,8 @@
 
 		if (update.rawHtml !== prevFeedHtml) {
 			prevFeedHtml = update.rawHtml;
+			applyRtrcAnnotations(update.$feedContent);
 			$feed.find('.mw-rtrc-feed-content').empty().append(update.$feedContent);
-			krRTRC_RebindElements();
 		}
 
 		// Reset day
@@ -1006,6 +1001,14 @@
 		// Add helper element for switch checkboxes
 		$wrapper.find('input.switch').after('<div class="switched"></div>');
 
+		// All links within the diffframe should open in a new window
+		$wrapper.find('#krRTRC_DiffFrame').on('click', 'table.diff a', function () {
+			var $el = $(this);
+			if ($el.is('[href^="http://"], [href^="https://"], [href^="//"]')) {
+				$el.attr('target', '_blank');
+			}
+		});
+
 		$('#content').empty().append($wrapper);
 		nextFrame(function () {
 			$('html').addClass('mw-rtrc-ready');
@@ -1070,7 +1073,6 @@
 				}
 
 				$feed.find('.mw-rtrc-item-current').removeClass('mw-rtrc-item-current');
-				krRTRC_RebindElements();
 			});
 			return false;
 		});
@@ -1093,7 +1095,6 @@
 					$('.patrollink a').click();
 				}
 				$feed.find('.mw-rtrc-item-current').removeClass('mw-rtrc-item-current');
-				krRTRC_RebindElements();
 			});
 			return false;
 		});
@@ -1127,7 +1128,6 @@
 
 					// Patrolling/Refreshing sometimes overlap eachother causing patrolled edits to show up in an 'unpatrolled only' feed.
 					// Make sure that any patrolled edits stay marked as such to prevent AutoDiff from picking a patrolled edit
-					// See also krRTRC_RebindElements()
 					patrolledRCIDs.push(currentDiffRcid);
 
 					while (patrolledRCIDs.length > patrolCacheSize) {
