@@ -164,19 +164,6 @@
 		}
 	};
 
-	// Searches an array for the giving string
-	// MUST be loose comparison
-	function krInArray(s, array) {
-		/*jshint eqeqeq:false */
-		var i;
-		for (i = 0; i < array.length; i += 1) {
-			if (array[i] == s) {
-				return true;
-			}
-		}
-		return false;
-	}
-
 
 	/**
 	 * Main functions
@@ -237,8 +224,8 @@
 /*
 	Example:
 
-	<div class="mw-rtrc-item mw-rtrc-item-patrolled" diff="0" user="Abc">
-		<div diff>(<a class="diff" diff="0" rcid="0" href="//">diff</a>)</div>
+	<div class="mw-rtrc-item mw-rtrc-item-patrolled" data-diff="0" data-rcid="0" user="Abc">
+		<div diff>(<a class="diff" href="//">diff</a>)</div>
 		<div type><span class="unpatrolled">!</span></div>
 		<div timetitle>00:00 <a href="//?rcid=0" target="_blank">Abc</a></div>
 		<div user><a class="user" href="//User:Abc">Abc</a></div>
@@ -248,14 +235,14 @@
 */
 		// build & return item
 		item = buildRcDayHead(timeUtil.newDateFromApi(rc.timestamp));
-		item += '<div class="mw-rtrc-item ' + itemClass + '" diff="' + rc.revid + '" rcid="' + rc.rcid + '" user="' + rc.user + '">';
+		item += '<div class="mw-rtrc-item ' + itemClass + '" data-diff="' + rc.revid + '" data-rcid="' + rc.rcid + '" user="' + rc.user + '">';
 
 		if (rc.type === 'edit') {
-			diffLink = '<a class="rcitemlink diff" diff="' + rc.revid + '" rcid="' + rc.rcid + '" href="' +
+			diffLink = '<a class="rcitemlink diff" href="' +
 				mw.util.wikiScript() + '?diff=' + rc.revid + '&oldif=' + rc.old_revid + '&rcid=' + rc.rcid +
 				'">' + mw.message('diff').escaped() + '</a>';
 		} else if (rc.type === 'new') {
-			diffLink = '<a class="rcitemlink newPage" rcid="' + rc.rcid + '">new</a>';
+			diffLink = '<a class="rcitemlink newPage">new</a>';
 		} else {
 			diffLink = mw.message('diff').escaped();
 		}
@@ -541,7 +528,6 @@
 			params.rcuser = rc.user;
 		}
 
-
 		// params.titles: Title filter option (rctitles) is no longer supported by MediaWiki,
 		// see https://bugzilla.wikimedia.org/show_bug.cgi?id=12394#c5.
 
@@ -576,6 +562,7 @@
 		}
 
 		params.rctype = rctype.length ? rctype.join('|') : 'edit|new';
+
 		return params;
 	}
 
@@ -584,18 +571,19 @@
 
 		// Re-apply "skipped" and "patrolled" classes
 		$feed.find('.mw-rtrc-item').each(function () {
+			var $el = $(this),
+				rcid = Number($el.data('rcid'));
 
-			// Compare each diff-attribute to the array, if match mark item with the class
-
-			if (krInArray($(this).attr('rcid'), skippedRCIDs)) {
-				$(this).addClass('mw-rtrc-item-skipped');
-			} else if (krInArray($(this).attr('rcid'), patrolledRCIDs)) {
-				$(this).addClass('mw-rtrc-item-patrolled');
+			// Mark skipped and patrolled items as such
+			if ($.inArray(rcid, skippedRCIDs) !== -1) {
+				$el.addClass('mw-rtrc-item-skipped');
+			} else if ($.inArray(rcid, patrolledRCIDs) !== -1) {
+				$el.addClass('mw-rtrc-item-patrolled');
 			}
 		});
 
 		// The current diff in diff-view stays marked
-		$feed.find('.mw-rtrc-item[rcid="' + currentDiffRcid + '"]').addClass('mw-rtrc-item-current');
+		$feed.find('.mw-rtrc-item[data-rcid="' + currentDiffRcid + '"]').addClass('mw-rtrc-item-current');
 
 		// All http-links within the diff-view open in a new window
 		$('#krRTRC_DiffFrame > table.diff a').filter('a[href^="http://"], a[href^="https://"], a[href^="//"]').attr('target', '_blank');
@@ -1052,15 +1040,18 @@
 
 		// Load diffview on (diff)-link click
 		$('a.diff').live('click', function () {
-			currentDiff = $(this).attr('diff');
-			currentDiffRcid = $(this).attr('rcid');
-			var title = $(this).parent().find('>a.page').text(),
-				href = $(this).parent().find('>a.diff').attr('href');
+			var $item = $(this).closest('.mw-rtrc-item'),
+				title = $item.find('.page').text(),
+				href = $(this).attr('href');
+
+			currentDiff = Number($item.data('diff'));
+			currentDiffRcid = Number($item.data('rcid'));
+
 			$('#krRTRC_DiffFrame')
 			.removeAttr('style'/* this resets style="max-height: 400;" from a.newPage below */)
 			.load(mw.util.wikiScript() + '?action=render&diff=' + currentDiff + '&diffonly=1&uselang=' + conf.wgUserLanguage, function () {
 				$(this).html($(this).html().replace('diffonly=', 'krinkle=').replace('diffonly=', 'krinkle='));
-				if (krInArray(currentDiffRcid, skippedRCIDs)) {
+				if ($.inArray(currentDiffRcid, skippedRCIDs) !== -1) {
 					skipButtonHtml = '<span class="tab"><a id="diffUnskip">Unskip</a></span>';
 				} else {
 					skipButtonHtml = '<span class="tab"><a id="diffSkip">Skip</a></span>';
@@ -1083,13 +1074,16 @@
 			});
 			return false;
 		});
+
 		$('a.newPage').live('click', function () {
-			currentDiffRcid = $(this).attr('rcid');
-			var title = $(this).parent().find('> a.page').text(),
-				href = $(this).parent().find('> a.page').attr('href');
+			var $item = $(this).closest('.mw-rtrc-item'),
+				title = $item.find('.page').text(),
+				href = $item.find('.page').attr('href');
+
+			currentDiffRcid = Number($item.data('rcid'));
 
 			$('#krRTRC_DiffFrame').css('max-height', '400px').load(href + '&action=render&uselang=' + conf.wgUserLanguage, function () {
-				if (krInArray(currentDiffRcid, skippedRCIDs)) {
+				if ($.inArray(currentDiffRcid, skippedRCIDs) !== -1) {
 					skipButtonHtml = '<span class="tab"><a id="diffUnskip">Unskip</a></span>';
 				} else {
 					skipButtonHtml = '<span class="tab"><a id="diffSkip">Skip</a></span>';
@@ -1129,7 +1123,7 @@
 					$el.empty().append(
 						$('<span style="color: green;"></span>').text(mw.msg('markedaspatrolled'))
 					);
-					$feed.find('div[rcid="' + currentDiffRcid + '"]').addClass('patrolled');
+					$feed.find('.mw-rtrc-item[data-rcid="' + currentDiffRcid + '"]').addClass('mw-rtrc-item-patrolled');
 
 					// Patrolling/Refreshing sometimes overlap eachother causing patrolled edits to show up in an 'unpatrolled only' feed.
 					// Make sure that any patrolled edits stay marked as such to prevent AutoDiff from picking a patrolled edit
@@ -1160,18 +1154,17 @@
 
 		// SkipDiff
 		$('#diffSkip').live('click', function () {
-			$feed.find('.mw-rtrc-item[rcid="' + currentDiffRcid + '"]').addClass('mw-rtrc-item-skipped');
-			// Add to array, to reAddClass after refresh in krRTRC_RebindElements
+			$feed.find('.mw-rtrc-item[data-rcid="' + currentDiffRcid + '"]').addClass('mw-rtrc-item-skipped');
+			// Add to array, to re-add class after refresh
 			skippedRCIDs.push(currentDiffRcid);
-			krRTRC_NextDiff(); // Load next
+			krRTRC_NextDiff();
 		});
 
 		// UnskipDiff
 		$('#diffUnskip').live('click', function () {
-			$feed.find('.mw-rtrc-item[rcid="' + currentDiffRcid + '"]').removeClass('mw-rtrc-item-skipped');
-			// Remove from array, to no longer reAddClass after refresh
+			$feed.find('.mw-rtrc-item[data-rcid="' + currentDiffRcid + '"]').removeClass('mw-rtrc-item-skipped');
+			// Remove from array, to no longer re-add class after refresh
 			skippedRCIDs.splice(skippedRCIDs.indexOf(currentDiffRcid), 1);
-			//krRTRC_NextDiff(); // Load next ?
 		});
 
 		// Show helpicons
