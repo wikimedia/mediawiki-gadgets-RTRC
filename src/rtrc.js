@@ -14,7 +14,7 @@
 	 * -------------------------------------------------
 	 */
 	var
-	appVersion = 'v0.9.7',
+	appVersion = 'v0.9.8',
 	apiUrl = mw.util.wikiScript('api'),
 	conf = mw.config.get([
 		'skin',
