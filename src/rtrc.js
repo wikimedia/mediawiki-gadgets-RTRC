@@ -1479,10 +1479,9 @@
 			.then(function () {
 				return mw.libs.intuition.load('rtrc');
 			})
-			.then(function () {
+			.done(function () {
 				message = $.proxy(mw.libs.intuition.message, null, 'rtrc');
 				msg = $.proxy(mw.libs.intuition.msg, null, 'rtrc');
-				return this;
 			});
 
 		$.when(initData(), dModules, dI18N, $.ready).fail(showFail).done(function () {
