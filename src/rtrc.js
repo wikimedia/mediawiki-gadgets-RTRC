@@ -260,8 +260,8 @@
 		}
 
 		item += '<div first>(' + diffLink + ') ' + typeSymbol + ' ';
-		item += timeUtil.getClocktimeFromApi(rc.timestamp) + ' <a class="page" href="' + mw.util.wikiGetlink(rc.title) + '?rcid=' + rc.rcid + '" target="_blank">' + rc.title + '</a></div>';
-		item += '<div user>&nbsp;<small>&middot;&nbsp;<a href="' + mw.util.wikiGetlink('User talk:' + rc.user) + '" target="_blank">T</a> &middot; <a href="' + mw.util.wikiGetlink('Special:Contributions/' + rc.user) + '" target="_blank">C</a>&nbsp;</small>&middot;&nbsp;<a class="user" href="' + mw.util.wikiGetlink((mw.util.isIPv4Address(rc.user) || mw.util.isIPv6Address(rc.user) ? 'Special:Contributions/' : 'User:') + rc.user) + '" target="_blank">' + rc.user + '</a></div>';
+		item += timeUtil.getClocktimeFromApi(rc.timestamp) + ' <a class="page" href="' + mw.util.getUrl(rc.title) + '?rcid=' + rc.rcid + '" target="_blank">' + rc.title + '</a></div>';
+		item += '<div user>&nbsp;<small>&middot;&nbsp;<a href="' + mw.util.getUrl('User talk:' + rc.user) + '" target="_blank">T</a> &middot; <a href="' + mw.util.getUrl('Special:Contributions/' + rc.user) + '" target="_blank">C</a>&nbsp;</small>&middot;&nbsp;<a class="user" href="' + mw.util.getUrl((mw.util.isIPv4Address(rc.user) || mw.util.isIPv6Address(rc.user) ? 'Special:Contributions/' : 'User:') + rc.user) + '" target="_blank">' + rc.user + '</a></div>';
 		item += '<div other>&nbsp;<span class="comment">' + commentHtml + '</span></div>';
 
 		if (diffsize > 0) {
@@ -443,7 +443,7 @@
 	}
 
 	function getPermalink() {
-		var uri = new mw.Uri(mw.util.wikiGetlink(conf.wgPageName)),
+		var uri = new mw.Uri(mw.util.getUrl(conf.wgPageName)),
 			reducedOpt = {};
 
 		$.each(opt.rc, function (key, value) {
@@ -836,7 +836,7 @@
 				'Real-Time Recent Changes <small>(' + appVersion + ')</small>' +
 				'<div class="mw-rtrc-head-links">' +
 					(!mw.user.isAnon() ? (
-						'<a target="_blank" href="' + mw.util.wikiGetlink('Special:Log/patrol') + '?user=' + encodeURIComponent(mw.user.name()) + '">' +
+						'<a target="_blank" href="' + mw.util.getUrl('Special:Log/patrol') + '?user=' + encodeURIComponent(mw.user.name()) + '">' +
 							message('mypatrollog').escaped().ucFirst() +
 						'</a>') :
 						''
@@ -1521,7 +1521,7 @@
 		if (!$('#t-rtrc').length) {
 			mw.util.addPortletLink(
 				'p-tb',
-				mw.util.wikiGetlink('Special:BlankPage/RTRC'),
+				mw.util.getUrl('Special:BlankPage/RTRC'),
 				'RTRC',
 				't-rtrc',
 				'Monitor and patrol recent changes in real-time',
