@@ -196,7 +196,7 @@
 	 * @return {string} HTML
 	 */
 	function buildRcItem(rc) {
-		var diffsize, isPatrolled, isAnon,
+		var diffsize, isUnpatrolled, isAnon,
 			typeSymbol, itemClass, diffLink,
 			commentHtml, el, item;
 
@@ -204,7 +204,7 @@
 		diffsize = rc.newlen - rc.oldlen;
 
 		// Convert undefined/empty-string values from API into booleans
-		isPatrolled = rc.patrolled !== undefined;
+		isUnpatrolled = rc.unpatrolled !== undefined;
 		isAnon = rc.anon !== undefined;
 
 		// typeSymbol, diffLink & itemClass
@@ -215,7 +215,7 @@
 			typeSymbol += '<span class="newpage">N</span>';
 		}
 
-		if ((rc.type === 'edit' || rc.type === 'new') && userHasPatrolRight && !isPatrolled) {
+		if ((rc.type === 'edit' || rc.type === 'new') && userHasPatrolRight && isUnpatrolled) {
 			typeSymbol += '<span class="unpatrolled">!</span>';
 		}
 
