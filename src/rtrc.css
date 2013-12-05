@@ -67,7 +67,6 @@
 	left: 0;
 	bottom: 0;
 	right: 0;
-	opacity: 0.5;
 	background: rgba(255, 255, 255, 0.7);
 	padding: 6px 15px 6px 15px;
 	border-top: 1px solid #a1cef5;
@@ -80,7 +79,7 @@
 }
 
 .mw-rtrc-foot:hover {
-	opacity: 1;
+	background: rgba(255, 255, 255, 1);
 }
 
 /* MediaWiki nav sidebar toggle */
