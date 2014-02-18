@@ -1,6 +1,6 @@
 {
   "name": "mw-gadget-rtrc",
-  "version": "0.9.9",
+  "version": "0.9.10",
   "description": "MediaWiki gadget to monitor and patrol recent changes in real-time.",
   "keywords": [
     "mw-gadget"
