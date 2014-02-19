@@ -346,10 +346,7 @@
 				}
 				break;
 			// APP
-			/*
-			// Disable cvnDB (see issue #28)
 			case 'cvnDB':
-			*/
 			case 'massPatrol':
 			case 'autoDiff':
 				opt.app[name] = el.checked;
@@ -431,10 +428,7 @@
 				}
 
 				switch (key) {
-				/*
-				// Disable cvnDB (see issue #28)
 				case 'cvnDB':
-				*/
 				case 'massPatrol':
 				case 'autoDiff':
 					setting.checked = value;
@@ -652,6 +646,7 @@
 			data: {
 				users: users.join('|'),
 			},
+			timeout: 2000,
 			dataType: 'jsonp'
 		})
 		.fail(function () {
@@ -952,8 +947,6 @@
 						'</label>' +
 						'<input type="number" value="3" min="0" max="99" size="2" id="mw-rtrc-settings-refresh" name="refresh" />' +
 					'</div>' +
-					/*
-					// Disable cvnDB (see issue #28)
 					'<div class="panel">' +
 						'<label class="head">' +
 							'CVN DB<br />' +
@@ -961,7 +954,6 @@
 							'<input type="checkbox" class="switch" name="cvnDB" />' +
 						'</label>' +
 					'</div>' +
-					*/
 					'<div class="panel panel-last">' +
 						'<input class="button" type="button" id="RCOptions_submit" value="' + message('apply').escaped() + '" />' +
 					'</div>' +
