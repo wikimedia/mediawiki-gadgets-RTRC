@@ -251,7 +251,7 @@
 
 		if (rc.type === 'edit') {
 			diffLink = '<a class="rcitemlink diff" href="' +
-				mw.util.wikiScript() + '?diff=' + rc.revid + '&oldif=' + rc.old_revid + '&rcid=' + rc.rcid +
+				mw.util.wikiScript() + '?diff=' + rc.revid + '&oldid=' + rc.old_revid + '&rcid=' + rc.rcid +
 				'">' + mw.message('diff').escaped() + '</a>';
 		} else if (rc.type === 'new') {
 			diffLink = '<a class="rcitemlink newPage">new</a>';
