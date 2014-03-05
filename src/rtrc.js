@@ -15,7 +15,6 @@
 	 */
 	var
 	appVersion = 'v0.9.11',
-	apiUrl = mw.util.wikiScript('api'),
 	conf = mw.config.get([
 		'skin',
 		'wgAction',
@@ -24,8 +23,12 @@
 		'wgServer',
 		'wgTitle',
 		'wgUserLanguage',
-		'wgDBname'
+		'wgDBname',
+		'wgScriptPath',
+		'wgScriptExtension'
 	]),
+	// Can't use mw.util.wikiScript until after #init
+	apiUrl = conf.wgScriptPath + '/api' + conf.wgScriptExtension,
 	cvnApiUrl = '//cvn.wmflabs.org/api.php',
 	intuitionLoadUrl = '//tools.wmflabs.org/intuition/load.php?env=mw',
 	docUrl = '//meta.wikimedia.org/wiki/User:Krinkle/Tools/Real-Time_Recent_Changes?uselang=' + conf.wgUserLanguage,
@@ -1520,15 +1523,17 @@
 	// On every page
 	$(function () {
 		if (!$('#t-rtrc').length) {
-			mw.util.addPortletLink(
-				'p-tb',
-				mw.util.getUrl('Special:BlankPage/RTRC'),
-				'RTRC',
-				't-rtrc',
-				'Monitor and patrol recent changes in real-time',
-				null,
-				'#t-specialpages'
-			);
+			mw.loader.using('mediawiki.util', function () {
+				mw.util.addPortletLink(
+					'p-tb',
+					mw.util.getUrl('Special:BlankPage/RTRC'),
+					'RTRC',
+					't-rtrc',
+					'Monitor and patrol recent changes in real-time',
+					null,
+					'#t-specialpages'
+				);
+			});
 		}
 	});
 
