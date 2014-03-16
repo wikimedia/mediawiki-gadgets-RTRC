@@ -634,7 +634,9 @@
 		users = [];
 		$feedContent.filter('.mw-rtrc-item').each(function () {
 			var user = $(this).attr('user');
-			if (user) {
+			// Keep the list values unique to avoid overly long
+			// query strings.
+			if (user && $.inArray(user, users) === -1) {
 				users.push(user);
 			}
 		});
