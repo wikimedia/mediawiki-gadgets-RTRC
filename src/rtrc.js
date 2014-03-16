@@ -3,7 +3,7 @@
  * https://github.com/Krinkle/mw-gadget-rtrc
  *
  * @license http://krinkle.mit-license.org/
- * @author Timo Tijhof, 2010–2013
+ * @author Timo Tijhof, 2010–2014
  */
 /*global alert */
 (function ($, mw) {
