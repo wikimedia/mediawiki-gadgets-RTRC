@@ -997,7 +997,7 @@
 				'</div>' +
 			'</fieldset></form>' +
 			'<a name="krRTRC_DiffTop" />' +
-			'<div class="mw-rtrc-diff" id="krRTRC_DiffFrame" style="display: none;"></div>' +
+			'<div class="mw-rtrc-diff mw-rtrc-diff-closed" id="krRTRC_DiffFrame"></div>' +
 			'<div class="mw-rtrc-body placeholder">' +
 				'<div class="mw-rtrc-feed">' +
 					'<div class="mw-rtrc-feed-update"></div>' +
@@ -1067,7 +1067,7 @@
 
 		// Close Diff
 		$('#diffClose').live('click', function () {
-			$('#krRTRC_DiffFrame').fadeOut('fast');
+			$('#krRTRC_DiffFrame').addClass('mw-rtrc-diff-closed');
 			currentDiff = currentDiffRcid = false;
 		});
 
@@ -1083,8 +1083,10 @@
 			currentDiff = Number($item.data('diff'));
 			currentDiffRcid = Number($item.data('rcid'));
 
-			// Reset style="max-height: 400;" from a.newPage below
-			$frame.fadeOut().removeAttr('style');
+			$frame
+				.addClass('mw-rtrc-diff-loading')
+				// Reset class potentially added by a.newPage or diffClose
+				.removeClass('mw-rtrc-diff-newpage mw-rtrc-diff-closed');
 
 			$.ajax({
 				url: mw.util.wikiScript(),
@@ -1097,9 +1099,8 @@
 				}
 			}).fail(function (jqXhr) {
 				$frame
-					.stop(true, true)
 					.append(jqXhr.responseText || 'Loading diff failed.')
-					.fadeIn();
+					.removeClass('mw-rtrc-diff-loading');
 			}).done(function (data) {
 				var skipButtonHtml;
 				if ($.inArray(currentDiffRcid, skippedRCIDs) !== -1) {
@@ -1109,7 +1110,6 @@
 				}
 
 				$frame
-					.stop(true, true)
 					.html(data)
 					.prepend(
 						'<h3>' + mw.html.escape(title) + '</h3>' +
@@ -1124,7 +1124,7 @@
 							skipButtonHtml +
 						'</div>'
 					)
-					.fadeIn();
+					.removeClass('mw-rtrc-diff-loading');
 
 				if (opt.app.massPatrol) {
 					$frame.find('.patrollink a').click();
@@ -1144,7 +1144,9 @@
 
 			currentDiffRcid = Number($item.data('rcid'));
 
-			$frame.fadeOut().css('max-height', '400px');
+			$frame
+				.addClass('mw-rtrc-diff-loading mw-rtrc-diff-newpage')
+				.removeClass('mw-rtrc-diff-closed');
 
 			$.ajax({
 				url: href,
@@ -1155,9 +1157,8 @@
 				}
 			}).fail(function (jqXhr) {
 				$frame
-					.stop(true, true)
 					.append(jqXhr.responseText || 'Loading diff failed.')
-					.fadeIn();
+					.removeClass('mw-rtrc-diff-loading');
 			}).done(function (data) {
 				var skipButtonHtml;
 				if ($.inArray(currentDiffRcid, skippedRCIDs) !== -1) {
@@ -1167,7 +1168,6 @@
 				}
 
 				$frame
-					.stop(true, true)
 					.html(data)
 					.prepend(
 						'<h3>' + title + '</h3>' +
@@ -1179,7 +1179,7 @@
 							skipButtonHtml +
 						'</div>'
 					)
-					.fadeIn();
+					.removeClass('mw-rtrc-diff-loading');
 
 				if (opt.app.massPatrol) {
 					$frame.find('.patrollink a').click();

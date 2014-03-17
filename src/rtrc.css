@@ -332,11 +332,44 @@
 	position: relative;
 	width: 97%;
 	margin: 20px auto 15px auto;
-	padding: 1em;
+	padding: 0 1em;
 	overflow: hidden;
 	background: #fff;
 	border-radius: 11px;
 	box-shadow: rgba(200, 200, 200, 1) 0 5px 15px;
+
+	-webkit-transform: scaleY(1);
+	transform: scaleY(1);
+	max-height: 1000px;
+
+	-webkit-transform-origin: top;
+	transform-origin: top;
+
+	/* When opening, delay the slide until after we reserve the height */
+	-webkit-transition:
+		-webkit-transform 300ms ease-out 200ms, max-height 500ms ease-in;
+	transition: transform 300ms ease-out 200ms, max-height 500ms ease-in;
+}
+
+.mw-rtrc-diff-closed {
+	max-height: 0;
+	-webkit-transform: scaleY(0);
+	transform: scaleY(0);
+
+	/* When closing, no delay for height change since it is naturally behind
+	   while lowering the height hidden in overflow to the actual height */
+	-webkit-transition:
+		-webkit-transform 300ms ease-in, max-height 300ms ease-out;
+	transition: transform 300ms ease-in, max-height 300ms ease-out;
+}
+
+.mw-rtrc-diff-newpage {
+	max-height: 400px;
+}
+
+.mw-rtrc-diff-loading {
+	opacity: 0.4;
+	pointer-events: none;
 }
 
 .mw-rtrc-diff h3 {
