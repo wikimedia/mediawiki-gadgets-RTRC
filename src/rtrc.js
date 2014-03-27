@@ -14,7 +14,7 @@
 	 * -------------------------------------------------
 	 */
 	var
-	appVersion = 'v0.9.11',
+	appVersion = 'v0.9.12',
 	conf = mw.config.get([
 		'skin',
 		'wgAction',
