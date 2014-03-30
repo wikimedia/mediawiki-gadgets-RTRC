@@ -1118,6 +1118,8 @@
 					)
 					.fadeIn();
 
+				mw.hook('wikipage.content').fire($frame);
+
 				if (opt.app.massPatrol) {
 					$frame.find('.patrollink a').click();
 				}
