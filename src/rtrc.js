@@ -652,7 +652,9 @@
 				users: users.join('|'),
 			},
 			timeout: 2000,
-			dataType: 'jsonp'
+			dataType: 'jsonp',
+			// Don't append invalid "&_=.." query
+			cache: true
 		})
 		.fail(function () {
 			callback();
