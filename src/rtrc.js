@@ -1068,13 +1068,13 @@
 		});
 
 		// Close Diff
-		$('#diffClose').live('click', function () {
+		$wrapper.on('click', '#diffClose', function () {
 			$('#krRTRC_DiffFrame').addClass('mw-rtrc-diff-closed');
 			currentDiff = currentDiffRcid = false;
 		});
 
 		// Load diffview on (diff)-link click
-		$('a.diff').live('click', function (e) {
+		$feed.on('click', 'a.diff', function (e) {
 			var $item = $(this).closest('.mw-rtrc-item').addClass('mw-rtrc-item-current'),
 				title = $item.find('.page').text(),
 				href = $(this).attr('href'),
@@ -1136,7 +1136,7 @@
 			e.preventDefault();
 		});
 
-		$('a.newPage').live('click', function (e) {
+		$feed.on('click', 'a.newPage', function (e) {
 			var $item = $(this).closest('.mw-rtrc-item').addClass('mw-rtrc-item-current'),
 				title = $item.find('.page').text(),
 				href = $item.find('.page').attr('href'),
@@ -1192,7 +1192,7 @@
 		});
 
 		// Mark as patrolled
-		$('.patrollink').live('click', function () {
+		$wrapper.on('click', '.patrollink', function () {
 			var $el = $(this);
 			$el.find('a').text(mw.msg('markaspatrolleddiff') + '...');
 			$.ajax({
@@ -1240,12 +1240,12 @@
 		});
 
 		// Trigger NextDiff
-		$('#diffNext').live('click', function () {
+		$wrapper.on('click', '#diffNext', function () {
 			krRTRC_NextDiff();
 		});
 
 		// SkipDiff
-		$('#diffSkip').live('click', function () {
+		$wrapper.on('click', '#diffSkip', function () {
 			$feed.find('.mw-rtrc-item[data-rcid="' + currentDiffRcid + '"]').addClass('mw-rtrc-item-skipped');
 			// Add to array, to re-add class after refresh
 			skippedRCIDs.push(currentDiffRcid);
@@ -1253,7 +1253,7 @@
 		});
 
 		// UnskipDiff
-		$('#diffUnskip').live('click', function () {
+		$wrapper.on('click', '#diffUnskip', function () {
 			$feed.find('.mw-rtrc-item[data-rcid="' + currentDiffRcid + '"]').removeClass('mw-rtrc-item-skipped');
 			// Remove from array, to no longer re-add class after refresh
 			skippedRCIDs.splice(skippedRCIDs.indexOf(currentDiffRcid), 1);
@@ -1282,7 +1282,7 @@
 		// Mark as patrolled when rollbacking
 		// Note: As of MediaWiki r(unknown) rollbacking does already automatically patrol all reverted revisions.
 		// But by doing it anyway it saves a click for the AutoDiff-users
-		$('.mw-rollback-link a').live('click', function () {
+		$wrapper.on('click', '.mw-rollback-link a', function () {
 			$('.patrollink a').click();
 		});
 
