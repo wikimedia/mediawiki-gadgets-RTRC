@@ -1343,17 +1343,11 @@
 			dataType: 'json',
 			data: {
 				format: 'json',
-				action: 'query',
-				list: 'recentchanges',
-				rctoken: 'patrol',
-				rclimit: 1,
-				// Using rctype=new because some wikis only have patrolling of newpages enabled.
-				// If querying all changes returns an edit in that case, it won't have a token on it.
-				// This workaround works as long as there are no wikis with RC-patrol but no NP-patrol.
-				rctype: 'new'
+				action: 'tokens',
+				type: 'patrol'
 			}
 		}).done(function (data) {
-			userPatrolTokenCache = data.query.recentchanges[0].patroltoken;
+			userPatrolTokenCache = data.tokens.patroltoken;
 		}));
 
 		// Get MediaWiki interface messages
