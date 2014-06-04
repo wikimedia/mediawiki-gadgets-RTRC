@@ -1,30 +1,20 @@
 {
 	// Enforcing
 	"bitwise": true,
-	"camelcase": false,
-	"curly": true,
 	"eqeqeq": true,
-	"immed": true,
+	"freeze": true,
 	"latedef": true,
-	"newcap": true,
 	"noarg": true,
-	"noempty": true,
 	"nonew": true,
-	"quotmark": "single",
-	"trailing": true,
 	"undef": true,
 	"unused": true,
+	"strict": false,
 
 	// Environment
 	"browser": true,
 
-	// Legacy
-	"onevar": true,
-	"nomen": true,
-	"white": true,
-
-	"predef": [
-		"mediaWiki",
-		"jQuery"
-	]
+	"globals": {
+		"mediaWiki": false,
+		"jQuery": false
+	}
 }

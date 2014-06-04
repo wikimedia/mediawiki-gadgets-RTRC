@@ -105,24 +105,12 @@
 	currentDiff,
 	currentDiffRcid,
 	$wrapper, $body, $feed,
-	$RCOptions_submit;
+	$RCOptionsSubmit;
 
 	/**
 	 * Utility functions
 	 * -------------------------------------------------
 	 */
-
-	if (!String.prototype.ucFirst) {
-		String.prototype.ucFirst = function () {
-			// http://jsperf.com/ucfirst/4
-			// http://jsperf.com/ucfirst-replace-vs-substr/3
-			// str.charAt(0).toUpperCase() + str.substr(1);
-			// str[0].toUpperCase() + str.slice(1);
-			// str.charAt(0).toUpperCase() + str.substring(1);
-			// str.substr(0, 1).toUpperCase() + str.substr(1, this.length);
-			return this.charAt(0).toUpperCase() + this.substring(1);
-		};
-	}
 
 	// Prepends a leading zero if value is under 10
 	function leadingZero(i) {
@@ -178,7 +166,6 @@
 			return leadingZero(d.getUTCHours()) + ':' + leadingZero(d.getUTCMinutes());
 		}
 	};
-
 
 	/**
 	 * Main functions
@@ -485,7 +472,7 @@
 			newOpt = url.query.opt,
 			kickstart = url.query.kickstart;
 
-		newOpt = newOpt ? $.parseJSON(newOpt): {};
+		newOpt = newOpt ? $.parseJSON(newOpt) : {};
 
 		newOpt = $.extend(true, {}, defOpt, newOpt);
 
@@ -649,7 +636,7 @@
 		$.ajax({
 			url: cvnApiUrl,
 			data: {
-				users: users.join('|'),
+				users: users.join('|')
 			},
 			timeout: 2000,
 			dataType: 'jsonp',
@@ -741,7 +728,7 @@
 					rawHtml: feedContentHTML
 				});
 				isUpdating = false;
-				$RCOptions_submit.prop('disabled', false).css('opacity', '1.0');
+				$RCOptionsSubmit.prop('disabled', false).css('opacity', '1.0');
 
 			}).done(function (data) {
 				var recentchanges, $feedContent, feedContentHTML = '';
@@ -791,20 +778,20 @@
 					isUpdating = false;
 				}
 
-				$RCOptions_submit.prop('disabled', false).css('opacity', '1.0');
+				$RCOptionsSubmit.prop('disabled', false).css('opacity', '1.0');
 			});
 		}
 	}
 
-	function krRTRC_NextDiff() {
+	function nextDiff() {
 		var $lis = $feed.find('.mw-rtrc-item:not(.mw-rtrc-item-current, .mw-rtrc-item-patrolled, .mw-rtrc-item-skipped)');
 		$lis.eq(0).find('a.rcitemlink').click();
 	}
 
-	function krRTRC_ToggleMassPatrol(b) {
+	function toggleMassPatrol(b) {
 		if (b === true) {
 			if (!currentDiff) {
-				krRTRC_NextDiff();
+				nextDiff();
 			} else {
 				$('.patrollink a').click();
 			}
@@ -837,7 +824,6 @@
 			tagOptionsHtml += '<option value="' + mw.html.escape(rcTags[key]) + '">' + mw.html.escape(rcTags[key]) + '</option>';
 		}
 
-
 		$wrapper = $($.parseHTML(
 		'<div class="mw-rtrc-wrapper">' +
 			'<div class="mw-rtrc-head">' +
@@ -845,7 +831,7 @@
 				'<div class="mw-rtrc-head-links">' +
 					(!mw.user.isAnon() ? (
 						'<a target="_blank" href="' + mw.util.getUrl('Special:Log/patrol') + '?user=' + encodeURIComponent(mw.user.name()) + '">' +
-							message('mypatrollog').escaped().ucFirst() +
+							message('mypatrollog').escaped() +
 						'</a>') :
 						''
 					) +
@@ -1053,15 +1039,15 @@
 	// Bind event hanlders in the user interface
 	function bindInterface() {
 
-		$RCOptions_submit = $('#RCOptions_submit');
+		$RCOptionsSubmit = $('#RCOptions_submit');
 
 		// Apply button
-		$RCOptions_submit.click(function () {
-			$RCOptions_submit.prop('disabled', true).css('opacity', '0.5');
+		$RCOptionsSubmit.click(function () {
+			$RCOptionsSubmit.prop('disabled', true).css('opacity', '0.5');
 
 			readSettingsForm();
 
-			krRTRC_ToggleMassPatrol(opt.app.massPatrol);
+			toggleMassPatrol(opt.app.massPatrol);
 
 			updateFeedNow();
 			return false;
@@ -1122,7 +1108,7 @@
 								'<span class="tab"><a onclick="(function(){ if($(\'.patrollink a\').length){ $(\'.patrollink a\').click(); } else { $(\'#diffSkip\').click(); } })();">[mark]</a></span>' :
 								''
 							) +
-							'<span class="tab"><a id="diffNext">' + mw.message('next').escaped().ucFirst() + ' &raquo;</a></span>' +
+							'<span class="tab"><a id="diffNext">' + mw.message('next').escaped() + ' &raquo;</a></span>' +
 							skipButtonHtml +
 						'</div>'
 					)
@@ -1177,7 +1163,7 @@
 							'<span class="tab"><a id="diffClose">X</a></span>' +
 							'<span class="tab"><a href="' + href + '" target="_blank" id="diffNewWindow">Open in Wiki</a></span>' +
 							'<span class="tab"><a onclick="$(\'.patrollink a\').click()">[mark]</a></span>' +
-							'<span class="tab"><a id="diffNext">' + mw.message('next').escaped().ucFirst() + ' &raquo;</a></span>' +
+							'<span class="tab"><a id="diffNext">' + mw.message('next').escaped() + ' &raquo;</a></span>' +
 							skipButtonHtml +
 						'</div>'
 					)
@@ -1227,7 +1213,7 @@
 					}
 
 					if (opt.app.autoDiff) {
-						krRTRC_NextDiff();
+						nextDiff();
 					}
 				}
 			}).fail(function () {
@@ -1241,7 +1227,7 @@
 
 		// Trigger NextDiff
 		$wrapper.on('click', '#diffNext', function () {
-			krRTRC_NextDiff();
+			nextDiff();
 		});
 
 		// SkipDiff
@@ -1249,7 +1235,7 @@
 			$feed.find('.mw-rtrc-item[data-rcid="' + currentDiffRcid + '"]').addClass('mw-rtrc-item-skipped');
 			// Add to array, to re-add class after refresh
 			skippedRCIDs.push(currentDiffRcid);
-			krRTRC_NextDiff();
+			nextDiff();
 		});
 
 		// UnskipDiff
@@ -1310,7 +1296,6 @@
 		);
 	}
 
-
 	/**
 	 * Init functions
 	 * -------------------------------------------------
@@ -1325,7 +1310,7 @@
 	 */
 	function initData() {
 		var dRights = $.Deferred(),
-			promises = [ dRights.promise() ];
+			promises = [dRights.promise()];
 
 		// Get userrights
 		mw.loader.using('mediawiki.user', function () {
@@ -1382,7 +1367,7 @@
 			}
 		}).done(function (data) {
 			data = data.query.allmessages;
-			for (var i = 0; i < data.length; i ++) {
+			for (var i = 0; i < data.length; i++) {
 				mw.messages.set(data[i].name, data[i]['*']);
 			}
 		}));
@@ -1513,7 +1498,6 @@
 			bindInterface();
 		});
 	}
-
 
 	/**
 	 * Execution

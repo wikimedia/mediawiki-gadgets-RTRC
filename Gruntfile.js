@@ -1,20 +1,30 @@
 /*jshint node:true */
 module.exports = function (grunt) {
 	grunt.loadNpmTasks('grunt-compare-size');
+	grunt.loadNpmTasks('grunt-contrib-clean');
 	grunt.loadNpmTasks('grunt-contrib-concat');
 	grunt.loadNpmTasks('grunt-contrib-jshint');
 	grunt.loadNpmTasks('grunt-contrib-watch');
+	grunt.loadNpmTasks('grunt-jscs-checker');
+
+	grunt.renameTask('compare_size', 'compareSize');
 
 	grunt.initConfig({
 		pkg: grunt.file.readJSON('package.json'),
+		clean: {
+			dist: 'tmp/*'
+		},
 		concat: {
 			src: {
 				src: 'src/*',
 				dest: 'tmp/rtrc.concat'
 			}
 		},
-		compare_size: {
-			files: ['src/*', 'tmp/rtrc.concat'],
+		compareSize: {
+			files: [
+				'src/*',
+				'tmp/rtrc.concat'
+			],
 			options: {
 				// Location of stored size data
 				cache: '.sizecache.json',
@@ -29,17 +39,26 @@ module.exports = function (grunt) {
 		},
 		jshint: {
 			options: {
-				jshintrc: '.jshintrc'
+				jshintrc: true
 			},
-			all: ['*.js', 'src/*.js']
+			all: [
+				'*.js',
+				'src/*.js'
+			]
+		},
+		jscs: {
+			all: '<%= jshint.all %>'
 		},
 		watch: {
-			files: ['<%= jshint.all %>', '.{jshintrc,jshintignore}'],
-			tasks: ['test']
+			files: [
+				'.{jshintrc,jshintignore}',
+				'<%= jshint.all %>'
+			],
+			tasks: 'test'
 		}
 	});
 
-	grunt.registerTask('test', ['jshint']);
-	grunt.registerTask('compare', ['concat', 'compare_size']);
+	grunt.registerTask('test', ['jshint', 'jscs']);
+	grunt.registerTask('compare', ['clean', 'concat', 'compareSize']);
 	grunt.registerTask('default', ['test', 'compare']);
 };

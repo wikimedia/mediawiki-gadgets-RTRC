@@ -224,6 +224,11 @@
 	cursor: pointer;
 }
 
+.mw-rtrc-head-links a:first-letter,
+.mw-rtrc-diff-tools .tab:first-letter {
+	text-transform: uppercase;
+}
+
 /* Settings */
 
 .mw-rtrc-settings {
@@ -395,6 +400,7 @@
 
 .mw-rtrc-diff-tools .tab {
 	float: right;
+	display: block;
 	font-weight: bold;
 	margin-left: 3px;
 	padding: 3px 10px;
