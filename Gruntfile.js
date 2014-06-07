@@ -10,7 +10,6 @@ module.exports = function (grunt) {
 	grunt.renameTask('compare_size', 'compareSize');
 
 	grunt.initConfig({
-		pkg: grunt.file.readJSON('package.json'),
 		clean: {
 			dist: 'tmp/*'
 		},
@@ -51,7 +50,7 @@ module.exports = function (grunt) {
 		},
 		watch: {
 			files: [
-				'.{jshintrc,jshintignore}',
+				'.{jscsrc,jshintrc,jshintignore}',
 				'<%= jshint.all %>'
 			],
 			tasks: 'test'
