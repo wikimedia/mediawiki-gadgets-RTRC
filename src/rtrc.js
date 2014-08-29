@@ -839,7 +839,7 @@
 				'Real-Time Recent Changes <small>(' + appVersion + ')</small>' +
 				'<div class="mw-rtrc-head-links">' +
 					(!mw.user.isAnon() ? (
-						'<a target="_blank" href="' + mw.util.getUrl('Special:Log/patrol') + '?user=' + encodeURIComponent(mw.user.name()) + '">' +
+						'<a target="_blank" href="' + mw.util.getUrl('Special:Log/patrol') + '?user=' + encodeURIComponent(mw.user.getName()) + '">' +
 							message('mypatrollog').escaped() +
 						'</a>') :
 						''
