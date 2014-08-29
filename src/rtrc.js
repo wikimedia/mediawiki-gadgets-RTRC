@@ -463,7 +463,7 @@
 			}
 		});
 
-		reducedOpt = $.toJSON(reducedOpt);
+		reducedOpt = JSON.stringify(reducedOpt);
 
 		uri.extend({
 			opt: reducedOpt === '{}' ? undefined : reducedOpt,
@@ -481,7 +481,7 @@
 			newOpt = url.query.opt,
 			kickstart = url.query.kickstart;
 
-		newOpt = newOpt ? $.parseJSON(newOpt) : {};
+		newOpt = newOpt ? JSON.parse(newOpt) : {};
 
 		newOpt = $.extend(true, {}, defOpt, newOpt);
 
@@ -1455,19 +1455,14 @@
 			}
 		}
 
-		dModules = $.Deferred();
-		mw.loader.using(
-			[
-				'jquery.json',
-				'mediawiki.action.history.diff',
-				'mediawiki.jqueryMsg',
-				'mediawiki.Uri',
-				'mediawiki.user',
-				'mediawiki.util'
-			],
-			dModules.resolve,
-			dModules.reject
-		);
+		dModules = mw.loader.using([
+			'json',
+			'mediawiki.action.history.diff',
+			'mediawiki.jqueryMsg',
+			'mediawiki.Uri',
+			'mediawiki.user',
+			'mediawiki.util'
+		]);
 
 		if (!mw.libs.getIntuition) {
 			mw.libs.getIntuition = $.ajax({ url: intuitionLoadUrl, dataType: 'script', cache: true });
