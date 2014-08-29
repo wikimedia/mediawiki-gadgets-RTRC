@@ -144,11 +144,20 @@
 		 * The full timestamp will incorrectly claim "GMT".
 		 */
 		applyUserOffset: function (d) {
-			var offset = mw.user.options.get('timecorrection');
+			var parts,
+				offset = mw.user.options.get('timecorrection');
+
 			// This preference has no default value, it is null for users that don't
 			// override the site's default timeoffset.
 			if (offset) {
-				offset = Number(offset.split('|')[1]);
+				parts = offset.split('|');
+				if (parts[0] === 'System') {
+					// Ignore offset value, as system may have started or stopped
+					// DST since the preferences were saved.
+					offset = wikiTimeOffset;
+				} else {
+					offset = Number(parts[1]);
+				}
 			} else {
 				offset = wikiTimeOffset;
 			}
