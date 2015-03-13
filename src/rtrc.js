@@ -1111,7 +1111,7 @@
 					.prepend(
 						'<h3>' + mw.html.escape(title) + '</h3>' +
 						'<div class="mw-rtrc-diff-tools">' +
-							'<span class="tab"><a id="diffClose">X</a></span>' +
+							'<span class="tab"><a id="diffClose">Close</a></span>' +
 							'<span class="tab"><a href="' + href + '" target="_blank" id="diffNewWindow">Open in Wiki</a></span>' +
 							(userPatrolTokenCache ?
 								'<span class="tab"><a onclick="(function(){ if($(\'.patrollink a\').length){ $(\'.patrollink a\').click(); } else { $(\'#diffSkip\').click(); } })();">[mark]</a></span>' :
