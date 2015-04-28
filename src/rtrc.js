@@ -1299,9 +1299,12 @@
 		);
 	}
 
-	function showFail() {
+	/**
+	 * @param {string} [errMsg]
+	 */
+	function showFail(errMsg) {
 		$('#content').empty().append(
-			$('<p>').addClass('errorbox').text('An unexpected error occurred.')
+			$('<p>').addClass('errorbox').text(errMsg || 'An unexpected error occurred.')
 		);
 	}
 
@@ -1471,6 +1474,9 @@
 		dI18N = mw.libs.getIntuition
 			.then(function () {
 				return mw.libs.intuition.load('rtrc');
+			})
+			.then(null, function () {
+				return $.Deferred().reject('Failed to load interface messages.');
 			})
 			.done(function () {
 				message = $.proxy(mw.libs.intuition.message, null, 'rtrc');
