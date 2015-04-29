@@ -1540,53 +1540,27 @@
 	 * - Export to jQuery.support.modernizr4rtrc instead of window.Modernizr.
 	 */
 	(function () {
-		var docElement = document.documentElement,
-			mod = 'modernizr',
-			smile = ':)';
-
-		function injectElementWithStyles(rule, callback, nodes, testnames) {
-			var style, ret, node, docOverflow,
-			div = document.createElement('div'),
-			body = document.body,
-			fakeBody = body || document.createElement('body');
-
-			if (parseInt(nodes, 10)) {
-				while (nodes--) {
-					node = document.createElement('div');
-					node.id = testnames ? testnames[nodes] : mod + (nodes + 1);
-					div.appendChild(node);
-				}
-			}
+		function injectElementWithStyles(rule, callback) {
+			var style, ret,
+				mod = 'modernizr',
+				div = document.createElement('div'),
+				body = document.body;
 
 			style = ['&#173;', '<style id="s', mod, '">', rule, '</style>'].join('');
 			div.id = mod;
-			(body ? div : fakeBody).innerHTML += style;
-			fakeBody.appendChild(div);
-			if (!body) {
-				fakeBody.style.background = '';
-				fakeBody.style.overflow = 'hidden';
-				docOverflow = docElement.style.overflow;
-				docElement.style.overflow = 'hidden';
-				docElement.appendChild(fakeBody);
-			}
+			div.innerHTML += style;
+			body.appendChild(div);
 
-			ret = callback(div, rule);
-			if (!body) {
-				fakeBody.parentNode.removeChild(fakeBody);
-				docElement.style.overflow = docOverflow;
-			} else {
-				div.parentNode.removeChild(div);
-			}
+			ret = callback(div);
+			div.parentNode.removeChild(div);
 
 			return !!ret;
 		}
 
 		$.support.modernizr4rtrc = {
-			generatedcontent: (function () {
-				return injectElementWithStyles(['#', mod, '{font:0/0 a}#', mod, ':after{content:"', smile, '";visibility:hidden;font:3px/1 a}'].join(''), function (node) {
-					return node.offsetHeight >= 3;
-				});
-			}())
+			generatedcontent: injectElementWithStyles('#modernizr{font:0/0 a}#modernizr:after{content:":)";visibility:hidden;font:7px/1 a}', function (node) {
+				return node.offsetHeight >= 7;
+			})
 		};
 	})();
 
