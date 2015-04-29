@@ -3,7 +3,7 @@
  * https://github.com/Krinkle/mw-gadget-rtrc
  *
  * @license http://krinkle.mit-license.org/
- * @author Timo Tijhof, 2010–2014
+ * @author Timo Tijhof, 2010–2015
  */
 /*global alert */
 (function ($, mw) {
@@ -1532,7 +1532,7 @@
 	});
 
 	/**
-	 * Modernizr 2.6.2 (Custom Build) | MIT & BSD
+	 * Modernizr 2.8.3 (Custom Build) | MIT & BSD
 	 * Build: http://modernizr.com/download/#-generatedcontent-teststyles
 	 *
 	 * Customized further for inclusion in mw-gadget-rtrc:
@@ -1546,10 +1546,19 @@
 				div = document.createElement('div'),
 				body = document.body;
 
-			style = ['&#173;', '<style id="s', mod, '">', rule, '</style>'].join('');
-			div.id = mod;
-			div.innerHTML += style;
+			style = document.createElement('style');
+			style.type = 'text/css';
+			style.id = 's' + mod;
+
+			body.appendChild(style);
 			body.appendChild(div);
+
+			if (style.styleSheet) {
+				style.styleSheet.cssText = rule;
+			} else {
+				style.appendChild(document.createTextNode(rule));
+			}
+			div.id = mod;
 
 			ret = callback(div);
 			div.parentNode.removeChild(div);
