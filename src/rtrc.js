@@ -1538,6 +1538,8 @@
 	 * Customized further for inclusion in mw-gadget-rtrc:
 	 * - Remove unused utilities.
 	 * - Export to jQuery.support.modernizr4rtrc instead of window.Modernizr.
+	 * - Ensure <style> is cleaned up by appending it to <div> instead of <body>,
+	 *   or by also removing the <style> afterwards, like the <div>.
 	 */
 	(function () {
 		function injectElementWithStyles(rule, callback) {
@@ -1550,7 +1552,7 @@
 			style.type = 'text/css';
 			style.id = 's' + mod;
 
-			body.appendChild(style);
+			div.appendChild(style);
 			body.appendChild(div);
 
 			if (style.styleSheet) {
@@ -1561,7 +1563,8 @@
 			div.id = mod;
 
 			ret = callback(div);
-			div.parentNode.removeChild(div);
+			// Clean up <div> and its <style>
+			body.removeChild(div);
 
 			return !!ret;
 		}
