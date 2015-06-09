@@ -30,6 +30,8 @@
 	// Can't use mw.util.wikiScript until after #init
 	apiUrl = conf.wgScriptPath + '/api' + conf.wgScriptExtension,
 	cvnApiUrl = '//cvn.wmflabs.org/api.php',
+	oresApiUrl = '//ores.wmflabs.org/scores/' + conf.wgDBname + '/',
+	oresModel = 'damaging',
 	intuitionLoadUrl = '//tools.wmflabs.org/intuition/load.php?env=mw',
 	docUrl = '//meta.wikimedia.org/wiki/User:Krinkle/Tools/Real-Time_Recent_Changes?uselang=' + conf.wgUserLanguage,
 	// 32x32px
@@ -89,6 +91,7 @@
 		app: {
 			refresh: 3,
 			cvnDB: false,
+			ores: false,
 			massPatrol: false,
 			autoDiff: false
 		}
@@ -345,6 +348,7 @@
 				break;
 			// APP
 			case 'cvnDB':
+			case 'ores':
 			case 'massPatrol':
 			case 'autoDiff':
 				opt.app[name] = el.checked;
@@ -427,6 +431,7 @@
 
 				switch (key) {
 				case 'cvnDB':
+				case 'ores':
 				case 'massPatrol':
 				case 'autoDiff':
 					setting.checked = value;
@@ -622,6 +627,69 @@
 		$('#krRTRC_loader').hide();
 	}
 
+	function applyOresAnnotations($feedContent, callback) {
+		var revids;
+
+		// Find all revids names inside the feed
+		revids = $.map($feedContent.filter('.mw-rtrc-item'), function (node) {
+			return $(node).attr('data-diff');
+		});
+
+		if (!revids.length) {
+			callback();
+			return;
+		}
+
+		$.ajax({
+			url: oresApiUrl,
+			data: {
+				models: oresModel,
+				revids: revids.join('|')
+			},
+			timeout: 10000,
+			dataType: 'json',
+			// Don't append invalid "&_=.." query
+			cache: true
+		})
+		.done(function (data) {
+			var d;
+
+			if (data.error) {
+				return;
+			}
+
+			// Loop through all revids
+			$.each(data, function (revid, score) {
+				var tooltip,
+					threshold = 0.8;
+				if (!score || score.error || !score[oresModel] || score[oresModel].error) {
+					return true;
+				} else {
+					score = score[oresModel].probability['true'];
+				}
+				// Only if there is a high probability of reversion, otherwise don't highlight
+				if (score > threshold) {
+					tooltip = msg('ores-' + oresModel + '-probability') + ': ' + (100 * score).toFixed(0) + ' %';
+					// Apply blacklisted-class, and insert icon with tooltip
+					$feedContent
+						.filter('.mw-rtrc-item')
+						.filter(function () {
+							return $(this).attr('data-diff') === String(revid);
+						})
+						.find('.user')
+						.addClass('blacklisted')
+						.attr('title', tooltip);
+				}
+
+			});
+
+			d = new Date();
+			d.setTime(data.lastUpdate * 1000);
+			$feed.find('.mw-rtrc-feed-oresinfo').text('Ores ' + msg('lastupdate-ores', d.toUTCString()));
+		})
+		.always(callback);
+	}
+
 	function applyCvnAnnotations($feedContent, callback) {
 		var users;
 
@@ -773,11 +841,21 @@
 						isUpdating = false;
 					});
 				} else {
-					pushFeedContent({
-						$feedContent: $feedContent,
-						rawHtml: feedContentHTML
-					});
-					isUpdating = false;
+					if (opt.app.ores) {
+						applyOresAnnotations($feedContent, function () {
+							pushFeedContent({
+								$feedContent: $feedContent,
+								rawHtml: feedContentHTML
+							});
+							isUpdating = false;
+						});
+					} else {
+						pushFeedContent({
+							$feedContent: $feedContent,
+							rawHtml: feedContentHTML
+						});
+						isUpdating = false;
+					}
 				}
 
 				$RCOptionsSubmit.prop('disabled', false).css('opacity', '1.0');
@@ -976,6 +1054,13 @@
 						'<label class="head">' +
 							'Pause' +
 							'<input class="switch" type="checkbox" id="rc-options-pause" />' +
+						'</label>' +
+					'</div>' +
+					'<div class="panel">' +
+						'<label class="head">' +
+							'Show Scores' +
+							'<span section="Scores" class="helpicon"></span>' +
+							'<input type="checkbox" class="switch" name="ores" />' +
 						'</label>' +
 					'</div>' +
 				'</div>' +
