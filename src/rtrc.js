@@ -14,7 +14,7 @@
 	 * -------------------------------------------------
 	 */
 	var
-	appVersion = 'v1.0.0',
+	appVersion = 'v1.0.1',
 	conf = mw.config.get([
 		'skin',
 		'wgAction',
@@ -1468,19 +1468,27 @@
 		]);
 
 		if (!mw.libs.getIntuition) {
-			mw.libs.getIntuition = $.ajax({ url: intuitionLoadUrl, dataType: 'script', cache: true });
+			mw.libs.getIntuition = $.ajax({ url: intuitionLoadUrl, dataType: 'script', cache: true, timeout: 7000 /*ms*/ });
 		}
 
 		dI18N = mw.libs.getIntuition
 			.then(function () {
 				return mw.libs.intuition.load('rtrc');
 			})
-			.then(null, function () {
-				return $.Deferred().reject('Failed to load interface messages.');
-			})
-			.done(function () {
+			.then(function () {
 				message = $.proxy(mw.libs.intuition.message, null, 'rtrc');
 				msg = $.proxy(mw.libs.intuition.msg, null, 'rtrc');
+			}, function () {
+				// Ignore failure. RTRC should load even if Labs is down.
+				// Fallback to displaying message keys.
+				mw.messages.set('intuition-i18n-gone', '$1');
+				message = function (key) {
+					return mw.message('intuition-i18n-gone', key);
+				};
+				msg = function (key) {
+					return key;
+				};
+				return $.Deferred().resolve();
 			});
 
 		$.when(initData(), dModules, dI18N, $.ready).fail(showFail).done(function () {
