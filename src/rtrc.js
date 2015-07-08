@@ -939,7 +939,7 @@
 					'</div>' +
 					'<div class="panel">' +
 						'<label for="mw-rtrc-settings-refresh" class="head">' +
-							'R<br />' +
+							message('reload-interval').escaped() + '<br />' +
 							'<span section="Reload_Interval" class="helpicon"></span>' +
 						'</label>' +
 						'<input type="number" value="3" min="0" max="99" size="2" id="mw-rtrc-settings-refresh" name="refresh" />' +
