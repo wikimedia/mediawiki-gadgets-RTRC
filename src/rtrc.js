@@ -1440,19 +1440,21 @@
 
 		if (navSupported) {
 			$('html').addClass('mw-rtrc-sidebar-toggleable');
-			$('body').append(
-				$('<div>').addClass('mw-rtrc-sidebar-cover'),
-				$navToggle = $('<div>')
-					.addClass('mw-rtrc-navtoggle')
-					.on('click', function () {
-						$('html').toggleClass('mw-rtrc-sidebar-on').removeClass('mw-rtrc-sidebar-peak');
-					})
-					.hover(function () {
-						$('html').addClass('mw-rtrc-sidebar-peak');
-					}, function () {
-						$('html').removeClass('mw-rtrc-sidebar-peak');
-					})
-			);
+			$(function () {
+				$('body').append(
+					$('<div>').addClass('mw-rtrc-sidebar-cover'),
+					$navToggle = $('<div>')
+						.addClass('mw-rtrc-navtoggle')
+						.on('click', function () {
+							$('html').toggleClass('mw-rtrc-sidebar-on').removeClass('mw-rtrc-sidebar-peak');
+						})
+						.hover(function () {
+							$('html').addClass('mw-rtrc-sidebar-peak');
+						}, function () {
+							$('html').removeClass('mw-rtrc-sidebar-peak');
+						})
+				);
+			});
 		}
 
 		dModules = mw.loader.using([

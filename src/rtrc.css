@@ -157,7 +157,7 @@
 
 .mw-rtrc-navtoggle {
 	position: absolute;
-	left: 1em;
+	left: 1.5em;
 	top: 10px;
 	border: 0 solid #aaa;
     border-width: 0 0 0 5px;
@@ -181,8 +181,8 @@
 	margin-left: 5px;
 }
 .mw-rtrc-sidebar-peak .mw-rtrc-navtoggle {
-	-webkit-transform: scale(1.5) translate(0.5em, 0);
-	transform: scale(1.5) translate(0.5em, 0);
+	-webkit-transform: scale(1.5);
+	transform: scale(1.5);
 }
 
 .mw-rtrc-sidebar-peak .mw-rtrc-sidebar-cover {
