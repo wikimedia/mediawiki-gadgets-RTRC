@@ -1426,7 +1426,7 @@
 						.text('RTRC');
 		});
 
-		featureTest = !!(Date.UTC && window.localStorage);
+		featureTest = !!(Date.UTC);
 
 		if (!featureTest) {
 			$(showUnsupported);
