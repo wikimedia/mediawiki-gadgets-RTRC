@@ -98,8 +98,7 @@
 	timeUtil,
 	message,
 	msg,
-	navCollapsed,
-	navSupported = conf.skin === 'vector' && !!window.localStorage,
+	navSupported = conf.skin === 'vector',
 	nextFrame = window.requestAnimationFrame || setTimeout,
 
 	currentDiff,
@@ -807,12 +806,6 @@
 		}
 	}
 
-	function navToggle() {
-		navCollapsed = String(navCollapsed !== 'true');
-		$('html').toggleClass('mw-rtrc-navtoggle-collapsed');
-		localStorage.setItem('mw-rtrc-navtoggle-collapsed', navCollapsed);
-	}
-
 	// Build the main interface
 	function buildInterface() {
 		var namespaceOptionsHtml, tagOptionsHtml,
@@ -1421,7 +1414,7 @@
 	 * @return {jQuery.Promise}
 	 */
 	function init() {
-		var dModules, dI18N, featureTest;
+		var dModules, dI18N, featureTest, $navToggle;
 
 		// Transform title and navigation tabs
 		document.title = 'RTRC: ' + conf.wgDBname;
@@ -1433,12 +1426,7 @@
 						.text('RTRC');
 		});
 
-		featureTest = !!(
-			// For timeUtil
-			Date.UTC &&
-			// For CSS :before and :before
-			$.support.modernizr4rtrc.generatedcontent
-		);
+		featureTest = !!(Date.UTC && window.localStorage);
 
 		if (!featureTest) {
 			$(showUnsupported);
@@ -1451,11 +1439,20 @@
 		$('html').addClass('mw-rtrc-available');
 
 		if (navSupported) {
-			// Apply stored setting
-			navCollapsed = localStorage.getItem('mw-rtrc-navtoggle-collapsed') || 'true';
-			if (navCollapsed === 'true') {
-				$('html').toggleClass('mw-rtrc-navtoggle-collapsed');
-			}
+			$('html').addClass('mw-rtrc-sidebar-toggleable');
+			$('body').append(
+				$('<div>').addClass('mw-rtrc-sidebar-cover'),
+				$navToggle = $('<div>')
+					.addClass('mw-rtrc-navtoggle')
+					.on('click', function () {
+						$('html').toggleClass('mw-rtrc-sidebar-on').removeClass('mw-rtrc-sidebar-peak');
+					})
+					.hover(function () {
+						$('html').addClass('mw-rtrc-sidebar-peak');
+					}, function () {
+						$('html').removeClass('mw-rtrc-sidebar-peak');
+					})
+			);
 		}
 
 		dModules = mw.loader.using([
@@ -1492,20 +1489,8 @@
 			});
 
 		$.when(initData(), dModules, dI18N, $.ready).fail(showFail).done(function () {
-
-			// Set up DOM for navtoggle
-			if (navSupported) {
-				// Needs i18n and $.ready
-				$('body').append(
-					$('#p-logo')
-						.clone()
-							.removeAttr('id')
-							.addClass('mw-rtrc-navtoggle-logo'),
-					$('<div>')
-						.addClass('mw-rtrc-navtoggle')
-						.attr('title', msg('navtoggle-tooltip'))
-						.on('click', navToggle)
-				);
+			if ($navToggle) {
+				$navToggle.attr('title', msg('navtoggle-tooltip'));
 			}
 
 			// Map over months
@@ -1538,51 +1523,6 @@
 			});
 		}
 	});
-
-	/**
-	 * Modernizr 2.8.3 (Custom Build) | MIT & BSD
-	 * Build: http://modernizr.com/download/#-generatedcontent-teststyles
-	 *
-	 * Customized further for inclusion in mw-gadget-rtrc:
-	 * - Remove unused utilities.
-	 * - Export to jQuery.support.modernizr4rtrc instead of window.Modernizr.
-	 * - Ensure <style> is cleaned up by appending it to <div> instead of <body>,
-	 *   or by also removing the <style> afterwards, like the <div>.
-	 */
-	(function () {
-		function injectElementWithStyles(rule, callback) {
-			var style, ret,
-				mod = 'modernizr',
-				div = document.createElement('div'),
-				body = document.body;
-
-			style = document.createElement('style');
-			style.type = 'text/css';
-			style.id = 's' + mod;
-
-			div.appendChild(style);
-			body.appendChild(div);
-
-			if (style.styleSheet) {
-				style.styleSheet.cssText = rule;
-			} else {
-				style.appendChild(document.createTextNode(rule));
-			}
-			div.id = mod;
-
-			ret = callback(div);
-			// Clean up <div> and its <style>
-			body.removeChild(div);
-
-			return !!ret;
-		}
-
-		$.support.modernizr4rtrc = {
-			generatedcontent: injectElementWithStyles('#modernizr{font:0/0 a}#modernizr:after{content:":)";visibility:hidden;font:7px/1 a}', function (node) {
-				return node.offsetHeight >= 7;
-			})
-		};
-	})();
 
 	// Initialise if in the right context
 	if (
