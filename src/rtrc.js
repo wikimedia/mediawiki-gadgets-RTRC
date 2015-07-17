@@ -629,8 +629,7 @@
 		users = [];
 		$feedContent.filter('.mw-rtrc-item').each(function () {
 			var user = $(this).attr('user');
-			// Keep the list values unique to avoid overly long
-			// query strings.
+			// Keep the list values unique to avoid long API query strings.
 			if (user && $.inArray(user, users) === -1) {
 				users.push(user);
 			}
@@ -647,18 +646,14 @@
 				users: users.join('|')
 			},
 			timeout: 2000,
-			dataType: 'jsonp',
-			// Don't append invalid "&_=.." query
+			dataType: $.support.cors ? 'json' : 'jsonp',
+			// Don't force cache invalidation
 			cache: true
-		})
-		.fail(function () {
-			callback();
 		})
 		.done(function (data) {
 			var d;
 
 			if (!data.users) {
-				callback();
 				return;
 			}
 
@@ -695,13 +690,12 @@
 
 			});
 
-			// Either way, push the feed to the frontend
-			callback();
-
 			d = new Date();
 			d.setTime(data.lastUpdate * 1000);
 			$feed.find('.mw-rtrc-feed-cvninfo').text('CVN DB ' + msg('lastupdate-cvn', d.toUTCString()));
-		});
+		})
+		// Push the feed to the frontend
+		.always(callback);
 	}
 
 	function updateFeedNow() {
