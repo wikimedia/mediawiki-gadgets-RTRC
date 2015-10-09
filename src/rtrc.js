@@ -258,7 +258,7 @@ Example:
 		item += '<div first>' +
 			'(' + diffLink + ') ' + typeSymbol + ' ' +
 			timeUtil.getClocktimeFromApi(rc.timestamp) +
-			' <a class="page" href="' + mw.util.getUrl(rc.title) + '?rcid=' + rc.rcid + '" target="_blank">' + rc.title + '</a>' +
+			' <a class="mw-title" href="' + mw.util.getUrl(rc.title) + '?rcid=' + rc.rcid + '" target="_blank">' + rc.title + '</a>' +
 			'</div>' +
 			'<div user>&nbsp;<small>&middot;&nbsp;' +
 			'<a href="' + mw.util.getUrl('User talk:' + rc.user) + '" target="_blank">' + mw.message('talkpagelinktext').escaped() + '</a>' +
@@ -1198,7 +1198,7 @@ Example:
 		// Load diffview on (diff)-link click
 		$feed.on('click', 'a.diff', function (e) {
 			var $item = $(this).closest('.mw-rtrc-item').addClass('mw-rtrc-item-current'),
-				title = $item.find('.page').text(),
+				title = $item.find('.mw-title').text(),
 				href = $(this).attr('href'),
 				$frame = $('#krRTRC_DiffFrame');
 
@@ -1268,8 +1268,8 @@ Example:
 
 		$feed.on('click', 'a.newPage', function (e) {
 			var $item = $(this).closest('.mw-rtrc-item').addClass('mw-rtrc-item-current'),
-				title = $item.find('.page').text(),
-				href = $item.find('.page').attr('href'),
+				title = $item.find('.mw-title').text(),
+				href = $item.find('.mw-title').attr('href'),
 				$frame = $('#krRTRC_DiffFrame');
 
 			$feed.find('.mw-rtrc-item-current').not($item).removeClass('mw-rtrc-item-current');

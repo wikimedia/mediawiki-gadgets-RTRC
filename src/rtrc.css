@@ -515,6 +515,10 @@
 	border: 1px solid transparent;
 }
 
+.mw-rtrc-item .mw-title {
+	unicode-bidi: embed;
+}
+
 .mw-rtrc-item:nth-child(odd),
 .mw-rtrc-heading:nth-child(odd) {
 	background: #f3f3f3;
