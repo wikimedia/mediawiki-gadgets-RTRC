@@ -210,7 +210,7 @@
 		itemClass = '';
 
 		if (rc.type === 'new') {
-			typeSymbol += '<span class="newpage">N</span>';
+			typeSymbol += '<span class="newpage">' + mw.msg('newpageletter') + '</span>';
 		}
 
 		if ((rc.type === 'edit' || rc.type === 'new') && userHasPatrolRight && isUnpatrolled) {
@@ -238,7 +238,7 @@
 		<div diff>(<a class="diff" href="//">diff</a>)</div>
 		<div type><span class="unpatrolled">!</span></div>
 		<div timetitle>00:00 <a href="//?rcid=0" target="_blank">Abc</a></div>
-		<div user><a class="user" href="//User:Abc">Abc</a></div>
+		<div user><a class="user mw-userlink" href="//User:Abc">Abc</a></div>
 		<div other><a href="//User talk:Abc">talk</a> / <a href="//Special:Contributions/Abc">contribs</a>&nbsp;<span class="comment">Abc</span></div>
 		<div size><span class="mw-plusminus-null">(0)</span></div>
 	</div>
@@ -252,14 +252,14 @@
 				mw.util.wikiScript() + '?diff=' + rc.revid + '&oldid=' + rc.old_revid + '&rcid=' + rc.rcid +
 				'">' + mw.message('diff').escaped() + '</a>';
 		} else if (rc.type === 'new') {
-			diffLink = '<a class="rcitemlink newPage">new</a>';
+			diffLink = '<a class="rcitemlink newPage">' + message('new-short').escaped() + '</a>';
 		} else {
 			diffLink = mw.message('diff').escaped();
 		}
 
 		item += '<div first>(' + diffLink + ') ' + typeSymbol + ' ';
-		item += timeUtil.getClocktimeFromApi(rc.timestamp) + ' <a class="page" href="' + mw.util.getUrl(rc.title) + '?rcid=' + rc.rcid + '" target="_blank">' + rc.title + '</a></div>';
-		item += '<div user>&nbsp;<small>&middot;&nbsp;<a href="' + mw.util.getUrl('User talk:' + rc.user) + '" target="_blank">T</a> &middot; <a href="' + mw.util.getUrl('Special:Contributions/' + rc.user) + '" target="_blank">C</a>&nbsp;</small>&middot;&nbsp;<a class="user" href="' + mw.util.getUrl((mw.util.isIPv4Address(rc.user) || mw.util.isIPv6Address(rc.user) ? 'Special:Contributions/' : 'User:') + rc.user) + '" target="_blank">' + rc.user + '</a></div>';
+		item += timeUtil.getClocktimeFromApi(rc.timestamp) + ' <a class="page mw-title" href="' + mw.util.getUrl(rc.title) + '?rcid=' + rc.rcid + '" target="_blank">' + rc.title + '</a></div>';
+		item += '<div user>&nbsp;<small>&middot;&nbsp;<a href="' + mw.util.getUrl('User talk:' + rc.user) + '" target="_blank">' + message('Talk-short').escaped() + '</a> &middot; <a href="' + mw.util.getUrl('Special:Contributions/' + rc.user) + '" target="_blank">' + message('Contribs-short').escaped() + '</a>&nbsp;</small>&middot;&nbsp;<a class="user mw-userlink" href="' + mw.util.getUrl((mw.util.isIPv4Address(rc.user) || mw.util.isIPv6Address(rc.user) ? 'Special:Contributions/' : 'User:') + rc.user) + '" target="_blank">' + rc.user + '</a></div>';
 		item += '<div other>&nbsp;<span class="comment">' + commentHtml + '</span></div>';
 
 		if (diffsize > 0) {
@@ -960,21 +960,21 @@
 					'</div>' +
 					'<div class="panel">' +
 						'<label class="head">' +
-							'MassPatrol' +
+							message('massPatrol').escaped() +
 							'<span section="MassPatrol" class="helpicon"></span>' +
 							'<input type="checkbox" class="switch" name="massPatrol" />' +
 						'</label>' +
 					'</div>' +
 					'<div class="panel">' +
 						'<label class="head">' +
-							'AutoDiff' +
+							message('autoDiff').escaped() +
 							'<span section="AutoDiff" class="helpicon"></span>' +
 							'<input type="checkbox" class="switch" name="autoDiff" />' +
 						'</label>' +
 					'</div>' +
 					'<div class="panel">' +
 						'<label class="head">' +
-							'Pause' +
+							message('pause').escaped() +
 							'<input class="switch" type="checkbox" id="rc-options-pause" />' +
 						'</label>' +
 					'</div>' +
@@ -1005,8 +1005,8 @@
 					'<a href="//meta.wikimedia.org/wiki/User:Krinkle" class="external text" rel="nofollow">Krinkle</a>' +
 					' | <a href="//meta.wikimedia.org/wiki/User:Krinkle/Tools/Real-Time_Recent_Changes" class="external text" rel="nofollow">' + message('documentation').escaped() + '</a>' +
 					' | <a href="https://github.com/Krinkle/mw-gadget-rtrc/releases" class="external text" rel="nofollow">' + message('changelog').escaped() + '</a>' +
-					' | <a href="https://github.com/Krinkle/mw-gadget-rtrc/issues" class="external text" rel="nofollow">Feedback</a>' +
-					' | <a href="http://krinkle.mit-license.org" class="external text" rel="nofollow">License</a>' +
+					' | <a href="https://github.com/Krinkle/mw-gadget-rtrc/issues" class="external text" rel="nofollow">' + message('feedback').escaped() + '</a>' +
+					' | <a href="http://krinkle.mit-license.org" class="external text" rel="nofollow">' + message('license').escaped() + '</a>' +
 				'</div>' +
 			'</div>' +
 		'</div>'
@@ -1088,9 +1088,9 @@
 			}).done(function (data) {
 				var skipButtonHtml;
 				if ($.inArray(currentDiffRcid, skippedRCIDs) !== -1) {
-					skipButtonHtml = '<span class="tab"><a id="diffUnskip">Unskip</a></span>';
+					skipButtonHtml = '<span class="tab"><a id="diffUnskip">' + message('unskip').escaped() + '</a></span>';
 				} else {
-					skipButtonHtml = '<span class="tab"><a id="diffSkip">Skip</a></span>';
+					skipButtonHtml = '<span class="tab"><a id="diffSkip">' + message('skip').escaped() + '</a></span>';
 				}
 
 				$frame
@@ -1098,10 +1098,10 @@
 					.prepend(
 						'<h3>' + mw.html.escape(title) + '</h3>' +
 						'<div class="mw-rtrc-diff-tools">' +
-							'<span class="tab"><a id="diffClose">Close</a></span>' +
-							'<span class="tab"><a href="' + href + '" target="_blank" id="diffNewWindow">Open in Wiki</a></span>' +
+							'<span class="tab"><a id="diffClose">' + message('close').escaped() + '</a></span>' +
+							'<span class="tab"><a href="' + href + '" target="_blank" id="diffNewWindow">' + message('openInWiki').escaped() + '</a></span>' +
 							(userPatrolTokenCache ?
-								'<span class="tab"><a onclick="(function(){ if($(\'.patrollink a\').length){ $(\'.patrollink a\').click(); } else { $(\'#diffSkip\').click(); } })();">[mark]</a></span>' :
+								'<span class="tab"><a onclick="(function(){ if($(\'.patrollink a\').length){ $(\'.patrollink a\').click(); } else { $(\'#diffSkip\').click(); } })();">[' + message('mark').escaped() + ']</a></span>' :
 								''
 							) +
 							'<span class="tab"><a id="diffNext">' + mw.message('next').escaped() + ' &raquo;</a></span>' +
@@ -1146,9 +1146,9 @@
 			}).done(function (data) {
 				var skipButtonHtml;
 				if ($.inArray(currentDiffRcid, skippedRCIDs) !== -1) {
-					skipButtonHtml = '<span class="tab"><a id="diffUnskip">Unskip</a></span>';
+					skipButtonHtml = '<span class="tab"><a id="diffUnskip">' + message('Unskip').escaped() + '</a></span>';
 				} else {
-					skipButtonHtml = '<span class="tab"><a id="diffSkip">Skip</a></span>';
+					skipButtonHtml = '<span class="tab"><a id="diffSkip">' + message('Skip').escaped() + '</a></span>';
 				}
 
 				$frame
@@ -1157,8 +1157,8 @@
 						'<h3>' + title + '</h3>' +
 						'<div class="mw-rtrc-diff-tools">' +
 							'<span class="tab"><a id="diffClose">X</a></span>' +
-							'<span class="tab"><a href="' + href + '" target="_blank" id="diffNewWindow">Open in Wiki</a></span>' +
-							'<span class="tab"><a onclick="$(\'.patrollink a\').click()">[mark]</a></span>' +
+							'<span class="tab"><a href="' + href + '" target="_blank" id="diffNewWindow">' + message('openInWiki').escaped() + '</a></span>' +
+							'<span class="tab"><a onclick="$(\'.patrollink a\').click()">[' + message('mark').escaped() + ']</a></span>' +
 							'<span class="tab"><a id="diffNext">' + mw.message('next').escaped() + ' &raquo;</a></span>' +
 							skipButtonHtml +
 						'</div>'
@@ -1355,6 +1355,7 @@
 					'markedaspatrollederror',
 					'namespaces',
 					'namespacesall',
+					'newpageletter',
 					'next',
 					'recentchanges-label-bot',
 					'recentchanges-label-minor',
