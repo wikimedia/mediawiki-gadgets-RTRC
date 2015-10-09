@@ -218,7 +218,7 @@
     itemClass = [];
 
     if (rc.type === 'new') {
-      typeSymbol += '<span class="newpage">N</span>';
+      typeSymbol += '<span class="newpage">' + mw.message('newpageletter').escaped() + '</span>';
     }
 
     if ((rc.type === 'edit' || rc.type === 'new') && userHasPatrolRight && isUnpatrolled) {
@@ -249,7 +249,7 @@ Example:
         mw.util.wikiScript() + '?diff=' + rc.revid + '&oldid=' + rc.old_revid + '&rcid=' + rc.rcid +
         '">' + mw.message('diff').escaped() + '</a>';
     } else if (rc.type === 'new') {
-      diffLink = '<a class="rcitemlink newPage">new</a>';
+      diffLink = '<a class="rcitemlink newPage">' + message('new-short').escaped() + '</a>';
     } else {
       diffLink = mw.message('diff').escaped();
     }
@@ -1078,7 +1078,7 @@ Example:
           '</div>' +
           '<div class="panel">' +
             '<label class="head">' +
-              'CVN Scores' +
+              message('cvn-scores').escaped() +
               '<span section="CVN_Scores" class="helpicon"></span>' +
               '<input type="checkbox" class="switch" name="cvnDB" />' +
             '</label>' +
@@ -1086,7 +1086,7 @@ Example:
           (oresModel ? (
             '<div class="panel">' +
               '<label class="head">' +
-                'ORES Scores' +
+                message('ores-scores').escaped() +
                 '<span section="ORES_Scores" class="helpicon"></span>' +
                 '<input type="checkbox" class="switch" name="ores" />' +
               '</label>' +
@@ -1136,8 +1136,8 @@ Example:
           '<a href="//meta.wikimedia.org/wiki/User:Krinkle">Krinkle</a>' +
           ' | <a href="' + docUrl + '">' + message('documentation').escaped() + '</a>' +
           ' | <a href="https://github.com/Krinkle/mw-gadget-rtrc/releases">' + message('changelog').escaped() + '</a>' +
-          ' | <a href="https://github.com/Krinkle/mw-gadget-rtrc/issues">Feedback</a>' +
-          ' | <a href="https://krinkle.mit-license.org/@2016">License</a>' +
+          ' | <a href="https://github.com/Krinkle/mw-gadget-rtrc/issues">' + message('feedback').escaped() + '</a>' +
+          ' | <a href="https://krinkle.mit-license.org/@2016">' + message('license').escaped() + '</a>' +
         '</div>' +
       '</div>' +
     '</div>'
@@ -1236,7 +1236,7 @@ Example:
             '<h3>' + mw.html.escape(title) + '</h3>' +
             '<div class="mw-rtrc-diff-tools">' +
               '<span class="tab"><a id="diffClose">' + message('close').escaped() + '</a></span>' +
-              '<span class="tab"><a href="' + href + '" target="_blank" id="diffNewWindow">Open in Wiki</a></span>' +
+              '<span class="tab"><a href="' + href + '" target="_blank" id="diffNewWindow">' + message('open-in-wiki').escaped() + '</a></span>' +
               (userHasPatrolRight
                 ? '<span class="tab"><a onclick="(function(){ if($(\'.patrollink a\').length){ $(\'.patrollink a\').click(); } else { $(\'#diffSkip\').click(); } })();">[mark]</a></span>'
                 : ''
@@ -1302,8 +1302,8 @@ Example:
             '<h3>' + title + '</h3>' +
             '<div class="mw-rtrc-diff-tools">' +
               '<span class="tab"><a id="diffClose">X</a></span>' +
-              '<span class="tab"><a href="' + href + '" target="_blank" id="diffNewWindow">Open in Wiki</a></span>' +
-              '<span class="tab"><a onclick="$(\'.patrollink a\').click()">[mark]</a></span>' +
+              '<span class="tab"><a href="' + href + '" target="_blank" id="diffNewWindow">' + message('open-in-wiki').escaped() + '</a></span>' +
+              '<span class="tab"><a onclick="$(\'.patrollink a\').click()">[' + message('mark').escaped() + ']</a></span>' +
               '<span class="tab"><a id="diffNext">' + mw.message('next').escaped() + ' &raquo;</a></span>' +
               skipButtonHtml +
             '</div>'
@@ -1463,6 +1463,7 @@ Example:
           'markedaspatrollederror',
           'namespaces',
           'namespacesall',
+          'newpageletter',
           'next',
           'talkpagelinktext'
         ]);
