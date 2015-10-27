@@ -24,11 +24,10 @@
 		'wgTitle',
 		'wgUserLanguage',
 		'wgDBname',
-		'wgScriptPath',
-		'wgScriptExtension'
+		'wgScriptPath'
 	]),
 	// Can't use mw.util.wikiScript until after #init
-	apiUrl = conf.wgScriptPath + '/api' + conf.wgScriptExtension,
+	apiUrl = conf.wgScriptPath + '/api.php',
 	cvnApiUrl = '//cvn.wmflabs.org/api.php',
 	oresBaseUrl = '//ores.wmflabs.org/scores/',
 	oresApiUrl = oresBaseUrl + conf.wgDBname + '/',
