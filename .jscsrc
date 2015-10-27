@@ -2,5 +2,9 @@
 	"preset": "crockford",
 
 	"validateIndentation": "\t",
-	"requireCamelCaseOrUpperCaseIdentifiers": null
+	"requireCamelCaseOrUpperCaseIdentifiers": null,
+
+	"excludeFiles": [
+		"node_modules/**"
+	]
 }

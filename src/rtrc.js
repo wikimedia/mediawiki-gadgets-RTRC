@@ -237,18 +237,20 @@
 		} else {
 			itemClass = ' mw-rtrc-item-liu';
 		}
-/*
-	Example:
 
-	<div class="mw-rtrc-item mw-rtrc-item-patrolled" data-diff="0" data-rcid="0" user="Abc">
-		<div diff>(<a class="diff" href="//">diff</a>)</div>
-		<div type><span class="unpatrolled">!</span></div>
-		<div timetitle>00:00 <a href="//?rcid=0" target="_blank">Abc</a></div>
-		<div user><a class="user" href="//User:Abc">Abc</a></div>
-		<div other><a href="//User talk:Abc">talk</a> / <a href="//Special:Contributions/Abc">contribs</a>&nbsp;<span class="comment">Abc</span></div>
-		<div size><span class="mw-plusminus-null">(0)</span></div>
-	</div>
-*/
+		/*
+Example:
+
+<div class="mw-rtrc-item mw-rtrc-item-patrolled" data-diff="0" data-rcid="0" user="Abc">
+	<div diff>(<a class="diff" href="//">diff</a>)</div>
+	<div type><span class="unpatrolled">!</span></div>
+	<div timetitle>00:00 <a href="//?rcid=0" target="_blank">Abc</a></div>
+	<div user><a class="user" href="//User:Abc">Abc</a></div>
+	<div other><a href="//User talk:Abc">talk</a> / <a href="//Special:Contributions/Abc">contribs</a>&nbsp;<span class="comment">Abc</span></div>
+	<div size><span class="mw-plusminus-null">(0)</span></div>
+</div>
+		*/
+
 		// build & return item
 		item = buildRcDayHead(timeUtil.newDateFromApi(rc.timestamp));
 		item += '<div class="mw-rtrc-item ' + itemClass + '" data-diff="' + rc.revid + '" data-rcid="' + rc.rcid + '" user="' + rc.user + '">';
@@ -909,7 +911,7 @@
 						'<a target="_blank" href="' + mw.util.getUrl('Special:Log/patrol') + '?user=' + encodeURIComponent(mw.user.getName()) + '">' +
 							message('mypatrollog').escaped() +
 						'</a>'
-					) : '' ) +
+					) : '') +
 					'<a id="mw-rtrc-toggleHelp">Help</a>' +
 				'</div>' +
 			'</div>' +
@@ -1453,8 +1455,9 @@
 				].join('|'))
 			}
 		}).done(function (data) {
+			var i;
 			data = data.query.allmessages;
-			for (var i = 0; i < data.length; i++) {
+			for (i = 0; i < data.length; i++) {
 				mw.messages.set(data[i].name, data[i]['*']);
 			}
 		}));
@@ -1551,7 +1554,6 @@
 		if (!mw.libs.getIntuition) {
 			mw.libs.getIntuition = $.ajax({ url: intuitionLoadUrl, dataType: 'script', cache: true, timeout: 7000 /*ms*/ });
 		}
-
 
 		dOres = $.ajax({
 			url: oresBaseUrl,
