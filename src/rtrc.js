@@ -30,8 +30,11 @@
 	// Can't use mw.util.wikiScript until after #init
 	apiUrl = conf.wgScriptPath + '/api' + conf.wgScriptExtension,
 	cvnApiUrl = '//cvn.wmflabs.org/api.php',
-	oresApiUrl = '//ores.wmflabs.org/scores/' + conf.wgDBname + '/',
+	oresBaseUrl = '//ores.wmflabs.org/scores/',
+	oresApiUrl = oresBaseUrl + conf.wgDBname + '/',
 	oresModel = 'damaging',
+	oresDBs = [],
+	oresIsAvailable = false,
 	intuitionLoadUrl = '//tools.wmflabs.org/intuition/load.php?env=mw',
 	docUrl = '//meta.wikimedia.org/wiki/User:Krinkle/Tools/Real-Time_Recent_Changes?uselang=' + conf.wgUserLanguage,
 	// 32x32px
@@ -630,6 +633,11 @@
 	function applyOresAnnotations($feedContent, callback) {
 		var revids;
 
+		if (!oresIsAvailable) {
+			callback();
+			return;
+		}
+
 		// Find all revids names inside the feed
 		revids = $.map($feedContent.filter('.mw-rtrc-item'), function (node) {
 			return $(node).attr('data-diff');
@@ -647,13 +655,11 @@
 				revids: revids.join('|')
 			},
 			timeout: 10000,
-			dataType: 'json',
+			dataType: $.support.cors ? 'json' : 'jsonp',
 			// Don't append invalid "&_=.." query
 			cache: true
 		})
 		.done(function (data) {
-			var d;
-
 			if (data.error) {
 				return;
 			}
@@ -664,12 +670,12 @@
 					threshold = 0.8;
 				if (!score || score.error || !score[oresModel] || score[oresModel].error) {
 					return true;
-				} else {
-					score = score[oresModel].probability['true'];
 				}
+				score = score[oresModel].probability['true'];
+
 				// Only if there is a high probability of reversion, otherwise don't highlight
 				if (score > threshold) {
-					tooltip = msg('ores-' + oresModel + '-probability') + ': ' + (100 * score).toFixed(0) + ' %';
+					tooltip = msg('ores-' + oresModel + '-probability', (100 * score).toFixed(0) + '%');
 					// Apply blacklisted-class, and insert icon with tooltip
 					$feedContent
 						.filter('.mw-rtrc-item')
@@ -682,10 +688,6 @@
 				}
 
 			});
-
-			d = new Date();
-			d.setTime(data.lastUpdate * 1000);
-			$feed.find('.mw-rtrc-feed-oresinfo').text('Ores ' + msg('lastupdate-ores', d.toUTCString()));
 		})
 		.always(callback);
 	}
@@ -841,7 +843,7 @@
 						isUpdating = false;
 					});
 				} else {
-					if (opt.app.ores) {
+					if (oresIsAvailable && opt.app.ores) {
 						applyOresAnnotations($feedContent, function () {
 							pushFeedContent({
 								$feedContent: $feedContent,
@@ -906,9 +908,8 @@
 					(!mw.user.isAnon() ? (
 						'<a target="_blank" href="' + mw.util.getUrl('Special:Log/patrol') + '?user=' + encodeURIComponent(mw.user.getName()) + '">' +
 							message('mypatrollog').escaped() +
-						'</a>') :
-						''
-					) +
+						'</a>'
+					) : '' ) +
 					'<a id="mw-rtrc-toggleHelp">Help</a>' +
 				'</div>' +
 			'</div>' +
@@ -1036,6 +1037,15 @@
 							'</select>' +
 						'</label>' +
 					'</div>' +
+					(oresIsAvailable ? (
+						'<div class="panel">' +
+							'<label class="head">' +
+								'Show Scores' +
+								'<span section="Scores" class="helpicon"></span>' +
+								'<input type="checkbox" class="switch" name="ores" />' +
+							'</label>' +
+						'</div>'
+					) : '') +
 					'<div class="panel">' +
 						'<label class="head">' +
 							'MassPatrol' +
@@ -1054,13 +1064,6 @@
 						'<label class="head">' +
 							'Pause' +
 							'<input class="switch" type="checkbox" id="rc-options-pause" />' +
-						'</label>' +
-					'</div>' +
-					'<div class="panel">' +
-						'<label class="head">' +
-							'Show Scores' +
-							'<span section="Scores" class="helpicon"></span>' +
-							'<input type="checkbox" class="switch" name="ores" />' +
 						'</label>' +
 					'</div>' +
 				'</div>' +
@@ -1493,7 +1496,7 @@
 	 * @return {jQuery.Promise}
 	 */
 	function init() {
-		var dModules, dI18N, featureTest, $navToggle;
+		var dModules, dI18N, featureTest, $navToggle, dOres;
 
 		// Transform title and navigation tabs
 		document.title = 'RTRC: ' + conf.wgDBname;
@@ -1549,6 +1552,17 @@
 			mw.libs.getIntuition = $.ajax({ url: intuitionLoadUrl, dataType: 'script', cache: true, timeout: 7000 /*ms*/ });
 		}
 
+
+		dOres = $.ajax({
+			url: oresBaseUrl,
+			dataType: $.support.cors ? 'json' : 'jsonp',
+			cache: true,
+			timeout: 2000
+		}).then(function (data) {
+			oresDBs = data.contexts;
+			oresIsAvailable = oresDBs.indexOf(conf.wgDBname) !== -1;
+		});
+
 		dI18N = mw.libs.getIntuition
 			.then(function () {
 				return mw.libs.intuition.load('rtrc');
@@ -1569,7 +1583,7 @@
 				return $.Deferred().resolve();
 			});
 
-		$.when(initData(), dModules, dI18N, $.ready).fail(showFail).done(function () {
+		$.when(initData(), dModules, dI18N, dOres, $.ready).fail(showFail).done(function () {
 			if ($navToggle) {
 				$navToggle.attr('title', msg('navtoggle-tooltip'));
 			}
