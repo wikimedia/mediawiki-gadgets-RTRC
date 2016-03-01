@@ -45,7 +45,6 @@
 	 * -------------------------------------------------
 	 */
 	userHasPatrolRight = false,
-	userPatrolTokenCache = false,
 	rcTags = [],
 	wikiTimeOffset,
 
@@ -1124,6 +1123,7 @@ Example:
 
 	// Bind event hanlders in the user interface
 	function bindInterface() {
+		var api = new mw.Api();
 		$RCOptionsSubmit = $('#RCOptions_submit');
 
 		// Apply button
@@ -1189,7 +1189,7 @@ Example:
 						'<div class="mw-rtrc-diff-tools">' +
 							'<span class="tab"><a id="diffClose">Close</a></span>' +
 							'<span class="tab"><a href="' + href + '" target="_blank" id="diffNewWindow">Open in Wiki</a></span>' +
-							(userPatrolTokenCache ?
+							(userHasPatrolRight ?
 								'<span class="tab"><a onclick="(function(){ if($(\'.patrollink a\').length){ $(\'.patrollink a\').click(); } else { $(\'#diffSkip\').click(); } })();">[mark]</a></span>' :
 								''
 							) +
@@ -1271,17 +1271,9 @@ Example:
 		$wrapper.on('click', '.patrollink', function () {
 			var $el = $(this);
 			$el.find('a').text(mw.msg('markaspatrolleddiff') + '...');
-			$.ajax({
-				type: 'POST',
-				url: apiUrl,
-				dataType: 'json',
-				data: {
-					action: 'patrol',
-					format: 'json',
-					list: 'recentchanges',
-					rcid: currentDiffRcid,
-					token: userPatrolTokenCache
-				}
+			api.postWithToken('patrol', {
+				action: 'patrol',
+				rcid: currentDiffRcid
 			}).done(function (data) {
 				if (!data || data.error) {
 					$el.empty().append(
@@ -1417,19 +1409,6 @@ Example:
 			});
 		});
 
-		// Get a patroltoken
-		promises.push($.ajax({
-			url: apiUrl,
-			dataType: 'json',
-			data: {
-				format: 'json',
-				action: 'tokens',
-				type: 'patrol'
-			}
-		}).done(function (data) {
-			userPatrolTokenCache = data.tokens.patroltoken;
-		}));
-
 		// Get MediaWiki interface messages
 		promises.push(
 			mw.loader.using('mediawiki.api.messages').then(function () {
@@ -1543,6 +1522,7 @@ Example:
 			'mediawiki.Uri',
 			'mediawiki.user',
 			'mediawiki.util',
+			'mediawiki.api',
 			'mediawiki.api.messages'
 		]);
 
