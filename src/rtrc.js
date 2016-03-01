@@ -1403,7 +1403,9 @@ Example:
 	 */
 	function initData() {
 		var dRights = $.Deferred(),
-			promises = [dRights.promise()];
+			promises = [
+				dRights.promise()
+			];
 
 		// Get userrights
 		mw.loader.using('mediawiki.user', function () {
@@ -1429,15 +1431,9 @@ Example:
 		}));
 
 		// Get MediaWiki interface messages
-		promises.push($.ajax({
-			url: apiUrl,
-			dataType: 'json',
-			data: {
-				action: 'query',
-				format: 'json',
-				meta: 'allmessages',
-				amlang: conf.wgUserLanguage,
-				ammessages: ([
+		promises.push(
+			mw.loader.using('mediawiki.api.messages').then(function () {
+				return new mw.Api().loadMessages([
 					'ascending abbrev',
 					'blanknamespace',
 					'contributions',
@@ -1456,15 +1452,9 @@ Example:
 					'recentchanges-label-unpatrolled',
 					'show',
 					'talkpagelinktext'
-				].join('|'))
-			}
-		}).done(function (data) {
-			var i;
-			data = data.query.allmessages;
-			for (i = 0; i < data.length; i++) {
-				mw.messages.set(data[i].name, data[i]['*']);
-			}
-		}));
+				]);
+			})
+		);
 
 		promises.push($.ajax({
 			url: apiUrl,
@@ -1552,7 +1542,8 @@ Example:
 			'mediawiki.jqueryMsg',
 			'mediawiki.Uri',
 			'mediawiki.user',
-			'mediawiki.util'
+			'mediawiki.util',
+			'mediawiki.api.messages'
 		]);
 
 		if (!mw.libs.getIntuition) {
