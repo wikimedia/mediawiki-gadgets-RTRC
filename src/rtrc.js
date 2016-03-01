@@ -1175,7 +1175,7 @@ Example:
 					.append(jqXhr.responseText || 'Loading diff failed.')
 					.removeClass('mw-rtrc-diff-loading');
 			}).done(function (data) {
-				var skipButtonHtml;
+				var skipButtonHtml, $diff;
 				if ($.inArray(currentDiffRcid, skippedRCIDs) !== -1) {
 					skipButtonHtml = '<span class="tab"><a id="diffUnskip">Unskip</a></span>';
 				} else {
@@ -1201,6 +1201,11 @@ Example:
 
 				if (opt.app.massPatrol) {
 					$frame.find('.patrollink a').click();
+				} else {
+					$diff = $frame.find('table.diff');
+					if ($diff.length) {
+						mw.hook('wikipage.diff').fire($diff.eq(0));
+					}
 				}
 			});
 
