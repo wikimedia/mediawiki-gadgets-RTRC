@@ -309,67 +309,6 @@ Example:
 		return !mod;
 	}
 
-	function readSettingsForm() {
-		// jQuery#serializeArray is nice, but doesn't include "value: false" for unchecked
-		// checkboxes that are not disabled. Using raw .elements instead and filtering
-		// out <fieldset>.
-		var $settings = $($wrapper.find('.mw-rtrc-settings')[0].elements).filter(':input');
-
-		opt = $.extend(true, {}, defOpt);
-
-		$settings.each(function (i, el) {
-			var name = el.name;
-
-			switch (name) {
-			// RC
-			case 'limit':
-				opt.rc[name] = Number(el.value);
-				break;
-			case 'namespace':
-				// Can be "0".
-				// Value "" (all) is represented by undefined.
-				// TODO: Turn this into a multi-select, the API supports it.
-				opt.rc[name] = el.value.length ? Number(el.value) : undefined;
-				break;
-			case 'user':
-			case 'start':
-			case 'end':
-			case 'tag':
-				opt.rc[name] = el.value || undefined;
-				break;
-			case 'showAnonOnly':
-			case 'showUnpatrolledOnly':
-			case 'typeEdit':
-			case 'typeNew':
-				opt.rc[name] = el.checked;
-				break;
-			case 'dir':
-				// There's more than 1 radio button with this name in this loop,
-				// use the value of the first (and only) checked one.
-				if (el.checked) {
-					opt.rc[name] = el.value;
-				}
-				break;
-			// APP
-			case 'cvnDB':
-			case 'ores':
-			case 'massPatrol':
-			case 'autoDiff':
-				opt.app[name] = el.checked;
-				break;
-			case 'refresh':
-				opt.app[name] = Number(el.value);
-				break;
-			}
-		});
-
-		if (!normaliseSettings(opt)) {
-			// TODO: Optimise this, no need to repopulate the entire settings form
-			// if only 1 thing changed.
-			fillSettingsForm(opt);
-		}
-	}
-
 	function fillSettingsForm(newOpt) {
 		var $settings = $($wrapper.find('.mw-rtrc-settings')[0].elements).filter(':input');
 
@@ -449,6 +388,67 @@ Example:
 
 	}
 
+	function readSettingsForm() {
+		// jQuery#serializeArray is nice, but doesn't include "value: false" for unchecked
+		// checkboxes that are not disabled. Using raw .elements instead and filtering
+		// out <fieldset>.
+		var $settings = $($wrapper.find('.mw-rtrc-settings')[0].elements).filter(':input');
+
+		opt = $.extend(true, {}, defOpt);
+
+		$settings.each(function (i, el) {
+			var name = el.name;
+
+			switch (name) {
+			// RC
+			case 'limit':
+				opt.rc[name] = Number(el.value);
+				break;
+			case 'namespace':
+				// Can be "0".
+				// Value "" (all) is represented by undefined.
+				// TODO: Turn this into a multi-select, the API supports it.
+				opt.rc[name] = el.value.length ? Number(el.value) : undefined;
+				break;
+			case 'user':
+			case 'start':
+			case 'end':
+			case 'tag':
+				opt.rc[name] = el.value || undefined;
+				break;
+			case 'showAnonOnly':
+			case 'showUnpatrolledOnly':
+			case 'typeEdit':
+			case 'typeNew':
+				opt.rc[name] = el.checked;
+				break;
+			case 'dir':
+				// There's more than 1 radio button with this name in this loop,
+				// use the value of the first (and only) checked one.
+				if (el.checked) {
+					opt.rc[name] = el.value;
+				}
+				break;
+			// APP
+			case 'cvnDB':
+			case 'ores':
+			case 'massPatrol':
+			case 'autoDiff':
+				opt.app[name] = el.checked;
+				break;
+			case 'refresh':
+				opt.app[name] = Number(el.value);
+				break;
+			}
+		});
+
+		if (!normaliseSettings(opt)) {
+			// TODO: Optimise this, no need to repopulate the entire settings form
+			// if only 1 thing changed.
+			fillSettingsForm(opt);
+		}
+	}
+
 	function getPermalink() {
 		var uri = new mw.Uri(mw.util.getUrl(conf.wgPageName)),
 			reducedOpt = {};
@@ -479,6 +479,12 @@ Example:
 		});
 
 		return uri.toString();
+	}
+
+	function updateFeedNow() {
+		$('#rc-options-pause').prop('checked', false);
+		clearTimeout(updateFeedTimeout);
+		updateFeed();
 	}
 
 	// Read permalink into the program and reflect into settings form.
@@ -602,33 +608,6 @@ Example:
 				$el.addClass('mw-rtrc-item-current');
 			}
 		});
-	}
-
-	/**
-	 * @param {Object} update
-	 * @param {jQuery} update.$feedContent
-	 * @param {string} update.rawHtml
-	 */
-	function pushFeedContent(update) {
-		// TODO: Only do once
-		$body.removeClass('placeholder');
-
-		$feed.find('.mw-rtrc-feed-update').html(
-			message('lastupdate-rc', new Date().toLocaleString()).escaped() +
-			' | <a href="' + getPermalink() + '">' +
-			message('permalink').escaped() +
-			'</a>'
-		);
-
-		if (update.rawHtml !== prevFeedHtml) {
-			prevFeedHtml = update.rawHtml;
-			applyRtrcAnnotations(update.$feedContent);
-			$feed.find('.mw-rtrc-feed-content').empty().append(update.$feedContent);
-		}
-
-		// Schedule next update
-		updateFeedTimeout = setTimeout(updateFeed, opt.app.refresh * 1000);
-		$('#krRTRC_loader').hide();
 	}
 
 	function applyOresAnnotations($feedContent, callback) {
@@ -769,10 +748,27 @@ Example:
 		.always(callback);
 	}
 
-	function updateFeedNow() {
-		$('#rc-options-pause').prop('checked', false);
-		clearTimeout(updateFeedTimeout);
-		updateFeed();
+	/**
+	 * @param {Object} update
+	 * @param {jQuery} update.$feedContent
+	 * @param {string} update.rawHtml
+	 */
+	function pushFeedContent(update) {
+		// TODO: Only do once
+		$body.removeClass('placeholder');
+
+		$feed.find('.mw-rtrc-feed-update').html(
+			message('lastupdate-rc', new Date().toLocaleString()).escaped() +
+			' | <a href="' + getPermalink() + '">' +
+			message('permalink').escaped() +
+			'</a>'
+		);
+
+		if (update.rawHtml !== prevFeedHtml) {
+			prevFeedHtml = update.rawHtml;
+			applyRtrcAnnotations(update.$feedContent);
+			$feed.find('.mw-rtrc-feed-content').empty().append(update.$feedContent);
+		}
 	}
 
 	function updateFeed() {
@@ -862,6 +858,11 @@ Example:
 				}
 
 				$RCOptionsSubmit.prop('disabled', false).css('opacity', '1.0');
+			})
+			.then(function () {
+				// Schedule next update
+				updateFeedTimeout = setTimeout(updateFeed, opt.app.refresh * 1000);
+				$('#krRTRC_loader').hide();
 			});
 		}
 	}
@@ -1123,7 +1124,6 @@ Example:
 
 	// Bind event hanlders in the user interface
 	function bindInterface() {
-
 		$RCOptionsSubmit = $('#RCOptions_submit');
 
 		// Apply button
