@@ -3,7 +3,7 @@
  * https://github.com/Krinkle/mw-gadget-rtrc
  *
  * @license http://krinkle.mit-license.org/
- * @author Timo Tijhof, 2010–2015
+ * @author Timo Tijhof, 2010–2016
  */
 /*global alert */
 (function ($, mw) {
@@ -14,7 +14,7 @@
 	 * -------------------------------------------------
 	 */
 	var
-	appVersion = 'v1.0.3',
+	appVersion = 'v1.0.4',
 	conf = mw.config.get([
 		'skin',
 		'wgAction',
