@@ -29,11 +29,8 @@
 	// Can't use mw.util.wikiScript until after #init
 	apiUrl = conf.wgScriptPath + '/api.php',
 	cvnApiUrl = '//cvn.wmflabs.org/api.php',
-	oresBaseUrl = '//ores.wmflabs.org/scores/',
-	oresApiUrl = oresBaseUrl + conf.wgDBname + '/',
-	oresModel = 'damaging',
-	oresDBs = [],
-	oresIsAvailable = false,
+	oresApiUrl = '//ores.wmflabs.org/scores/' + conf.wgDBname + '/',
+	oresModel = false,
 	intuitionLoadUrl = '//tools.wmflabs.org/intuition/load.php?env=mw',
 	docUrl = '//meta.wikimedia.org/wiki/User:Krinkle/Tools/Real-Time_Recent_Changes?uselang=' + conf.wgUserLanguage,
 	// 32x32px
@@ -612,7 +609,7 @@ Example:
 	function applyOresAnnotations($feedContent, callback) {
 		var revids;
 
-		if (!oresIsAvailable) {
+		if (!oresModel) {
 			callback();
 			return;
 		}
@@ -654,7 +651,7 @@ Example:
 
 				// Only if there is a high probability of reversion, otherwise don't highlight
 				if (score > threshold) {
-					tooltip = msg('ores-' + oresModel + '-probability', (100 * score).toFixed(0) + '%');
+					tooltip = msg('ores-damaging-probability', (100 * score).toFixed(0) + '%');
 					// Apply blacklisted-class, and insert icon with tooltip
 					$feedContent
 						.filter('.mw-rtrc-item')
@@ -839,7 +836,7 @@ Example:
 						isUpdating = false;
 					});
 				} else {
-					if (oresIsAvailable && opt.app.ores) {
+					if (oresModel && opt.app.ores) {
 						applyOresAnnotations($feedContent, function () {
 							pushFeedContent({
 								$feedContent: $feedContent,
@@ -1038,7 +1035,7 @@ Example:
 							'</select>' +
 						'</label>' +
 					'</div>' +
-					(oresIsAvailable ? (
+					(oresModel ? (
 						'<div class="panel">' +
 							'<label class="head">' +
 								'Show Scores' +
@@ -1531,13 +1528,19 @@ Example:
 		}
 
 		dOres = $.ajax({
-			url: oresBaseUrl,
+			url: oresApiUrl,
 			dataType: $.support.cors ? 'json' : 'jsonp',
 			cache: true,
 			timeout: 2000
 		}).then(function (data) {
-			oresDBs = data.contexts;
-			oresIsAvailable = oresDBs.indexOf(conf.wgDBname) !== -1;
+			if (data && data.models) {
+				if (data.models.damaging) {
+					oresModel = 'damaging';
+				}
+			}
+		}, function () {
+			// If ORES doesn't have models for this wiki, do continue loading without
+			return $.Deferred().resolve();
 		});
 
 		dI18N = mw.libs.getIntuition
