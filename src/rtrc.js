@@ -1536,6 +1536,8 @@ Example:
 			if (data && data.models) {
 				if (data.models.damaging) {
 					oresModel = 'damaging';
+				} else if (data.models.reverted) {
+					oresModel = 'reverted';
 				}
 			}
 		}, function () {
