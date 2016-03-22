@@ -237,9 +237,7 @@
 Example:
 
 <div class="mw-rtrc-item mw-rtrc-item-patrolled" data-diff="0" data-rcid="0" user="Abc">
-	<div diff>(<a class="diff" href="//">diff</a>)</div>
-	<div type><span class="unpatrolled">!</span></div>
-	<div timetitle>00:00 <a href="//?rcid=0" target="_blank">Abc</a></div>
+	<div first>(<a>diff</a>) <span class="unpatrolled">!</span> 00:00 <a>Page</a></div>
 	<div user><a class="user" href="//User:Abc">Abc</a></div>
 	<div other><a href="//User talk:Abc">talk</a> / <a href="//Special:Contributions/Abc">contribs</a>&nbsp;<span class="comment">Abc</span></div>
 	<div size><span class="mw-plusminus-null">(0)</span></div>
@@ -260,19 +258,28 @@ Example:
 			diffLink = mw.message('diff').escaped();
 		}
 
-		item += '<div first>(' + diffLink + ') ' + typeSymbol + ' ';
-		item += timeUtil.getClocktimeFromApi(rc.timestamp) + ' <a class="page" href="' + mw.util.getUrl(rc.title) + '?rcid=' + rc.rcid + '" target="_blank">' + rc.title + '</a></div>';
-		item += '<div user>&nbsp;<small>&middot;&nbsp;<a href="' + mw.util.getUrl('User talk:' + rc.user) + '" target="_blank">T</a> &middot; <a href="' + mw.util.getUrl('Special:Contributions/' + rc.user) + '" target="_blank">C</a>&nbsp;</small>&middot;&nbsp;<a class="user" href="' + mw.util.getUrl((mw.util.isIPv4Address(rc.user) || mw.util.isIPv6Address(rc.user) ? 'Special:Contributions/' : 'User:') + rc.user) + '" target="_blank">' + rc.user + '</a></div>';
-		item += '<div other>&nbsp;<span class="comment">' + commentHtml + '</span></div>';
+		item += '<div first>' +
+			'(' + diffLink + ') ' + typeSymbol + ' ' +
+			timeUtil.getClocktimeFromApi(rc.timestamp) +
+			' <a class="page" href="' + mw.util.getUrl(rc.title) + '?rcid=' + rc.rcid + '" target="_blank">' + rc.title + '</a>' +
+			'</div>' +
+			'<div user>&nbsp;<small>&middot;&nbsp;' +
+			'<a href="' + mw.util.getUrl('User talk:' + rc.user) + '" target="_blank">' + mw.message('talkpagelinktext').escaped() + '</a>' +
+			' &middot; ' +
+			'<a href="' + mw.util.getUrl('Special:Contributions/' + rc.user) + '" target="_blank">' + mw.message('contribslink').escaped() + '</a>' +
+			'&nbsp;</small>&middot;&nbsp;' +
+			'<a class="user" href="' + mw.util.getUrl((mw.util.isIPv4Address(rc.user) || mw.util.isIPv6Address(rc.user) ? 'Special:Contributions/' : 'User:') + rc.user) + '" target="_blank">' + rc.user + '</a>' +
+			'</div>' +
+			'<div other>&nbsp;<span class="comment">' + commentHtml + '</span></div>';
 
 		if (diffsize > 0) {
 			el = diffsize > 399 ? 'strong' : 'span';
-			item += '<div size><' + el + ' class="mw-plusminus-pos">(' + diffsize + ')</' + el + '></div>';
+			item += '<div size><' + el + ' class="mw-plusminus-pos">(+' + diffsize.toLocaleString() + ')</' + el + '></div>';
 		} else if (diffsize === 0) {
 			item += '<div size><span class="mw-plusminus-null">(0)</span></div>';
 		} else {
 			el = diffsize < -399 ? 'strong' : 'span';
-			item += '<div size><' + el + ' class="mw-plusminus-neg">(' + diffsize + ')</' + el + '></div>';
+			item += '<div size><' + el + ' class="mw-plusminus-neg">(' + diffsize.toLocaleString() + ')</' + el + '></div>';
 		}
 
 		item += '</div>';
@@ -901,14 +908,14 @@ Example:
 		$wrapper = $($.parseHTML(
 		'<div class="mw-rtrc-wrapper">' +
 			'<div class="mw-rtrc-head">' +
-				'Real-Time Recent Changes <small>(' + appVersion + ')</small>' +
+				message('title').escaped() + ' <small>(' + appVersion + ')</small>' +
 				'<div class="mw-rtrc-head-links">' +
 					(!mw.user.isAnon() ? (
 						'<a target="_blank" href="' + mw.util.getUrl('Special:Log/patrol') + '?user=' + encodeURIComponent(mw.user.getName()) + '">' +
 							message('mypatrollog').escaped() +
 						'</a>'
 					) : '') +
-					'<a id="mw-rtrc-toggleHelp">Help</a>' +
+					'<a id="mw-rtrc-toggleHelp">' + message('help').escaped() + '</a>' +
 				'</div>' +
 			'</div>' +
 			'<form id="krRTRC_RCOptions" class="mw-rtrc-settings mw-rtrc-nohelp make-switch"><fieldset>' +
@@ -1046,21 +1053,21 @@ Example:
 					) : '') +
 					'<div class="panel">' +
 						'<label class="head">' +
-							'MassPatrol' +
+							message('masspatrol').escaped() +
 							'<span section="MassPatrol" class="helpicon"></span>' +
 							'<input type="checkbox" class="switch" name="massPatrol" />' +
 						'</label>' +
 					'</div>' +
 					'<div class="panel">' +
 						'<label class="head">' +
-							'AutoDiff' +
+							message('autodiff').escaped() +
 							'<span section="AutoDiff" class="helpicon"></span>' +
 							'<input type="checkbox" class="switch" name="autoDiff" />' +
 						'</label>' +
 					'</div>' +
 					'<div class="panel">' +
 						'<label class="head">' +
-							'Pause' +
+							message('pause').escaped() +
 							'<input class="switch" type="checkbox" id="rc-options-pause" />' +
 						'</label>' +
 					'</div>' +
@@ -1076,12 +1083,11 @@ Example:
 				'</div>' +
 				'<img src="' + ajaxLoaderUrl + '" id="krRTRC_loader" style="display: none;" />' +
 				'<div class="mw-rtrc-legend">' +
-					'Colors: <div class="mw-rtrc-item mw-rtrc-item-patrolled inline-block">&nbsp;' +
+					message('legend').escaped() + ': <div class="mw-rtrc-item mw-rtrc-item-patrolled inline-block">&nbsp;' +
 					mw.message('markedaspatrolled').escaped() + '&nbsp;</div>, <div class="mw-rtrc-item mw-rtrc-item-current inline-block">&nbsp;' +
 					message('currentedit').escaped() + '&nbsp;</div>, ' +
 					'<div class="mw-rtrc-item mw-rtrc-item-skipped inline-block">&nbsp;' + message('skippededit').escaped() + '&nbsp;</div>, ' +
 					'<div class="mw-rtrc-item mw-rtrc-item-aes inline-block">&nbsp;Edit with an Automatic Edit Summary&nbsp;</div>' +
-					'<br />Abbreviations: T - ' + mw.message('talkpagelinktext').escaped() + ', C - ' + mw.message('contributions', mw.user).escaped() +
 				'</div>' +
 			'</div>' +
 			'<div style="clear: both;"></div>' +
@@ -1174,9 +1180,9 @@ Example:
 			}).done(function (data) {
 				var skipButtonHtml, $diff;
 				if ($.inArray(currentDiffRcid, skippedRCIDs) !== -1) {
-					skipButtonHtml = '<span class="tab"><a id="diffUnskip">Unskip</a></span>';
+					skipButtonHtml = '<span class="tab"><a id="diffUnskip">' + message('unskip').escaped() + '</a></span>';
 				} else {
-					skipButtonHtml = '<span class="tab"><a id="diffSkip">Skip</a></span>';
+					skipButtonHtml = '<span class="tab"><a id="diffSkip">' + message('skip').escaped() + '</a></span>';
 				}
 
 				$frame
@@ -1184,7 +1190,7 @@ Example:
 					.prepend(
 						'<h3>' + mw.html.escape(title) + '</h3>' +
 						'<div class="mw-rtrc-diff-tools">' +
-							'<span class="tab"><a id="diffClose">Close</a></span>' +
+							'<span class="tab"><a id="diffClose">' + message('close').escaped() + '</a></span>' +
 							'<span class="tab"><a href="' + href + '" target="_blank" id="diffNewWindow">Open in Wiki</a></span>' +
 							(userHasPatrolRight ?
 								'<span class="tab"><a onclick="(function(){ if($(\'.patrollink a\').length){ $(\'.patrollink a\').click(); } else { $(\'#diffSkip\').click(); } })();">[mark]</a></span>' :
@@ -1237,9 +1243,9 @@ Example:
 			}).done(function (data) {
 				var skipButtonHtml;
 				if ($.inArray(currentDiffRcid, skippedRCIDs) !== -1) {
-					skipButtonHtml = '<span class="tab"><a id="diffUnskip">Unskip</a></span>';
+					skipButtonHtml = '<span class="tab"><a id="diffUnskip">' + message('unskip').escaped() + '</a></span>';
 				} else {
-					skipButtonHtml = '<span class="tab"><a id="diffSkip">Skip</a></span>';
+					skipButtonHtml = '<span class="tab"><a id="diffSkip">' + message('skip').escaped() + '</a></span>';
 				}
 
 				$frame
@@ -1410,23 +1416,16 @@ Example:
 		promises.push(
 			mw.loader.using('mediawiki.api.messages').then(function () {
 				return new mw.Api().loadMessages([
-					'ascending abbrev',
 					'blanknamespace',
 					'contributions',
-					'descending abbrev',
+					'contribslink',
 					'diff',
-					'hide',
 					'markaspatrolleddiff',
 					'markedaspatrolled',
 					'markedaspatrollederror',
 					'namespaces',
 					'namespacesall',
 					'next',
-					'recentchanges-label-bot',
-					'recentchanges-label-minor',
-					'recentchanges-label-newpage',
-					'recentchanges-label-unpatrolled',
-					'show',
 					'talkpagelinktext'
 				]);
 			})

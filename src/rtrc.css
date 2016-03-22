@@ -557,10 +557,10 @@
 	vertical-align: middle;
 }
 
-.mw-rtrc-item div[first] { width: 38% }
-.mw-rtrc-item div[user] { width: 21% }
-.mw-rtrc-item div[other] { width: 35% }
-.mw-rtrc-item div[size] { width: 6%;font-size: smaller; text-align: right }
+.mw-rtrc-item div[first] { width: 40% }
+.mw-rtrc-item div[user] { width: 24% }
+.mw-rtrc-item div[other] { width: 30% }
+.mw-rtrc-item div[size] { width: 6%; font-size: smaller; text-align: right }
 
 .mw-rtrc-legend {
 	margin: 5px auto;
