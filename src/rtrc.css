@@ -510,6 +510,7 @@
 .mw-rtrc-heading {
 	padding: 0 5px;
 	white-space: nowrap;
+	border: 1px solid transparent;
 }
 
 .mw-rtrc-item:nth-child(odd),
@@ -517,36 +518,43 @@
 	background: #f3f3f3;
 }
 
-.mw-rtrc-item-aes,
-.mw-rtrc-item-aes:nth-child(odd) {
+.mw-rtrc-item.mw-rtrc-item-aes {
 	background: #fff0f0;
+}
+
+.mw-rtrc-item.mw-rtrc-item-alert {
+	background: #ffd5d5;
+}
+
+.mw-rtrc-item.mw-rtrc-item-skipped {
+	background: #d6d9e9;
+}
+
+.mw-rtrc-item.mw-rtrc-item-patrolled {
+	background: #d9e9d6;
+}
+
+.mw-rtrc-item.mw-rtrc-item-current {
+	background: #ffce7b;
+	border: 1px solid orange;
 }
 
 .mw-rtrc-item-aes .comment {
 	font-weight: bold;
 }
 
-.mw-rtrc-item-skipped,
-.mw-rtrc-item-skipped:nth-child(odd) {
-	background: #d6d9e9;
-}
-
-.mw-rtrc-item-patrolled,
-.mw-rtrc-item-patrolled:nth-child(odd) {
-	background: #d9e9d6;
-}
-
-.mw-rtrc-item-current,
-.mw-rtrc-item-current:nth-child(odd) {
-	background: #ffce7b;
-	border: 1px solid orange;
-}
-
-.mw-rtrc-item .user.blacklisted {
-	font-weight: bold;
-	color: red;
+.mw-rtrc-item-alert-user .mw-userlink,
+.mw-rtrc-item-alert-rev .mw-rtrc-revscore {
 	background: url(//upload.wikimedia.org/wikipedia/commons/thumb/f/f7/Nuvola_apps_important.svg/18px-Nuvola_apps_important.svg.png) 0 50% no-repeat;
 	padding-left: 20px;
+}
+
+@media (min-resolution: 2dppx), (min-resolution: 192dpi) {
+	.mw-rtrc-item-alert-user .mw-userlink,
+	.mw-rtrc-item-alert-rev .mw-rtrc-revscore {
+		background-image: url(//upload.wikimedia.org/wikipedia/commons/thumb/f/f7/Nuvola_apps_important.svg/36px-Nuvola_apps_important.svg.png);
+		background-size: 18px;
+	}
 }
 
 /* Acts like a table with table-rows, using divs to avoid fixed table-layout with forced width and oveflow issues */
@@ -559,8 +567,15 @@
 
 .mw-rtrc-item div[first] { width: 40% }
 .mw-rtrc-item div[user] { width: 24% }
-.mw-rtrc-item div[other] { width: 30% }
-.mw-rtrc-item div[size] { width: 6%; font-size: smaller; text-align: right }
+.mw-rtrc-item div[comment] { width: 30% }
+.mw-rtrc-item .mw-rtrc-meta {
+	width: 6%;
+	text-align: right;
+}
+
+.mw-rtrc-meta .mw-plusminus {
+	font-size: smaller;
+}
 
 .mw-rtrc-legend {
 	margin: 5px auto;
@@ -572,8 +587,6 @@
 }
 
 /* Diff pre-wrap (partially from wikibits/diff.css but there only adds pre-wrap for diffchange */
-
-.mw-rtrc-available .diffchange,
 .mw-rtrc-available table.diff td {
 	white-space: -moz-pre-wrap;
 	white-space: pre-wrap;

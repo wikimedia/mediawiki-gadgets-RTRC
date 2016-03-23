@@ -100,7 +100,7 @@
 	message,
 	msg,
 	navSupported = conf.skin === 'vector',
-	nextFrame = window.requestAnimationFrame || setTimeout,
+	rAF = window.requestAnimationFrame || setTimeout,
 
 	currentDiff,
 	currentDiffRcid,
@@ -222,15 +222,8 @@
 
 		// Check if edit summary is an AES
 		if (commentHtml.indexOf('<a href="/wiki/Commons:AES" class="mw-redirect" title="Commons:AES">\u2190</a>') === 0) {
-			// TODO: This is specific to commons.wikimedia.org
+			// FIXME: This is specific to commons.wikimedia.org
 			itemClass += ' mw-rtrc-item-aes';
-		}
-
-		// Anon-attribute
-		if (isAnon) {
-			itemClass = ' mw-rtrc-item-anon';
-		} else {
-			itemClass = ' mw-rtrc-item-liu';
 		}
 
 		/*
@@ -239,8 +232,8 @@ Example:
 <div class="mw-rtrc-item mw-rtrc-item-patrolled" data-diff="0" data-rcid="0" user="Abc">
 	<div first>(<a>diff</a>) <span class="unpatrolled">!</span> 00:00 <a>Page</a></div>
 	<div user><a class="user" href="//User:Abc">Abc</a></div>
-	<div other><a href="//User talk:Abc">talk</a> / <a href="//Special:Contributions/Abc">contribs</a>&nbsp;<span class="comment">Abc</span></div>
-	<div size><span class="mw-plusminus-null">(0)</span></div>
+	<div comment><a href="//User talk:Abc">talk</a> / <a href="//Special:Contributions/Abc">contribs</a>&nbsp;<span class="comment">Abc</span></div>
+	<div class="mw-rtrc-meta"><span class="mw-plusminus mw-plusminus-null">(0)</span></div>
 </div>
 		*/
 
@@ -268,18 +261,18 @@ Example:
 			' &middot; ' +
 			'<a href="' + mw.util.getUrl('Special:Contributions/' + rc.user) + '" target="_blank">' + mw.message('contribslink').escaped() + '</a>' +
 			'&nbsp;</small>&middot;&nbsp;' +
-			'<a class="user" href="' + mw.util.getUrl((mw.util.isIPv4Address(rc.user) || mw.util.isIPv6Address(rc.user) ? 'Special:Contributions/' : 'User:') + rc.user) + '" target="_blank">' + rc.user + '</a>' +
+			'<a class="mw-userlink" href="' + mw.util.getUrl((mw.util.isIPv4Address(rc.user) || mw.util.isIPv6Address(rc.user) ? 'Special:Contributions/' : 'User:') + rc.user) + '" target="_blank">' + rc.user + '</a>' +
 			'</div>' +
-			'<div other>&nbsp;<span class="comment">' + commentHtml + '</span></div>';
+			'<div comment>&nbsp;<span class="comment">' + commentHtml + '</span></div>';
 
 		if (diffsize > 0) {
 			el = diffsize > 399 ? 'strong' : 'span';
-			item += '<div size><' + el + ' class="mw-plusminus-pos">(+' + diffsize.toLocaleString() + ')</' + el + '></div>';
+			item += '<div class="mw-rtrc-meta"><' + el + ' class="mw-plusminus mw-plusminus-pos">(+' + diffsize.toLocaleString() + ')</' + el + '></div>';
 		} else if (diffsize === 0) {
-			item += '<div size><span class="mw-plusminus-null">(0)</span></div>';
+			item += '<div class="mw-rtrc-meta"><span class="mw-plusminus mw-plusminus-null">(0)</span></div>';
 		} else {
 			el = diffsize < -399 ? 'strong' : 'span';
-			item += '<div size><' + el + ' class="mw-plusminus-neg">(' + diffsize.toLocaleString() + ')</' + el + '></div>';
+			item += '<div class="mw-rtrc-meta"><' + el + ' class="mw-plusminus mw-plusminus-neg">(' + diffsize.toLocaleString() + ')</' + el + '></div>';
 		}
 
 		item += '</div>';
@@ -648,28 +641,29 @@ Example:
 			}
 
 			// Loop through all revids
-			$.each(data, function (revid, score) {
-				var tooltip,
-					threshold = 0.8;
-				if (!score || score.error || !score[oresModel] || score[oresModel].error) {
-					return true;
+			$.each(data, function (revid, item) {
+				var tooltip, score;
+				if (!item || item.error || !item[oresModel] || item[oresModel].error) {
+					return;
 				}
-				score = score[oresModel].probability['true'];
+				score = item[oresModel].probability['true'];
 
-				// Only if there is a high probability of reversion, otherwise don't highlight
-				if (score > threshold) {
-					tooltip = msg('ores-damaging-probability', (100 * score).toFixed(0) + '%');
-					// Apply blacklisted-class, and insert icon with tooltip
-					$feedContent
-						.filter('.mw-rtrc-item')
-						.filter(function () {
-							return $(this).attr('data-diff') === String(revid);
-						})
-						.find('.user')
-						.addClass('blacklisted')
-						.attr('title', tooltip);
+				// Only highlight high probability scores
+				if (score <= 0.8) {
+					return;
 				}
+				tooltip = msg('ores-damaging-probability', (100 * score).toFixed(0) + '%');
 
+				// Add alert
+				$feedContent
+					.filter('.mw-rtrc-item[data-diff="' + Number(revid) + '"]')
+					.addClass('mw-rtrc-item-alert mw-rtrc-item-alert-rev')
+					.find('.mw-rtrc-meta')
+					.prepend(
+						$('<span>')
+							.addClass('mw-rtrc-revscore')
+							.attr('title', tooltip)
+					);
 			});
 		})
 		.always(callback);
@@ -682,7 +676,7 @@ Example:
 		users = [];
 		$feedContent.filter('.mw-rtrc-item').each(function () {
 			var user = $(this).attr('user');
-			// Keep the list values unique to avoid long API query strings.
+			// Keep the list values unique to avoid long API query strings
 			if (user && $.inArray(user, users) === -1) {
 				users.push(user);
 			}
@@ -730,14 +724,14 @@ Example:
 						tooltip += msg('cvn-adder') + ': ' + msg('cvn-adder-empty');
 					}
 
-					// Apply blacklisted-class, and insert icon with tooltip
+					// Add alert
 					$feedContent
 						.filter('.mw-rtrc-item')
 						.filter(function () {
 							return $(this).attr('user') === name;
 						})
-						.find('.user')
-						.addClass('blacklisted')
+						.addClass('mw-rtrc-item-alert mw-rtrc-item-alert-user')
+						.find('.mw-userlink')
 						.attr('title', tooltip);
 				}
 
@@ -842,22 +836,20 @@ Example:
 						});
 						isUpdating = false;
 					});
-				} else {
-					if (oresModel && opt.app.ores) {
-						applyOresAnnotations($feedContent, function () {
-							pushFeedContent({
-								$feedContent: $feedContent,
-								rawHtml: feedContentHTML
-							});
-							isUpdating = false;
-						});
-					} else {
+				} else if (oresModel && opt.app.ores) {
+					applyOresAnnotations($feedContent, function () {
 						pushFeedContent({
 							$feedContent: $feedContent,
 							rawHtml: feedContentHTML
 						});
 						isUpdating = false;
-					}
+					});
+				} else {
+					pushFeedContent({
+						$feedContent: $feedContent,
+						rawHtml: feedContentHTML
+					});
+					isUpdating = false;
 				}
 
 				$RCOptionsSubmit.prop('disabled', false).css('opacity', '1.0');
@@ -1116,7 +1108,7 @@ Example:
 		});
 
 		$('#content').empty().append($wrapper);
-		nextFrame(function () {
+		rAF(function () {
 			$('html').addClass('mw-rtrc-ready');
 		});
 
