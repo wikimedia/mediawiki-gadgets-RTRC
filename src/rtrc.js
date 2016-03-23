@@ -663,7 +663,7 @@ Example:
 
 		dAnnotations.then(function (annotations) {
 			// Loop through all revision ids
-			$.each(revids, function (revid) {
+			$.each(revids, function (i, revid) {
 				var tooltip,
 					score = annotations[revid];
 				// Only highlight high probability scores
