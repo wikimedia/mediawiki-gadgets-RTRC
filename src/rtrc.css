@@ -536,6 +536,10 @@
 	font-weight: bold;
 }
 
+.mw-rtrc-item-alert-rev .mw-rtrc-revscore {
+	cursor: help;
+}
+
 .mw-rtrc-item-alert-user .mw-userlink,
 .mw-rtrc-item-alert-rev .mw-rtrc-revscore {
 	background: url(//upload.wikimedia.org/wikipedia/commons/thumb/f/f7/Nuvola_apps_important.svg/18px-Nuvola_apps_important.svg.png) 0 50% no-repeat;
