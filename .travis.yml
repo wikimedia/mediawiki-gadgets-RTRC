@@ -5,4 +5,4 @@ node_js:
 notifications:
  irc:
    channels:
-     - "chat.freenode.net##krinkle"
+     - "chat.freenode.net#countervandalism"
