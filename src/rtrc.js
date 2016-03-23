@@ -612,12 +612,11 @@ Example:
 		});
 	}
 
-	function applyOresAnnotations($feedContent, callback) {
+	function applyOresAnnotations($feedContent) {
 		var dAnnotations, revids, fetchRevids;
 
 		if (!oresModel) {
-			callback();
-			return;
+			return $.Deferred().resolve();
 		}
 
 		// Find all revids names inside the feed
@@ -626,8 +625,7 @@ Example:
 		});
 
 		if (!revids.length) {
-			callback();
-			return;
+			return $.Deferred().resolve();
 		}
 
 		fetchRevids = $.grep(revids, function (revid) {
@@ -663,7 +661,7 @@ Example:
 			});
 		}
 
-		dAnnotations.then(function (annotations) {
+		return dAnnotations.then(function (annotations) {
 			// Loop through all revision ids
 			$.each(revids, function (i, revid) {
 				var tooltip,
@@ -685,11 +683,10 @@ Example:
 							.attr('title', tooltip)
 					);
 			});
-		})
-		.always(callback);
+		});
 	}
 
-	function applyCvnAnnotations($feedContent, callback) {
+	function applyCvnAnnotations($feedContent) {
 		var dAnnotations,
 			users = [];
 
@@ -724,7 +721,7 @@ Example:
 			});
 		}
 
-		dAnnotations.then(function (annotations) {
+		return dAnnotations.then(function (annotations) {
 			// Loop through all cvn user annotations
 			$.each(annotations, function (name, user) {
 				var tooltip;
@@ -757,9 +754,7 @@ Example:
 				}
 
 			});
-		})
-		// Push the feed to the frontend
-		.always(callback);
+		});
 	}
 
 	/**
@@ -814,7 +809,9 @@ Example:
 				$RCOptionsSubmit.prop('disabled', false).css('opacity', '1.0');
 
 			}).done(function (data) {
-				var recentchanges, $feedContent, feedContentHTML = '';
+				var recentchanges, $feedContent,
+					promises = [],
+					feedContentHTML = '';
 
 				if (data.error) {
 					$body.removeClass('placeholder');
@@ -846,28 +843,18 @@ Example:
 
 				$feedContent = $($.parseHTML(feedContentHTML));
 				if (opt.app.cvnDB) {
-					applyCvnAnnotations($feedContent, function () {
-						pushFeedContent({
-							$feedContent: $feedContent,
-							rawHtml: feedContentHTML
-						});
-						isUpdating = false;
-					});
-				} else if (oresModel && opt.app.ores) {
-					applyOresAnnotations($feedContent, function () {
-						pushFeedContent({
-							$feedContent: $feedContent,
-							rawHtml: feedContentHTML
-						});
-						isUpdating = false;
-					});
-				} else {
+					promises.push(applyCvnAnnotations($feedContent));
+				}
+				if (oresModel && opt.app.ores) {
+					promises.push(applyOresAnnotations($feedContent));
+				}
+				$.when.apply($, promises).always(function () {
 					pushFeedContent({
 						$feedContent: $feedContent,
 						rawHtml: feedContentHTML
 					});
 					isUpdating = false;
-				}
+				});
 
 				$RCOptionsSubmit.prop('disabled', false).css('opacity', '1.0');
 			})
@@ -1031,13 +1018,6 @@ Example:
 						'</label>' +
 						'<input type="number" value="3" min="0" max="99" size="2" id="mw-rtrc-settings-refresh" name="refresh" />' +
 					'</div>' +
-					'<div class="panel">' +
-						'<label class="head">' +
-							'CVN DB<br />' +
-							'<span section="IRC_Blacklist" class="helpicon"></span>' +
-							'<input type="checkbox" class="switch" name="cvnDB" />' +
-						'</label>' +
-					'</div>' +
 					'<div class="panel panel-last">' +
 						'<input class="button" type="button" id="RCOptions_submit" value="' + message('apply').escaped() + '" />' +
 					'</div>' +
@@ -1051,11 +1031,18 @@ Example:
 							'</select>' +
 						'</label>' +
 					'</div>' +
+					'<div class="panel">' +
+						'<label class="head">' +
+							'CVN Scores' +
+							'<span section="CVN_Scores" class="helpicon"></span>' +
+							'<input type="checkbox" class="switch" name="cvnDB" />' +
+						'</label>' +
+					'</div>' +
 					(oresModel ? (
 						'<div class="panel">' +
 							'<label class="head">' +
-								'Show Scores' +
-								'<span section="Scores" class="helpicon"></span>' +
+								'ORES Scores' +
+								'<span section="ORES_Scores" class="helpicon"></span>' +
 								'<input type="checkbox" class="switch" name="ores" />' +
 							'</label>' +
 						'</div>'
