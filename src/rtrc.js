@@ -488,6 +488,10 @@ Example:
 		updateFeed();
 	}
 
+	function scrollToTop() {
+		$wrapper[0].scrollIntoView({ block: 'start', behavior: 'smooth' });
+	}
+
 	// Read permalink into the program and reflect into settings form.
 	// TODO: Refactor into init, as this does more than read permalink.
 	// It also inits the settings form and handles kickstart
@@ -508,9 +512,7 @@ Example:
 
 		if (kickstart === '1') {
 			updateFeedNow();
-			if ($wrapper[0].scrollIntoView) {
-				$wrapper[0].scrollIntoView();
-			}
+			scrollToTop();
 		}
 	}
 
@@ -1224,6 +1226,7 @@ Example:
 					if ($diff.length) {
 						mw.hook('wikipage.diff').fire($diff.eq(0));
 					}
+					scrollToTop();
 				}
 			});
 
