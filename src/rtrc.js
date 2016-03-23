@@ -35,7 +35,13 @@
 	docUrl = '//meta.wikimedia.org/wiki/User:Krinkle/Tools/Real-Time_Recent_Changes?uselang=' + conf.wgUserLanguage,
 	// 32x32px
 	ajaxLoaderUrl = '//upload.wikimedia.org/wikipedia/commons/d/de/Ajax-loader.gif',
-	patrolCacheSize = 20,
+	annotationsCache = {
+		patrolled: {},
+		cvn: {},
+		ores: {}
+	},
+	// See annotationsCacheUp()
+	annotationsCacheSize = 0,
 
 	/**
 	 * Info from the wiki
@@ -53,7 +59,6 @@
 
 	rcPrevDayHeading,
 	skippedRCIDs = [],
-	patrolledRCIDs = [],
 	monthNames,
 
 	prevFeedHtml,
@@ -87,7 +92,7 @@
 		},
 
 		app: {
-			refresh: 3,
+			refresh: 5,
 			cvnDB: false,
 			ores: false,
 			massPatrol: false,
@@ -589,7 +594,6 @@ Example:
 
 	// Called when the feed is regenerated before being inserted in the document
 	function applyRtrcAnnotations($feedContent) {
-
 		// Re-apply item classes
 		$feedContent.filter('.mw-rtrc-item').each(function () {
 			var $el = $(this),
@@ -598,7 +602,7 @@ Example:
 			// Mark skipped and patrolled items as such
 			if ($.inArray(rcid, skippedRCIDs) !== -1) {
 				$el.addClass('mw-rtrc-item-skipped');
-			} else if ($.inArray(rcid, patrolledRCIDs) !== -1) {
+			} else if (annotationsCache.patrolled.hasOwnProperty(rcid)) {
 				$el.addClass('mw-rtrc-item-patrolled');
 			} else if (rcid === currentDiffRcid) {
 				$el.addClass('mw-rtrc-item-current');
@@ -607,7 +611,7 @@ Example:
 	}
 
 	function applyOresAnnotations($feedContent, callback) {
-		var revids;
+		var dAnnotations, revids, fetchRevids;
 
 		if (!oresModel) {
 			callback();
@@ -624,32 +628,46 @@ Example:
 			return;
 		}
 
-		$.ajax({
-			url: oresApiUrl,
-			data: {
-				models: oresModel,
-				revids: revids.join('|')
-			},
-			timeout: 10000,
-			dataType: $.support.cors ? 'json' : 'jsonp',
-			// Don't append invalid "&_=.." query
-			cache: true
-		})
-		.done(function (data) {
-			if (data.error) {
-				return;
-			}
+		fetchRevids = $.grep(revids, function (revid) {
+			return !annotationsCache.ores.hasOwnProperty(revid);
+		});
 
-			// Loop through all revids
-			$.each(data, function (revid, item) {
-				var tooltip, score;
-				if (!item || item.error || !item[oresModel] || item[oresModel].error) {
-					return;
+		if (!fetchRevids.length) {
+			// No (new) revisions
+			dAnnotations = $.Deferred().resolve(annotationsCache.ores);
+		} else {
+			dAnnotations = $.ajax({
+				url: oresApiUrl,
+				data: {
+					models: oresModel,
+					revids: fetchRevids.join('|')
+				},
+				timeout: 10000,
+				dataType: $.support.cors ? 'json' : 'jsonp',
+				cache: true
+			}).then(function (resp) {
+				var len;
+				if (resp) {
+					len = Object.keys ? Object.keys(resp).length : fetchRevids.length;
+					annotationsCacheUp(len);
+					$.each(resp, function (revid, item) {
+						if (!item || item.error || !item[oresModel] || item[oresModel].error) {
+							return;
+						}
+						annotationsCache.ores[revid] = item[oresModel].probability['true'];
+					});
 				}
-				score = item[oresModel].probability['true'];
+				return annotationsCache.ores;
+			});
+		}
 
+		dAnnotations.then(function (annotations) {
+			// Loop through all revision ids
+			$.each(revids, function (revid) {
+				var tooltip,
+					score = annotations[revid];
 				// Only highlight high probability scores
-				if (score <= 0.8) {
+				if (!score || score <= 0.8) {
 					return;
 				}
 				tooltip = msg('ores-damaging-probability', (100 * score).toFixed(0) + '%');
@@ -670,45 +688,46 @@ Example:
 	}
 
 	function applyCvnAnnotations($feedContent, callback) {
-		var users;
+		var dAnnotations,
+			users = [];
 
-		// Find all user names inside the feed
-		users = [];
+		// Collect user names
 		$feedContent.filter('.mw-rtrc-item').each(function () {
 			var user = $(this).attr('user');
-			// Keep the list values unique to avoid long API query strings
-			if (user && $.inArray(user, users) === -1) {
+			// Don't query the same user multiple times
+			if (user && $.inArray(user, users) === -1 && !annotationsCache.cvn.hasOwnProperty(user)) {
 				users.push(user);
 			}
 		});
 
 		if (!users.length) {
-			callback();
-			return;
+			// No (new) users
+			dAnnotations = $.Deferred().resolve(annotationsCache.cvn);
+		} else {
+			dAnnotations = $.ajax({
+				url: cvnApiUrl,
+				data: { users: users.join('|') },
+				timeout: 2000,
+				dataType: $.support.cors ? 'json' : 'jsonp',
+				cache: true
+			})
+			.then(function (resp) {
+				if (resp.users) {
+					annotationsCacheUp(resp.users.length);
+					$.each(resp.users, function (name, user) {
+						annotationsCache.cvn[name] = user;
+					});
+				}
+				return annotationsCache.cvn;
+			});
 		}
 
-		$.ajax({
-			url: cvnApiUrl,
-			data: {
-				users: users.join('|')
-			},
-			timeout: 2000,
-			dataType: $.support.cors ? 'json' : 'jsonp',
-			// Don't force cache invalidation
-			cache: true
-		})
-		.done(function (data) {
-			var d;
-
-			if (!data.users) {
-				return;
-			}
-
-			// Loop through all users
-			$.each(data.users, function (name, user) {
+		dAnnotations.then(function (annotations) {
+			// Loop through all cvn user annotations
+			$.each(annotations, function (name, user) {
 				var tooltip;
 
-				// Only if blacklisted, otherwise dont highlight
+				// Only if blacklisted, otherwise don't highlight
 				if (user.type === 'blacklist') {
 					tooltip = '';
 
@@ -736,10 +755,6 @@ Example:
 				}
 
 			});
-
-			d = new Date();
-			d.setTime(data.lastUpdate * 1000);
-			$feed.find('.mw-rtrc-feed-cvninfo').text('CVN DB ' + msg('lastupdate-cvn', d.toUTCString()));
 		})
 		// Push the feed to the frontend
 		.always(callback);
@@ -1071,7 +1086,6 @@ Example:
 				'<div class="mw-rtrc-feed">' +
 					'<div class="mw-rtrc-feed-update"></div>' +
 					'<div class="mw-rtrc-feed-content"></div>' +
-					'<small class="mw-rtrc-feed-cvninfo"></small>' +
 				'</div>' +
 				'<img src="' + ajaxLoaderUrl + '" id="krRTRC_loader" style="display: none;" />' +
 				'<div class="mw-rtrc-legend">' +
@@ -1114,6 +1128,15 @@ Example:
 
 		$body = $wrapper.find('.mw-rtrc-body');
 		$feed = $body.find('.mw-rtrc-feed');
+	}
+
+	function annotationsCacheUp(increment) {
+		annotationsCacheSize += increment || 1;
+		if (annotationsCacheSize > 1000) {
+			annotationsCache.patrolled = {};
+			annotationsCache.ores = {};
+			annotationsCache.cvn = {};
+		}
 	}
 
 	// Bind event hanlders in the user interface
@@ -1275,23 +1298,20 @@ Example:
 						$('<span style="color: red;"></span>').text(mw.msg('markedaspatrollederror'))
 					);
 					mw.log('Patrol error:', data);
-				} else {
-					$el.empty().append(
-						$('<span style="color: green;"></span>').text(mw.msg('markedaspatrolled'))
-					);
-					$feed.find('.mw-rtrc-item[data-rcid="' + currentDiffRcid + '"]').addClass('mw-rtrc-item-patrolled');
+					return;
+				}
+				$el.empty().append(
+					$('<span style="color: green;"></span>').text(mw.msg('markedaspatrolled'))
+				);
+				$feed.find('.mw-rtrc-item[data-rcid="' + currentDiffRcid + '"]').addClass('mw-rtrc-item-patrolled');
 
-					// Patrolling/Refreshing sometimes overlap eachother causing patrolled edits to show up in an 'unpatrolled only' feed.
-					// Make sure that any patrolled edits stay marked as such to prevent AutoDiff from picking a patrolled edit
-					patrolledRCIDs.push(currentDiffRcid);
+				// Feed refreshes may overlap with patrol actions, which can cause patrolled edits
+				// to show up in an "Unpatrolled only" feed. This is make nextDiff() skip those.
+				annotationsCacheUp();
+				annotationsCache.patrolled[currentDiffRcid] = true;
 
-					while (patrolledRCIDs.length > patrolCacheSize) {
-						patrolledRCIDs.shift();
-					}
-
-					if (opt.app.autoDiff) {
-						nextDiff();
-					}
+				if (opt.app.autoDiff) {
+					nextDiff();
 				}
 			}).fail(function () {
 				$el.empty().append(
