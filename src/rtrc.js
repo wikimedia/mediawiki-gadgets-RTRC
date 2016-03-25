@@ -897,8 +897,8 @@ Example:
 		$lis.eq(0).find('a.rcitemlink').click();
 	}
 
-	function toggleMassPatrol(b) {
-		if (b === true) {
+	function wakeupMassPatrol(settingVal) {
+		if (settingVal === true) {
 			if (!currentDiff) {
 				nextDiff();
 			} else {
@@ -1169,9 +1169,9 @@ Example:
 
 			readSettingsForm();
 
-			toggleMassPatrol(opt.app.massPatrol);
-
-			updateFeedNow();
+			updateFeedNow().then(function () {
+				wakeupMassPatrol(opt.app.massPatrol);
+			});
 			return false;
 		});
 
