@@ -965,16 +965,13 @@ Example:
 								'<input type="checkbox" name="unpatrolled" />' +
 								' ' + message('filter-unpatrolled').escaped() +
 							'</label>' +
+							'<br />' +
+							'<label>' +
+								message('userfilter').escaped() +
+								'<span section="Userfilter" class="helpicon"></span>: ' +
+								'<input type="search" size="16" name="user" />' +
+							'</label>' +
 						'</div>' +
-					'</div>' +
-					'<div class="panel">' +
-						'<label for="mw-rtrc-settings-user" class="head">' +
-							message('userfilter').escaped() +
-							'<span section="Userfilter" class="helpicon"></span>' +
-						'</label>' +
-						'<input type="text" size="16" id="mw-rtrc-settings-user" name="user" />' +
-						'<br />' +
-						'<input class="button button-small" type="button" id="mw-rtrc-settings-user-clr" value="' + message('clear').escaped() + '" />' +
 					'</div>' +
 					'<div class="panel">' +
 						'<label class="head">' + message('type').escaped() + '</label>' +
@@ -1380,12 +1377,6 @@ Example:
 				e.preventDefault();
 				window.open(docUrl + '#' + $(this).attr('section'), '_blank');
 			});
-
-		// Clear rcuser-field
-		// If MassPatrol is active, warn that clearing rcuser will automatically disable MassPatrol f
-		$('#mw-rtrc-settings-user-clr').click(function () {
-			$('#mw-rtrc-settings-user').val('');
-		});
 
 		// Mark as patrolled when rollbacking
 		// Note: As of MediaWiki r(unknown) rollbacking does already automatically patrol all reverted revisions.
