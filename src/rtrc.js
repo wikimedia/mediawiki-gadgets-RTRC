@@ -1045,7 +1045,7 @@ Example:
 				'<div class="panel-group panel-group-mini">' +
 					'<div class="panel">' +
 						'<label for="mw-rtrc-settings-limit" class="head">' + message('limit').escaped() + '</label>' +
-						'<select id="mw-rtrc-settings-limit" name="limit">' +
+						' <select id="mw-rtrc-settings-limit" name="limit">' +
 							'<option value="10">10</option>' +
 							'<option value="25" selected>25</option>' +
 							'<option value="50">50</option>' +
