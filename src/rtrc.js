@@ -82,9 +82,10 @@
 			user: undefined,
 			// Tag ID
 			tag: undefined,
-			// Show filters: exclude, include, filter
-			showAnonOnly: false,
-			showUnpatrolledOnly: false,
+			// Filters
+			hideliu: false,
+			hidebots: true,
+			unpatrolled: false,
 			limit: 25,
 			// Type filters are "show matches only"
 			typeEdit: false,
@@ -98,6 +99,11 @@
 			massPatrol: false,
 			autoDiff: false
 		}
+	},
+	aliasOpt = {
+		// Back-compat for v1.0.4 and earlier
+		showAnonOnly: 'hideliu',
+		showUnpatrolledOnly: 'unpatrolled'
 	},
 	opt = $(true, {}, defOpt),
 
@@ -342,8 +348,9 @@ Example:
 				case 'tag':
 					setting.value = value || '';
 					break;
-				case 'showAnonOnly':
-				case 'showUnpatrolledOnly':
+				case 'hideliu':
+				case 'hidebots':
+				case 'unpatrolled':
 				case 'typeEdit':
 				case 'typeNew':
 					setting.checked = value;
@@ -417,8 +424,9 @@ Example:
 			case 'tag':
 				opt.rc[name] = el.value || undefined;
 				break;
-			case 'showAnonOnly':
-			case 'showUnpatrolledOnly':
+			case 'hideliu':
+			case 'hidebots':
+			case 'unpatrolled':
 			case 'typeEdit':
 			case 'typeNew':
 				opt.rc[name] = el.checked;
@@ -496,11 +504,23 @@ Example:
 	// TODO: Refactor into init, as this does more than read permalink.
 	// It also inits the settings form and handles kickstart
 	function readPermalink() {
-		var url = new mw.Uri(),
+		var group, oldKey, newKey,
+			url = new mw.Uri(),
 			newOpt = url.query.opt,
 			kickstart = url.query.kickstart;
 
 		newOpt = newOpt ? JSON.parse(newOpt) : {};
+
+		// Rename values for old aliases
+		for (group in newOpt) {
+			for (oldKey in newOpt[group]) {
+				newKey = aliasOpt[oldKey];
+				if (newKey && !newOpt[group].hasOwnProperty(newKey)) {
+					newOpt[group][newKey] = newOpt[group][oldKey];
+					delete newOpt[group][oldKey];
+				}
+			}
+		}
 
 		newOpt = $.extend(true, {}, defOpt, newOpt);
 
@@ -526,7 +546,7 @@ Example:
 				'sizes',
 				'ids'
 			],
-			rcshow = ['!bot'],
+			rcshow = [],
 			rctype = [],
 			params = {};
 
@@ -569,11 +589,15 @@ Example:
 
 		params.rcprop = rcprop.join('|');
 
-		if (rc.showAnonOnly) {
+		if (rc.hideliu) {
 			rcshow.push('anon');
 		}
 
-		if (rc.showUnpatrolledOnly) {
+		if (rc.hidebots) {
+			rcshow.push('!bot');
+		}
+
+		if (rc.unpatrolled) {
 			rcshow.push('!patrolled');
 		}
 
@@ -920,13 +944,19 @@ Example:
 						'<label class="head">' + message('filter').escaped() + '</label>' +
 						'<div class="sub-panel">' +
 							'<label>' +
-								'<input type="checkbox" name="showAnonOnly" />' +
-								' ' + message('showAnonOnly').escaped() +
+								'<input type="checkbox" name="hideliu" />' +
+								' ' + message('filter-hideliu').escaped() +
 							'</label>' +
 							'<br />' +
 							'<label>' +
-								'<input type="checkbox" name="showUnpatrolledOnly" />' +
-								' ' + message('showUnpatrolledOnly').escaped() +
+								'<input type="checkbox" name="hidebots" />' +
+								' ' + message('filter-hidebots').escaped() +
+							'</label>' +
+						'</div>' +
+						'<div class="sub-panel">' +
+							'<label>' +
+								'<input type="checkbox" name="unpatrolled" />' +
+								' ' + message('filter-unpatrolled').escaped() +
 							'</label>' +
 						'</div>' +
 					'</div>' +
