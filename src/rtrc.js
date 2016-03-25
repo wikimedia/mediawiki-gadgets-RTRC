@@ -493,7 +493,7 @@ Example:
 	function updateFeedNow() {
 		$('#rc-options-pause').prop('checked', false);
 		clearTimeout(updateFeedTimeout);
-		updateFeed();
+		return updateFeed();
 	}
 
 	function scrollToTop() {
@@ -807,88 +807,89 @@ Example:
 
 	function updateFeed() {
 		var rcparams;
-		if (!isUpdating) {
+		if (isUpdating) {
+			return isUpdating;
+		}
 
-			// Indicate updating
-			$('#krRTRC_loader').show();
-			isUpdating = true;
+		// Indicate updating
+		$('#krRTRC_loader').show();
 
-			// Download recent changes
+		// Download recent changes
+		rcparams = getApiRcParams(opt.rc);
+		rcparams.format = 'json';
+		rcparams.action = 'query';
+		rcparams.list = 'recentchanges';
 
-			rcparams = getApiRcParams(opt.rc);
-			rcparams.format = 'json';
-			rcparams.action = 'query';
-			rcparams.list = 'recentchanges';
+		isUpdating = $.ajax({
+			url: apiUrl,
+			dataType: 'json',
+			data: rcparams
+		}).fail(function () {
+			var feedContentHTML = '<h3>Downloading recent changes failed</h3>';
+			pushFeedContent({
+				$feedContent: $(feedContentHTML),
+				rawHtml: feedContentHTML
+			});
+			isUpdating = false;
+			$RCOptionsSubmit.prop('disabled', false).css('opacity', '1.0');
 
-			$.ajax({
-				url: apiUrl,
-				dataType: 'json',
-				data: rcparams
-			}).fail(function () {
-				var feedContentHTML = '<h3>Downloading recent changes failed</h3>';
+		}).done(function (data) {
+			var recentchanges, $feedContent,
+				promises = [],
+				feedContentHTML = '';
+
+			if (data.error) {
+				$body.removeClass('placeholder');
+
+				// Account doesn't have patrol flag
+				if (data.error.code === 'rcpermissiondenied') {
+					feedContentHTML += '<h3>Downloading recent changes failed</h3><p>Please untick the "Unpatrolled only"-checkbox or request the Patroller-right.</a>';
+
+				// Other error
+				} else {
+					feedContentHTML += '<h3>Downloading recent changes failed</h3><p>Please check the settings above and try again. If you believe this is a bug, please <a href="//meta.wikimedia.org/w/index.php?title=User_talk:Krinkle/Tools&action=edit&section=new&preload=User_talk:Krinkle/Tools/Preload" target="_blank"><strong>let me know</strong></a>.';
+				}
+
+			} else {
+				recentchanges = data.query.recentchanges;
+
+				if (recentchanges.length) {
+					$.each(recentchanges, function (i, rc) {
+						feedContentHTML += buildRcItem(rc);
+					});
+				} else {
+					// Everything is OK - no results
+					feedContentHTML += '<strong><em>' + message('nomatches').escaped() + '</em></strong>';
+				}
+
+				// Reset day
+				rcPrevDayHeading = undefined;
+			}
+
+			$feedContent = $($.parseHTML(feedContentHTML));
+			if (opt.app.cvnDB) {
+				promises.push(applyCvnAnnotations($feedContent));
+			}
+			if (oresModel && opt.app.ores) {
+				promises.push(applyOresAnnotations($feedContent));
+			}
+			$.when.apply($, promises).always(function () {
 				pushFeedContent({
-					$feedContent: $(feedContentHTML),
+					$feedContent: $feedContent,
 					rawHtml: feedContentHTML
 				});
 				isUpdating = false;
-				$RCOptionsSubmit.prop('disabled', false).css('opacity', '1.0');
-
-			}).done(function (data) {
-				var recentchanges, $feedContent,
-					promises = [],
-					feedContentHTML = '';
-
-				if (data.error) {
-					$body.removeClass('placeholder');
-
-					// Account doesn't have patrol flag
-					if (data.error.code === 'rcpermissiondenied') {
-						feedContentHTML += '<h3>Downloading recent changes failed</h3><p>Please untick the "Unpatrolled only"-checkbox or request the Patroller-right.</a>';
-
-					// Other error
-					} else {
-						feedContentHTML += '<h3>Downloading recent changes failed</h3><p>Please check the settings above and try again. If you believe this is a bug, please <a href="//meta.wikimedia.org/w/index.php?title=User_talk:Krinkle/Tools&action=edit&section=new&preload=User_talk:Krinkle/Tools/Preload" target="_blank"><strong>let me know</strong></a>.';
-					}
-
-				} else {
-					recentchanges = data.query.recentchanges;
-
-					if (recentchanges.length) {
-						$.each(recentchanges, function (i, rc) {
-							feedContentHTML += buildRcItem(rc);
-						});
-					} else {
-						// Everything is OK - no results
-						feedContentHTML += '<strong><em>' + message('nomatches').escaped() + '</em></strong>';
-					}
-
-					// Reset day
-					rcPrevDayHeading = undefined;
-				}
-
-				$feedContent = $($.parseHTML(feedContentHTML));
-				if (opt.app.cvnDB) {
-					promises.push(applyCvnAnnotations($feedContent));
-				}
-				if (oresModel && opt.app.ores) {
-					promises.push(applyOresAnnotations($feedContent));
-				}
-				$.when.apply($, promises).always(function () {
-					pushFeedContent({
-						$feedContent: $feedContent,
-						rawHtml: feedContentHTML
-					});
-					isUpdating = false;
-				});
-
-				$RCOptionsSubmit.prop('disabled', false).css('opacity', '1.0');
-			})
-			.then(function () {
-				// Schedule next update
-				updateFeedTimeout = setTimeout(updateFeed, opt.app.refresh * 1000);
-				$('#krRTRC_loader').hide();
 			});
-		}
+
+			$RCOptionsSubmit.prop('disabled', false).css('opacity', '1.0');
+		})
+		.then(function () {
+			// Schedule next update
+			updateFeedTimeout = setTimeout(updateFeed, opt.app.refresh * 1000);
+			$('#krRTRC_loader').hide();
+		});
+
+		return isUpdating;
 	}
 
 	function nextDiff() {
@@ -1390,11 +1391,12 @@ Example:
 
 		// Button: Pause
 		$('#rc-options-pause').click(function () {
-			if (this.checked) {
-				clearTimeout(updateFeedTimeout);
+			if (!this.checked) {
+				// Unpause
+				updateFeedNow();
 				return;
 			}
-			updateFeedNow();
+			clearTimeout(updateFeedTimeout);
 		});
 	}
 
