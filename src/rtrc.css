@@ -523,10 +523,6 @@
 	background: #f3f3f3;
 }
 
-.mw-rtrc-item.mw-rtrc-item-aes {
-	background: #fff0f0;
-}
-
 .mw-rtrc-item.mw-rtrc-item-alert {
 	background: #ffd5d5;
 }
@@ -542,10 +538,6 @@
 .mw-rtrc-item.mw-rtrc-item-current {
 	background: #ffce7b;
 	border: 1px solid orange;
-}
-
-.mw-rtrc-item-aes .comment {
-	font-weight: bold;
 }
 
 .mw-rtrc-item-alert-rev .mw-rtrc-revscore {

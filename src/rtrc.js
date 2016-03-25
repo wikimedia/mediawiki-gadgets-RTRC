@@ -208,7 +208,7 @@
 	function buildRcItem(rc) {
 		var diffsize, isUnpatrolled, isAnon,
 			typeSymbol, itemClass, diffLink,
-			commentHtml, el, item;
+			el, item;
 
 		// Get size difference (can be negative, zero or positive)
 		diffsize = rc.newlen - rc.oldlen;
@@ -227,14 +227,6 @@
 
 		if ((rc.type === 'edit' || rc.type === 'new') && userHasPatrolRight && isUnpatrolled) {
 			typeSymbol += '<span class="unpatrolled">!</span>';
-		}
-
-		commentHtml = rc.parsedcomment;
-
-		// Check if edit summary is an AES
-		if (commentHtml.indexOf('<a href="/wiki/Commons:AES" class="mw-redirect" title="Commons:AES">\u2190</a>') === 0) {
-			// FIXME: This is specific to commons.wikimedia.org
-			itemClass += ' mw-rtrc-item-aes';
 		}
 
 		/*
@@ -274,7 +266,7 @@ Example:
 			'&nbsp;</small>&middot;&nbsp;' +
 			'<a class="mw-userlink" href="' + mw.util.getUrl((mw.util.isIPv4Address(rc.user) || mw.util.isIPv6Address(rc.user) ? 'Special:Contributions/' : 'User:') + rc.user) + '" target="_blank">' + rc.user + '</a>' +
 			'</div>' +
-			'<div comment>&nbsp;<span class="comment">' + commentHtml + '</span></div>';
+			'<div comment>&nbsp;<span class="comment">' + rc.parsedcomment + '</span></div>';
 
 		if (diffsize > 0) {
 			el = diffsize > 399 ? 'strong' : 'span';
@@ -1113,8 +1105,7 @@ Example:
 					message('legend').escaped() + ': <div class="mw-rtrc-item mw-rtrc-item-patrolled inline-block">&nbsp;' +
 					mw.message('markedaspatrolled').escaped() + '&nbsp;</div>, <div class="mw-rtrc-item mw-rtrc-item-current inline-block">&nbsp;' +
 					message('currentedit').escaped() + '&nbsp;</div>, ' +
-					'<div class="mw-rtrc-item mw-rtrc-item-skipped inline-block">&nbsp;' + message('skippededit').escaped() + '&nbsp;</div>, ' +
-					'<div class="mw-rtrc-item mw-rtrc-item-aes inline-block">&nbsp;Edit with an Automatic Edit Summary&nbsp;</div>' +
+					'<div class="mw-rtrc-item mw-rtrc-item-skipped inline-block">&nbsp;' + message('skippededit').escaped() + '&nbsp;</div>' +
 				'</div>' +
 			'</div>' +
 			'<div style="clear: both;"></div>' +
