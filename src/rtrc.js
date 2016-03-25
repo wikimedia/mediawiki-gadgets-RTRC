@@ -88,8 +88,8 @@
 			unpatrolled: false,
 			limit: 25,
 			// Type filters are "show matches only"
-			typeEdit: false,
-			typeNew: false
+			typeEdit: true,
+			typeNew: true
 		},
 
 		app: {
@@ -613,6 +613,7 @@ Example:
 			rctype.push('new');
 		}
 
+		// Custom default instead of MediaWiki's default (in case both checkboxes were unchecked)
 		params.rctype = rctype.length ? rctype.join('|') : 'edit|new';
 
 		return params;
