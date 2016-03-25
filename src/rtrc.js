@@ -918,7 +918,7 @@ Example:
 				'<div class="panel-group">' +
 					'<div class="panel">' +
 						'<label class="head">' + message('filter').escaped() + '</label>' +
-						'<div style="text-align: left;">' +
+						'<div class="sub-panel">' +
 							'<label>' +
 								'<input type="checkbox" name="showAnonOnly" />' +
 								' ' + message('showAnonOnly').escaped() +
@@ -935,15 +935,13 @@ Example:
 							message('userfilter').escaped() +
 							'<span section="Userfilter" class="helpicon"></span>' +
 						'</label>' +
-						'<div style="text-align: center;">' +
-							'<input type="text" size="16" id="mw-rtrc-settings-user" name="user" />' +
-							'<br />' +
-							'<input class="button button-small" type="button" id="mw-rtrc-settings-user-clr" value="' + message('clear').escaped() + '" />' +
-						'</div>' +
+						'<input type="text" size="16" id="mw-rtrc-settings-user" name="user" />' +
+						'<br />' +
+						'<input class="button button-small" type="button" id="mw-rtrc-settings-user-clr" value="' + message('clear').escaped() + '" />' +
 					'</div>' +
 					'<div class="panel">' +
 						'<label class="head">' + message('type').escaped() + '</label>' +
-						'<div style="text-align: left;">' +
+						'<div class="sub-panel">' +
 							'<label>' +
 								'<input type="checkbox" name="typeEdit" checked />' +
 								' ' + message('typeEdit').escaped() +
@@ -969,7 +967,7 @@ Example:
 							message('timeframe').escaped() +
 							'<span section="Timeframe" class="helpicon"></span>' +
 						'</label>' +
-						'<div style="text-align: right;">' +
+						'<div class="sub-panel" style="text-align: right;">' +
 							'<label>' +
 								message('time-from').escaped() + ': ' +
 								'<input type="text" size="16" placeholder="YYYYMMDDHHIISS" name="start" />' +
@@ -987,7 +985,7 @@ Example:
 							' <br />' +
 							'<span section="Order" class="helpicon"></span>' +
 						'</label>' +
-						'<div style="text-align: left;">' +
+						'<div class="sub-panel">' +
 							'<label>' +
 								'<input type="radio" name="dir" value="newer" />' +
 								' ' + message('asc').escaped() +

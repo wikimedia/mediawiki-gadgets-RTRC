@@ -310,8 +310,20 @@
 	text-align: center;
 }
 
-.mw-rtrc-settings .panel-last {
+.mw-rtrc-settings .sub-panel {
+	display: inline-block;
+	vertical-align: top;
+	text-align: left;
+	padding: 0 5px;
+	border-right: 1px solid #ddd;
+}
+
+.mw-rtrc-settings .sub-panel:first-of-type {
+	padding-left: 0;
+}
+.mw-rtrc-settings .sub-panel:last-of-type {
 	border-right: 0;
+	padding-right: 0;
 }
 
 .mw-rtrc-settings .panel .head {
