@@ -972,12 +972,12 @@ Example:
 						'<div style="text-align: right;">' +
 							'<label>' +
 								message('time-from').escaped() + ': ' +
-								'<input type="text" size="18" name="start" />' +
+								'<input type="text" size="16" placeholder="YYYYMMDDHHIISS" name="start" />' +
 							'</label>' +
 							'<br />' +
 							'<label>' +
 								message('time-untill').escaped() + ': ' +
-								'<input type="text" size="18" name="end" />' +
+								'<input type="text" size="16" placeholder="YYYYMMDDHHIISS" name="end" />' +
 							'</label>' +
 						'</div>' +
 					'</div>' +
