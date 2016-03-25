@@ -1102,10 +1102,10 @@ Example:
 				'</div>' +
 				'<img src="' + ajaxLoaderUrl + '" id="krRTRC_loader" style="display: none;" />' +
 				'<div class="mw-rtrc-legend">' +
-					message('legend').escaped() + ': <div class="mw-rtrc-item mw-rtrc-item-patrolled inline-block">&nbsp;' +
-					mw.message('markedaspatrolled').escaped() + '&nbsp;</div>, <div class="mw-rtrc-item mw-rtrc-item-current inline-block">&nbsp;' +
+					message('legend').escaped() + ': <div class="mw-rtrc-item mw-rtrc-item-patrolled">&nbsp;' +
+					mw.message('markedaspatrolled').escaped() + '&nbsp;</div>, <div class="mw-rtrc-item mw-rtrc-item-current">&nbsp;' +
 					message('currentedit').escaped() + '&nbsp;</div>, ' +
-					'<div class="mw-rtrc-item mw-rtrc-item-skipped inline-block">&nbsp;' + message('skippededit').escaped() + '&nbsp;</div>' +
+					'<div class="mw-rtrc-item mw-rtrc-item-skipped">&nbsp;' + message('skippededit').escaped() + '&nbsp;</div>' +
 				'</div>' +
 			'</div>' +
 			'<div style="clear: both;"></div>' +
