@@ -917,18 +917,6 @@ Example:
 			'<form id="krRTRC_RCOptions" class="mw-rtrc-settings mw-rtrc-nohelp make-switch"><fieldset>' +
 				'<div class="panel-group">' +
 					'<div class="panel">' +
-						'<label for="mw-rtrc-settings-limit" class="head">' + message('limit').escaped() + '</label>' +
-						'<select id="mw-rtrc-settings-limit" name="limit">' +
-							'<option value="10">10</option>' +
-							'<option value="25" selected>25</option>' +
-							'<option value="50">50</option>' +
-							'<option value="75">75</option>' +
-							'<option value="100">100</option>' +
-							'<option value="250">250</option>' +
-							'<option value="500">500</option>' +
-						'</select>' +
-					'</div>' +
-					'<div class="panel">' +
 						'<label class="head">' + message('filter').escaped() + '</label>' +
 						'<div style="text-align: left;">' +
 							'<label>' +
@@ -968,6 +956,15 @@ Example:
 						'</div>' +
 					'</div>' +
 					'<div class="panel">' +
+						'<label  class="head">' +
+							mw.message('namespaces').escaped() +
+							' <br />' +
+							'<select class="mw-rtrc-setting-select" name="namespace">' +
+							namespaceOptionsHtml +
+							'</select>' +
+						'</label>' +
+					'</div>' +
+					'<div class="panel">' +
 						'<label class="head">' +
 							message('timeframe').escaped() +
 							'<span section="Timeframe" class="helpicon"></span>' +
@@ -983,15 +980,6 @@ Example:
 								'<input type="text" size="18" name="end" />' +
 							'</label>' +
 						'</div>' +
-					'</div>' +
-					'<div class="panel">' +
-						'<label  class="head">' +
-							mw.message('namespaces').escaped() +
-							' <br />' +
-							'<select class="mw-rtrc-setting-select" name="namespace">' +
-							namespaceOptionsHtml +
-							'</select>' +
-						'</label>' +
 					'</div>' +
 					'<div class="panel">' +
 						'<label class="head">' +
@@ -1023,6 +1011,18 @@ Example:
 					'</div>' +
 				'</div>' +
 				'<div class="panel-group panel-group-mini">' +
+					'<div class="panel">' +
+						'<label for="mw-rtrc-settings-limit" class="head">' + message('limit').escaped() + '</label>' +
+						'<select id="mw-rtrc-settings-limit" name="limit">' +
+							'<option value="10">10</option>' +
+							'<option value="25" selected>25</option>' +
+							'<option value="50">50</option>' +
+							'<option value="75">75</option>' +
+							'<option value="100">100</option>' +
+							'<option value="250">250</option>' +
+							'<option value="500">500</option>' +
+						'</select>' +
+					'</div>' +
 					'<div class="panel">' +
 						'<label class="head">' +
 							message('tag').escaped() +
