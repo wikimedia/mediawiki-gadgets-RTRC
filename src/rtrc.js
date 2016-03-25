@@ -307,9 +307,14 @@ Example:
 			}
 		}
 
-		// MassPatrol requires AutoDiff
+		// MassPatrol implies AutoDiff
 		if (newOpt.app.massPatrol && !newOpt.app.autoDiff) {
 			newOpt.app.autoDiff = true;
+			mod = true;
+		}
+		// MassPatrol implies fetching only unpatrolled changes
+		if (newOpt.app.massPatrol && !newOpt.rc.unpatrolled) {
+			newOpt.rc.unpatrolled = true;
 			mod = true;
 		}
 
