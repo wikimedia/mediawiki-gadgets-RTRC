@@ -219,7 +219,7 @@
 
 		// typeSymbol, diffLink & itemClass
 		typeSymbol = '&nbsp;';
-		itemClass = '';
+		itemClass = [];
 
 		if (rc.type === 'new') {
 			typeSymbol += '<span class="newpage">N</span>';
@@ -227,6 +227,10 @@
 
 		if ((rc.type === 'edit' || rc.type === 'new') && userHasPatrolRight && isUnpatrolled) {
 			typeSymbol += '<span class="unpatrolled">!</span>';
+		}
+
+		if (rc.oldlen > 0 && rc.newlen === 0) {
+			itemClass.push('mw-rtrc-item-alert');
 		}
 
 		/*
@@ -242,7 +246,7 @@ Example:
 
 		// build & return item
 		item = buildRcDayHead(timeUtil.newDateFromApi(rc.timestamp));
-		item += '<div class="mw-rtrc-item ' + itemClass + '" data-diff="' + rc.revid + '" data-rcid="' + rc.rcid + '" user="' + rc.user + '">';
+		item += '<div class="mw-rtrc-item ' + itemClass.join(' ') + '" data-diff="' + rc.revid + '" data-rcid="' + rc.rcid + '" user="' + rc.user + '">';
 
 		if (rc.type === 'edit') {
 			diffLink = '<a class="rcitemlink diff" href="' +
