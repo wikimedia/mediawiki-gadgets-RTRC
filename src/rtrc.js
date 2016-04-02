@@ -558,7 +558,8 @@ Example:
 	}
 
 	function getApiRcParams(rc) {
-		var rcprop = [
+		var params,
+			rcprop = [
 				'flags',
 				'timestamp',
 				'user',
@@ -568,10 +569,40 @@ Example:
 				'ids'
 			],
 			rcshow = [],
-			rctype = [],
-			params = {};
+			rctype = [];
 
-		params.rcdir = rc.dir;
+		if (userHasPatrolRight) {
+			rcprop.push('patrolled');
+		}
+
+		if (rc.hideliu) {
+			rcshow.push('anon');
+		}
+		if (rc.hidebots) {
+			rcshow.push('!bot');
+		}
+		if (rc.unpatrolled) {
+			rcshow.push('!patrolled');
+		}
+
+		if (rc.typeEdit) {
+			rctype.push('edit');
+		}
+		if (rc.typeNew) {
+			rctype.push('new');
+		}
+		if (!rctype.length) {
+			// Custom default instead of MediaWiki's default (in case both checkboxes were unchecked)
+			rctype = ['edit', 'new'];
+		}
+
+		params = {
+			rcdir: rc.dir,
+			rclimit: rc.limit,
+			rcshow: rcshow.join('|'),
+			rcprop: rcprop.join('|'),
+			rctype: rctype.join('|')
+		};
 
 		if (rc.dir === 'older') {
 			if (rc.end !== undefined) {
@@ -597,45 +628,12 @@ Example:
 			params.rcuser = rc.user;
 		}
 
-		// params.titles: Title filter option (rctitles) is no longer supported by MediaWiki,
-		// see https://bugzilla.wikimedia.org/show_bug.cgi?id=12394#c5.
-
 		if (rc.tag !== undefined) {
 			params.rctag = rc.tag;
 		}
 
-		if (userHasPatrolRight) {
-			rcprop.push('patrolled');
-		}
-
-		params.rcprop = rcprop.join('|');
-
-		if (rc.hideliu) {
-			rcshow.push('anon');
-		}
-
-		if (rc.hidebots) {
-			rcshow.push('!bot');
-		}
-
-		if (rc.unpatrolled) {
-			rcshow.push('!patrolled');
-		}
-
-		params.rcshow = rcshow.join('|');
-
-		params.rclimit = rc.limit;
-
-		if (rc.typeEdit) {
-			rctype.push('edit');
-		}
-
-		if (rc.typeNew) {
-			rctype.push('new');
-		}
-
-		// Custom default instead of MediaWiki's default (in case both checkboxes were unchecked)
-		params.rctype = rctype.length ? rctype.join('|') : 'edit|new';
+		// params.titles: Title filter (rctitles) is no longer supported by MediaWiki,
+		// see https://bugzilla.wikimedia.org/show_bug.cgi?id=12394#c5.
 
 		return params;
 	}
@@ -827,7 +825,6 @@ Example:
 	}
 
 	function updateFeed() {
-		var rcparams;
 		if (isUpdating) {
 			return isUpdating;
 		}
@@ -836,27 +833,24 @@ Example:
 		$('#krRTRC_loader').show();
 
 		// Download recent changes
-		rcparams = getApiRcParams(opt.rc);
-		rcparams.format = 'json';
-		rcparams.action = 'query';
-		rcparams.list = 'recentchanges';
-
 		isUpdating = $.ajax({
 			url: apiUrl,
 			dataType: 'json',
-			data: rcparams
-		}).fail(function () {
+			data: $.extend(getApiRcParams(opt.rc), {
+				format: 'json',
+				action: 'query',
+				list: 'recentchanges'
+			})
+		}).then(null, function () {
 			var feedContentHTML = '<h3>Downloading recent changes failed</h3>';
 			pushFeedContent({
 				$feedContent: $(feedContentHTML),
 				rawHtml: feedContentHTML
 			});
-			isUpdating = false;
-			$RCOptionsSubmit.prop('disabled', false).css('opacity', '1.0');
-
-		}).done(function (data) {
+			// Error is handled. Move on normally.
+			return $.Deferred().resolve();
+		}).then(function (data) {
 			var recentchanges, $feedContent,
-				promises = [],
 				feedContentHTML = '';
 
 			if (data.error) {
@@ -868,7 +862,6 @@ Example:
 				} else {
 					feedContentHTML += '<h3>Downloading recent changes failed</h3><p>Please check the settings above and try again. If you believe this is a bug, please <a href="//meta.wikimedia.org/w/index.php?title=User_talk:Krinkle/Tools&action=edit&section=new&preload=User_talk:Krinkle/Tools/Preload" target="_blank"><strong>let me know</strong></a>.';
 				}
-
 			} else {
 				recentchanges = data.query.recentchanges;
 
@@ -886,23 +879,22 @@ Example:
 			}
 
 			$feedContent = $($.parseHTML(feedContentHTML));
-			if (opt.app.cvnDB) {
-				promises.push(applyCvnAnnotations($feedContent));
-			}
-			if (oresModel && opt.app.ores) {
-				promises.push(applyOresAnnotations($feedContent));
-			}
-			$.when.apply($, promises).always(function () {
+			return $.when(
+				opt.app.cvnDB && applyCvnAnnotations($feedContent),
+				oresModel && opt.app.ores && applyOresAnnotations($feedContent)
+			).then(null, function () {
+				// Ignore errors from annotation handlers
+				return $.Deferred().resolve();
+			}).then(function () {
 				pushFeedContent({
 					$feedContent: $feedContent,
 					rawHtml: feedContentHTML
 				});
-				isUpdating = false;
 			});
-
+		}).then(function () {
+			isUpdating = false;
 			$RCOptionsSubmit.prop('disabled', false).css('opacity', '1.0');
-		})
-		.then(function () {
+
 			// Schedule next update
 			updateFeedTimeout = setTimeout(updateFeed, opt.app.refresh * 1000);
 			$('#krRTRC_loader').hide();
