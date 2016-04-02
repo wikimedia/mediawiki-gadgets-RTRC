@@ -473,7 +473,8 @@ Example:
 		});
 
 		$.each(opt.app, function (key, value) {
-			if (defOpt.app[key] !== value) {
+			// Don't permalink MassPatrol (issue Krinkle/mw-rtrc-gadget#59)
+			if (key !== 'massPatrol' && defOpt.app[key] !== value) {
 				if (!reducedOpt.app) {
 					reducedOpt.app = {};
 				}
@@ -535,6 +536,11 @@ Example:
 					delete newOpt[group][oldKey];
 				}
 			}
+		}
+
+		if (newOpt.app) {
+			// Don't permalink MassPatrol (issue Krinkle/mw-rtrc-gadget#59)
+			delete newOpt.app.massPatrol;
 		}
 
 		newOpt = $.extend(true, {}, defOpt, newOpt);
