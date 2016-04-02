@@ -497,8 +497,22 @@ Example:
 		return updateFeed();
 	}
 
-	function scrollToTop() {
-		$wrapper[0].scrollIntoView({ block: 'start', behavior: 'smooth' });
+	/**
+	 * @param {jQuery} $element
+	 */
+	function scrollIntoView($element) {
+		$element[0].scrollIntoView({ block: 'start', behavior: 'smooth' });
+	}
+
+	/**
+	 * @param {jQuery} $element
+	 */
+	function scrollIntoViewIfNeeded($element) {
+		if ($element[0].scrollIntoViewIfNeeded) {
+			$element[0].scrollIntoViewIfNeeded({ block: 'start', behavior: 'smooth' });
+		} else {
+			$element[0].scrollIntoView({ block: 'start', behavior: 'smooth' });
+		}
 	}
 
 	// Read permalink into the program and reflect into settings form.
@@ -533,7 +547,7 @@ Example:
 
 		if (kickstart === '1') {
 			updateFeedNow();
-			scrollToTop();
+			scrollIntoView($wrapper);
 		}
 	}
 
@@ -1240,7 +1254,9 @@ Example:
 					if ($diff.length) {
 						mw.hook('wikipage.diff').fire($diff.eq(0));
 					}
-					scrollToTop();
+					// Only scroll up if the user scrolled down
+					// Leave scroll offset unchanged otherwise
+					scrollIntoViewIfNeeded($frame);
 				}
 			});
 
