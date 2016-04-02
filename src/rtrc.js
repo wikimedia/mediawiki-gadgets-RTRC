@@ -62,7 +62,7 @@
 	monthNames,
 
 	prevFeedHtml,
-	isUpdating = false,
+	updateReq,
 
 	/**
 	 * Feed options
@@ -494,6 +494,10 @@ Example:
 
 	function updateFeedNow() {
 		$('#rc-options-pause').prop('checked', false);
+		if (updateReq) {
+			// Try to abort the current request
+			updateReq.abort();
+		}
 		clearTimeout(updateFeedTimeout);
 		return updateFeed();
 	}
@@ -825,15 +829,15 @@ Example:
 	}
 
 	function updateFeed() {
-		if (isUpdating) {
-			return isUpdating;
+		if (updateReq) {
+			updateReq.abort();
 		}
 
 		// Indicate updating
 		$('#krRTRC_loader').show();
 
 		// Download recent changes
-		isUpdating = $.ajax({
+		updateReq = $.ajax({
 			url: apiUrl,
 			dataType: 'json',
 			data: $.extend(getApiRcParams(opt.rc), {
@@ -841,8 +845,20 @@ Example:
 				action: 'query',
 				list: 'recentchanges'
 			})
-		}).then(null, function () {
+		});
+		// This waterfall flows in one of two ways:
+		// - Everything casts to success and results in a UI update (maybe an error message),
+		//   loading indicator hidden, and the next update scheduled.
+		// - Request is aborted and nothing happens (instead, the final handling will
+		//   be done by the new request).
+		return updateReq.always(function () {
+			updateReq = null;
+		})
+		.then(null, function (jqXhr, textStatus) {
 			var feedContentHTML = '<h3>Downloading recent changes failed</h3>';
+			if (textStatus === 'abort') {
+				return $.Deferred().reject();
+			}
 			pushFeedContent({
 				$feedContent: $(feedContentHTML),
 				rawHtml: feedContentHTML
@@ -892,15 +908,12 @@ Example:
 				});
 			});
 		}).then(function () {
-			isUpdating = false;
 			$RCOptionsSubmit.prop('disabled', false).css('opacity', '1.0');
 
 			// Schedule next update
 			updateFeedTimeout = setTimeout(updateFeed, opt.app.refresh * 1000);
 			$('#krRTRC_loader').hide();
 		});
-
-		return isUpdating;
 	}
 
 	function nextDiff() {
