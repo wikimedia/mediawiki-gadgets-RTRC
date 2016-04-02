@@ -485,8 +485,7 @@ Example:
 		reducedOpt = JSON.stringify(reducedOpt);
 
 		uri.extend({
-			opt: reducedOpt === '{}' ? undefined : reducedOpt,
-			kickstart: 1
+			opt: reducedOpt === '{}' ? '' : reducedOpt
 		});
 
 		return uri.toString();
@@ -521,13 +520,10 @@ Example:
 	}
 
 	// Read permalink into the program and reflect into settings form.
-	// TODO: Refactor into init, as this does more than read permalink.
-	// It also inits the settings form and handles kickstart
 	function readPermalink() {
 		var group, oldKey, newKey,
 			url = new mw.Uri(),
-			newOpt = url.query.opt,
-			kickstart = url.query.kickstart;
+			newOpt = url.query.opt;
 
 		newOpt = newOpt ? JSON.parse(newOpt) : {};
 
@@ -554,11 +550,6 @@ Example:
 		fillSettingsForm(newOpt);
 
 		opt = newOpt;
-
-		if (kickstart === '1') {
-			updateFeedNow();
-			scrollIntoView($wrapper);
-		}
 	}
 
 	function getApiRcParams(rc) {
@@ -1084,7 +1075,7 @@ Example:
 					'</div>' +
 					'<div class="panel">' +
 						'<label class="head">' +
-							'CVN Scores' +
+							'CVN Scores' +
 							'<span section="CVN_Scores" class="helpicon"></span>' +
 							'<input type="checkbox" class="switch" name="cvnDB" />' +
 						'</label>' +
@@ -1623,6 +1614,8 @@ Example:
 
 			buildInterface();
 			readPermalink();
+			updateFeedNow();
+			scrollIntoView($wrapper);
 			bindInterface();
 		});
 	}
