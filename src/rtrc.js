@@ -860,8 +860,6 @@ Example:
 				feedContentHTML = '';
 
 			if (data.error) {
-				$body.removeClass('placeholder');
-
 				// Account doesn't have patrol flag
 				if (data.error.code === 'rcpermissiondenied') {
 					feedContentHTML += '<h3>Downloading recent changes failed</h3><p>Please untick the "Unpatrolled only"-checkbox or request the Patroller-right.</a>';
