@@ -132,19 +132,10 @@
 	}
 
 	timeUtil = {
-		// Create new Date instance from MediaWiki API timestamp string
-		newDateFromApi: function (s) {
-			// Possible number/integer to string
-			var t = Date.UTC(
-				// "2010-04-25T23:24:02Z" => 2010, 3, 25, 23, 24, 2
-				parseInt(s.slice(0, 4), 10), // Year
-				parseInt(s.slice(5, 7), 10) - 1, // Month
-				parseInt(s.slice(8, 10), 10), // Day
-				parseInt(s.slice(11, 13), 10), // Hour
-				parseInt(s.slice(14, 16), 10), // Minutes
-				parseInt(s.slice(17, 19), 10) // Seconds
-			);
-			return new Date(t);
+		// Create new Date object from an ISO-8601 formatted timestamp, as
+		// returned by the MediaWiki API (e.g. "2010-04-25T23:24:02Z")
+		newDateFromISO: function (s) {
+			return new Date(Date.parse(s));
 		},
 
 		/**
@@ -172,8 +163,8 @@
 			} else {
 				offset = wikiTimeOffset;
 			}
-			// There is no way to set a timezone in javascript, so we instead pretend the real unix
-			// time is different and then get the values from that.
+			// There is no way to set a timezone in javascript, so instead we pretend the
+			// UTC timestamp is different and use getUTC* methods everywhere.
 			d.setTime(d.getTime() + (offset * 60 * 1000));
 			return d;
 		},
@@ -181,7 +172,7 @@
 		// Get clocktime string adjusted to timezone of wiki
 		// from MediaWiki timestamp string
 		getClocktimeFromApi: function (s) {
-			var d = timeUtil.applyUserOffset(timeUtil.newDateFromApi(s));
+			var d = timeUtil.applyUserOffset(timeUtil.newDateFromISO(s));
 			// Return clocktime with leading zeros
 			return leadingZero(d.getUTCHours()) + ':' + leadingZero(d.getUTCMinutes());
 		}
@@ -245,7 +236,7 @@ Example:
 		*/
 
 		// build & return item
-		item = buildRcDayHead(timeUtil.newDateFromApi(rc.timestamp));
+		item = buildRcDayHead(timeUtil.newDateFromISO(rc.timestamp));
 		item += '<div class="mw-rtrc-item ' + itemClass.join(' ') + '" data-diff="' + rc.revid + '" data-rcid="' + rc.rcid + '" user="' + rc.user + '">';
 
 		if (rc.type === 'edit') {
@@ -1520,7 +1511,7 @@ Example:
 						.text('RTRC');
 		});
 
-		featureTest = !!(Date.UTC);
+		featureTest = !!(Date.parse);
 
 		if (!featureTest) {
 			$(showUnsupported);
