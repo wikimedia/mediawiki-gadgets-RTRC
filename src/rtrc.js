@@ -944,7 +944,7 @@ Example:
 				message('title').escaped() + ' <small>(' + appVersion + ')</small>' +
 				'<div class="mw-rtrc-head-links">' +
 					(!mw.user.isAnon() ? (
-						'<a target="_blank" href="' + mw.util.getUrl('Special:Log/patrol') + '?user=' + encodeURIComponent(mw.user.getName()) + '">' +
+						'<a target="_blank" href="' + mw.util.getUrl('Special:Log', { type: 'patrol', user: mw.user.getName(), subtype: 'patrol' }) + '">' +
 							message('mypatrollog').escaped() +
 						'</a>'
 					) : '') +
