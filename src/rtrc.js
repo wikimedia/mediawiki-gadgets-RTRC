@@ -57,7 +57,7 @@
 	 */
 	updateFeedTimeout,
 
-	rcPrevDayHeading,
+	rcDayHeadPrev,
 	skippedRCIDs = [],
 	monthNames,
 
@@ -123,12 +123,17 @@
 	 * -------------------------------------------------
 	 */
 
-	// Prepends a leading zero if value is under 10
+	/**
+	 * Prepend a leading zero if value is under 10
+	 *
+	 * @param {number} i
+	 * @return {string}
+	 */
 	function leadingZero(i) {
 		if (i < 10) {
-			i = '0' + i;
+			return '0' + i;
 		}
-		return i;
+		return '' + i;
 	}
 
 	timeUtil = {
@@ -139,11 +144,13 @@
 		},
 
 		/**
-		 * Apply user offset.
+		 * Apply user offset
 		 *
-		 * Only use this if you're extracting individual values
-		 * from the object (e.g. getUTCDay or getUTCMinutes).
-		 * The full timestamp will incorrectly claim "GMT".
+		 * Only use this if you're extracting individual values from the object (e.g. getUTCDay or
+		 * getUTCMinutes). The internal timestamp will be wrong.
+		 *
+		 * @param {Date} d
+		 * @return {Date}
 		 */
 		applyUserOffset: function (d) {
 			var parts,
@@ -183,13 +190,17 @@
 	 * -------------------------------------------------
 	 */
 
-	function buildRcDayHead(time) {
-		var current = time.getDate();
-		if (current === rcPrevDayHeading) {
+	/**
+	 * @param {Date} date
+	 * @return {string} HTML
+	 */
+	function buildRcDayHead(date) {
+		var current = date.getDate();
+		if (current === rcDayHeadPrev) {
 			return '';
 		}
-		rcPrevDayHeading = current;
-		return '<div class="mw-rtrc-heading"><div><strong>' + time.getDate() + ' ' + monthNames[time.getMonth()] + '</strong></div></div>';
+		rcDayHeadPrev = current;
+		return '<div class="mw-rtrc-heading"><div><strong>' + date.getDate() + ' ' + monthNames[date.getMonth()] + '</strong></div></div>';
 	}
 
 	/**
@@ -197,9 +208,7 @@
 	 * @return {string} HTML
 	 */
 	function buildRcItem(rc) {
-		var diffsize, isUnpatrolled, isAnon,
-			typeSymbol, itemClass, diffLink,
-			el, item;
+		var diffsize, isUnpatrolled, isAnon, typeSymbol, itemClass, diffLink, el, item;
 
 		// Get size difference (can be negative, zero or positive)
 		diffsize = rc.newlen - rc.oldlen;
@@ -512,11 +521,10 @@ Example:
 
 	// Read permalink into the program and reflect into settings form.
 	function readPermalink() {
-		var group, oldKey, newKey,
-			url = new mw.Uri(),
-			newOpt = url.query.opt;
+		var group, oldKey, newKey, newOpt,
+			url = new mw.Uri();
 
-		newOpt = newOpt ? JSON.parse(newOpt) : {};
+		newOpt = url.query.opt ? JSON.parse(url.query.opt) : {};
 
 		// Rename values for old aliases
 		for (group in newOpt) {
@@ -537,7 +545,6 @@ Example:
 		newOpt = $.extend(true, {}, defOpt, newOpt);
 
 		normaliseSettings(newOpt, 'quiet');
-
 		fillSettingsForm(newOpt);
 
 		opt = newOpt;
@@ -793,12 +800,11 @@ Example:
 	 * @param {string} update.rawHtml
 	 */
 	function pushFeedContent(update) {
-		// TODO: Only do once
 		$body.removeClass('placeholder');
 
 		$feed.find('.mw-rtrc-feed-update').html(
 			message('lastupdate-rc', new Date().toLocaleString()).escaped() +
-			' | <a href="' + getPermalink() + '">' +
+			' | <a href="' + mw.html.escape(getPermalink()) + '">' +
 			message('permalink').escaped() +
 			'</a>'
 		);
@@ -873,7 +879,7 @@ Example:
 				}
 
 				// Reset day
-				rcPrevDayHeading = undefined;
+				rcDayHeadPrev = undefined;
 			}
 
 			$feedContent = $($.parseHTML(feedContentHTML));
@@ -915,8 +921,7 @@ Example:
 
 	// Build the main interface
 	function buildInterface() {
-		var namespaceOptionsHtml, tagOptionsHtml,
-			key,
+		var namespaceOptionsHtml, tagOptionsHtml, key,
 			fmNs = mw.config.get('wgFormattedNamespaces');
 
 		namespaceOptionsHtml = '<option value>' + mw.message('namespacesall').escaped() + '</option>';
@@ -1428,20 +1433,18 @@ Example:
 	 * @return {jQuery.Promise}
 	 */
 	function initData() {
-		var dRights = $.Deferred(),
-			promises = [
-				dRights.promise()
-			];
+		var promises = [];
 
 		// Get userrights
-		mw.loader.using('mediawiki.user', function () {
-			mw.user.getRights(function (rights) {
-				if ($.inArray('patrol', rights) !== -1) {
-					userHasPatrolRight = true;
-				}
-				dRights.resolve();
-			});
-		});
+		promises.push(
+			mw.loader.using('mediawiki.user').then(function () {
+				return mw.user.getRights().then(function (rights) {
+					if ($.inArray('patrol', rights) !== -1) {
+						userHasPatrolRight = true;
+					}
+				});
+			})
+		);
 
 		// Get MediaWiki interface messages
 		promises.push(
@@ -1471,7 +1474,7 @@ Example:
 				list: 'tags',
 				tgprop: 'displayname'
 			}
-		}).done(function (data) {
+		}).then(function (data) {
 			var tags = data.query && data.query.tags;
 			if (tags) {
 				rcTags = $.map(tags, function (tag) {
@@ -1488,7 +1491,7 @@ Example:
 				action: 'query',
 				meta: 'siteinfo'
 			}
-		}).done(function (data) {
+		}).then(function (data) {
 			wikiTimeOffset = (data.query && data.query.general.timeoffset) || 0;
 		}));
 
