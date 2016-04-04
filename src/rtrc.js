@@ -524,22 +524,29 @@ Example:
 		var group, oldKey, newKey, newOpt,
 			url = new mw.Uri();
 
-		newOpt = url.query.opt ? JSON.parse(url.query.opt) : {};
-
-		// Rename values for old aliases
-		for (group in newOpt) {
-			for (oldKey in newOpt[group]) {
-				newKey = aliasOpt[oldKey];
-				if (newKey && !newOpt[group].hasOwnProperty(newKey)) {
-					newOpt[group][newKey] = newOpt[group][oldKey];
-					delete newOpt[group][oldKey];
-				}
+		if (url.query.opt) {
+			try {
+				newOpt = JSON.parse(url.query.opt);
+			} catch (e) {
+				// TODO: Report error to user
 			}
 		}
+		if (newOpt) {
+			// Rename values for old aliases
+			for (group in newOpt) {
+				for (oldKey in newOpt[group]) {
+					newKey = aliasOpt[oldKey];
+					if (newKey && !newOpt[group].hasOwnProperty(newKey)) {
+						newOpt[group][newKey] = newOpt[group][oldKey];
+						delete newOpt[group][oldKey];
+					}
+				}
+			}
 
-		if (newOpt.app) {
-			// Don't permalink MassPatrol (issue Krinkle/mw-rtrc-gadget#59)
-			delete newOpt.app.massPatrol;
+			if (newOpt.app) {
+				// Don't permalink MassPatrol (issue Krinkle/mw-rtrc-gadget#59)
+				delete newOpt.app.massPatrol;
+			}
 		}
 
 		newOpt = $.extend(true, {}, defOpt, newOpt);
