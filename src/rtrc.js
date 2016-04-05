@@ -711,7 +711,7 @@ Example:
 				var tooltip,
 					score = annotations[revid];
 				// Only highlight high probability scores
-				if (!score || score <= 0.8) {
+				if (!score || score <= 0.45) {
 					return;
 				}
 				tooltip = msg('ores-damaging-probability', (100 * score).toFixed(0) + '%');
