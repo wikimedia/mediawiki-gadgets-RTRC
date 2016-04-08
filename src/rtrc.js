@@ -861,7 +861,7 @@ Example:
 			// Error is handled. Move on normally.
 			return $.Deferred().resolve();
 		}).then(function (data) {
-			var recentchanges, $feedContent,
+			var recentchanges, $feedContent, client,
 				feedContentHTML = '';
 
 			if (data.error) {
@@ -871,7 +871,13 @@ Example:
 
 				// Other error
 				} else {
-					feedContentHTML += '<h3>Downloading recent changes failed</h3><p>Please check the settings above and try again. If you believe this is a bug, please <a href="//meta.wikimedia.org/w/index.php?title=User_talk:Krinkle/Tools&action=edit&section=new&preload=User_talk:Krinkle/Tools/Preload" target="_blank"><strong>let me know</strong></a>.';
+					client = $.client.profile();
+					feedContentHTML += '<h3>Downloading recent changes failed</h3>' +
+						'<p>Please check the settings above and try again. If you believe this is a bug, please <strong>' +
+						'<a href="https://github.com/Krinkle/mw-gadget-rtrc/issues/new?body=' + encodeURIComponent('\n\n\n----' +
+						'\npackage: mw-gadget-rtrc ' + appVersion +
+						mw.format('\nbrowser: $1 $2 ($3)', client.name, client.version, client.platform)
+						) + '" target="_blank">let me know</a></strong>.';
 				}
 			} else {
 				recentchanges = data.query.recentchanges;
@@ -1133,11 +1139,11 @@ Example:
 			'<div class="mw-rtrc-foot">' +
 				'<div class="plainlinks" style="text-align: right;">' +
 					'Real-Time Recent Changes by ' +
-					'<a href="//meta.wikimedia.org/wiki/User:Krinkle" class="external text">Krinkle</a>' +
-					' | <a href="//meta.wikimedia.org/wiki/User:Krinkle/Tools/Real-Time_Recent_Changes" class="external text">' + message('documentation').escaped() + '</a>' +
-					' | <a href="https://github.com/Krinkle/mw-gadget-rtrc/releases" class="external text">' + message('changelog').escaped() + '</a>' +
-					' | <a href="https://github.com/Krinkle/mw-gadget-rtrc/issues" class="external text">Feedback</a>' +
-					' | <a href="http://krinkle.mit-license.org" class="external text">License</a>' +
+					'<a href="//meta.wikimedia.org/wiki/User:Krinkle">Krinkle</a>' +
+					' | <a href="' + docUrl + '">' + message('documentation').escaped() + '</a>' +
+					' | <a href="https://github.com/Krinkle/mw-gadget-rtrc/releases">' + message('changelog').escaped() + '</a>' +
+					' | <a href="https://github.com/Krinkle/mw-gadget-rtrc/issues">Feedback</a>' +
+					' | <a href="http://krinkle.mit-license.org">License</a>' +
 				'</div>' +
 			'</div>' +
 		'</div>'
@@ -1554,6 +1560,7 @@ Example:
 
 		dModules = mw.loader.using([
 			'json',
+			'jquery.client',
 			'mediawiki.action.history.diff',
 			'mediawiki.jqueryMsg',
 			'mediawiki.Uri',
