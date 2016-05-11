@@ -1161,9 +1161,6 @@ Example:
 		});
 
 		$('#content').empty().append($wrapper);
-		rAF(function () {
-			$('html').addClass('mw-rtrc-ready');
-		});
 
 		$body = $wrapper.find('.mw-rtrc-body');
 		$feed = $body.find('.mw-rtrc-feed');
@@ -1623,7 +1620,12 @@ Example:
 			buildInterface();
 			readPermalink();
 			updateFeedNow();
+
 			scrollIntoView($wrapper);
+			rAF(function () {
+				$('html').addClass('mw-rtrc-ready');
+			});
+
 			bindInterface();
 		});
 	}

@@ -35,8 +35,8 @@
 	line-height: 1.4;
 	color: #343434;
 	opacity: 0;
-	-webkit-transition: opacity 250ms ease-out 255ms;
-	transition: opacity 250ms ease-out 255ms;
+	-webkit-transition: opacity 150ms ease-out 50ms;
+	transition: opacity 150ms ease-out 50ms;
 }
 
 .mw-rtrc-ready .mw-rtrc-wrapper {
@@ -73,9 +73,9 @@
 	border-top: 1px solid #a1cef5;
 	text-align: center;
 	color: #343434;
-	-webkit-transition: all 250ms ease-out;
+	-webkit-transition: all 150ms ease-out;
 	-webkit-transition-property: opacity, background;
-	transition: all 250ms ease-out;
+	transition: all 150ms ease-out;
 	transition-property: opacity, background;
 }
 
@@ -85,36 +85,16 @@
 
 /* Sidebar overlay */
 
-.mw-rtrc-sidebar-toggleable #mw-panel,
-.mw-rtrc-sidebar-toggleable #left-navigation,
-.mw-rtrc-sidebar-toggleable #content,
-.mw-rtrc-sidebar-toggleable .mw-rtrc-sidebar-cover,
+/* Don't animate initial hide from init(), only after its ready */
+.mw-rtrc-ready.mw-rtrc-sidebar-toggleable #mw-panel,
+.mw-rtrc-ready.mw-rtrc-sidebar-toggleable #left-navigation,
+.mw-rtrc-ready.mw-rtrc-sidebar-toggleable #content,
+.mw-rtrc-ready.mw-rtrc-sidebar-toggleable .mw-rtrc-sidebar-cover,
 .mw-rtrc-navtoggle {
-	-webkit-transition: visibility 0s linear 300ms,
-		-webkit-transform 275ms ease-out,
-		opacity 275ms ease-out;
-	transition: visibility 0s linear 300ms,
-		transform 275ms ease-out,
-		opacity 275ms ease-out;
-}
-
-/* Reverse visibility */
-.mw-rtrc-sidebar-peak #mw-panel,
-.mw-rtrc-sidebar-on #mw-panel,
-.mw-rtrc-sidebar-peak #left-navigation,
-.mw-rtrc-sidebar-on #left-navigation,
-.mw-rtrc-sidebar-peak #content,
-.mw-rtrc-sidebar-on #content,
-.mw-rtrc-sidebar-peak .mw-rtrc-sidebar-cover,
-.mw-rtrc-sidebar-on .mw-rtrc-sidebar-cover,
-.mw-rtrc-sidebar-peak .mw-rtrc-navtoggle,
-.mw-rtrc-sidebar-on .mw-rtrc-navtoggle {
-	-webkit-transition: visibility 0s linear 0s,
-		-webkit-transform 275ms ease-out,
-		opacity 275ms ease-out;
-	transition: visibility 0s linear 0s,
-		transform 275ms ease-out,
-		opacity 275ms ease-out;
+	-webkit-transition: -webkit-transform 150ms ease-out,
+		opacity 150ms ease-out;
+	transition: transform 150ms ease-out,
+		opacity 150ms ease-out;
 }
 
 /* Make the sidebar standalone for transitioning. */
@@ -129,7 +109,6 @@
 	z-index: 1; /* overlap mw-rtrc-sidebar-cover */
 	box-shadow: rgba(0, 0, 0, 0.5) 0 0 25px;
 
-	visibility: hidden;
 	pointer-events: none;
 	-webkit-transform: translate(-12em, 0);
 	transform: translate(-12em, 0);
@@ -153,7 +132,7 @@
 	bottom: 0;
 	background: #000;
 	opacity: 0;
-	visibility: hidden;
+	pointer-events: none;
 }
 
 .mw-rtrc-navtoggle {
@@ -187,12 +166,10 @@
 }
 
 .mw-rtrc-sidebar-peak .mw-rtrc-sidebar-cover {
-	visibility: visible;
 	opacity: 0.1;
 }
 .mw-rtrc-sidebar-peak #mw-panel {
 	z-index: 1;
-	visibility: visible;
 	-webkit-transform: translate(-11em, 0);
 	transform: translate(-11em, 0);
 }
@@ -204,7 +181,6 @@
 }
 .mw-rtrc-sidebar-on #mw-panel {
 	z-index: 1;
-	visibility: visible;
 	-webkit-transform: translate(0, 0);
 	transform: translate(0, 0);
 	pointer-events: auto;
@@ -213,7 +189,6 @@
 	z-index: 0; /* was 100 */
 }
 .mw-rtrc-sidebar-on .mw-rtrc-sidebar-cover {
-	visibility: visible;
 	opacity: 0.5;
 }
 
