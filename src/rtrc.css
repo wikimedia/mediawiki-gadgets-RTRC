@@ -91,11 +91,20 @@
 .mw-rtrc-ready.mw-rtrc-sidebar-toggleable #content,
 .mw-rtrc-ready.mw-rtrc-sidebar-toggleable .mw-rtrc-sidebar-cover,
 .mw-rtrc-navtoggle {
-	-webkit-transition: -webkit-transform 150ms ease-out,
-		opacity 150ms ease-out;
-	transition: transform 150ms ease-out,
-		opacity 150ms ease-out;
+	-webkit-transition: -webkit-transform 200ms ease-out,
+		opacity 200ms ease-out;
+	transition: transform 200ms ease-out,
+		opacity 200ms ease-out;
 }
+.mw-rtrc-ready.mw-rtrc-sidebar-toggleable #p-personal {
+	/* When sliding out */
+	transition: z-index 0ms linear 225ms;
+}
+.mw-rtrc-ready.mw-rtrc-sidebar-on #p-personal {
+	/* When sliding in */
+	transition: z-index 0ms linear 0ms;
+}
+
 
 /* Make the sidebar standalone for transitioning. */
 .mw-rtrc-sidebar-toggleable #mw-panel {
@@ -109,7 +118,6 @@
 	z-index: 1; /* overlap mw-rtrc-sidebar-cover */
 	box-shadow: rgba(0, 0, 0, 0.5) 0 0 25px;
 
-	pointer-events: none;
 	-webkit-transform: translate(-12em, 0);
 	transform: translate(-12em, 0);
 }
@@ -124,7 +132,7 @@
 	margin-left: 0;
 	border-left: 0;
 }
-.mw-rtrc-sidebar-toggleable .mw-rtrc-sidebar-cover {
+.mw-rtrc-sidebar-cover {
 	position: absolute;
 	left: 0;
 	right: 0;
@@ -135,9 +143,10 @@
 	pointer-events: none;
 }
 
+/* navtoggle is inside #mw-panel and relative to its box */
 .mw-rtrc-navtoggle {
 	position: absolute;
-	left: 1.5em;
+	left: 13.5em;
 	top: 10px;
 	border: 0 solid #aaa;
     border-width: 0 0 0 5px;
@@ -145,45 +154,40 @@
 	height: 15px;
 	cursor: pointer;
 
-	-webkit-transform: translate(0, 0);
-	transform: translate(0, 0);
+	-webkit-transform: scaleX(1);
+	transform: scaleX(1);
 }
 .mw-rtrc-navtoggle:after {
+	/* arrow */
 	content: " ";
 	width: 0;
 	height: 0;
 	position: absolute;
-	pointer-events: none;
 	border: 5px solid transparent;
     border-left-color: #333;
 	top: 50%;
 	margin-top: -5px;
 	margin-left: 5px;
 }
-.mw-rtrc-sidebar-peak .mw-rtrc-navtoggle {
-	-webkit-transform: scale(1.5);
-	transform: scale(1.5);
+.mw-rtrc-navtoggle:before {
+	/* cover the space between navtoggle and mw-panel to avoid :hover gaps */
+    content: "";
+    position: absolute;
+    left: -14em;
+    display: block;
+    width: 15em;
+    height: 100%;
 }
 
-.mw-rtrc-sidebar-peak .mw-rtrc-sidebar-cover {
-	opacity: 0.1;
-}
-.mw-rtrc-sidebar-peak #mw-panel {
-	z-index: 1;
-	-webkit-transform: translate(-11em, 0);
-	transform: translate(-11em, 0);
-}
-
-.mw-rtrc-sidebar-on .mw-rtrc-navtoggle {
+.mw-rtrc-sidebar-toggleable #mw-panel:hover .mw-rtrc-navtoggle {
 	border-color: #fff;
-	-webkit-transform: scaleX(-1) translate(-12em, 0);
-	transform: scaleX(-1) translate(-12em, 0);
+	-webkit-transform: scaleX(-1);
+	transform: scaleX(-1);
 }
-.mw-rtrc-sidebar-on #mw-panel {
+.mw-rtrc-sidebar-toggleable #mw-panel:hover {
 	z-index: 1;
 	-webkit-transform: translate(0, 0);
 	transform: translate(0, 0);
-	pointer-events: auto;
 }
 .mw-rtrc-sidebar-on #p-personal {
 	z-index: 0; /* was 100 */

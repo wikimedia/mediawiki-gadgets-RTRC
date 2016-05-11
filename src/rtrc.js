@@ -1539,19 +1539,15 @@ Example:
 		if (navSupported) {
 			$('html').addClass('mw-rtrc-sidebar-toggleable');
 			$(function () {
-				$('body').append(
-					$('<div>').addClass('mw-rtrc-sidebar-cover'),
-					$navToggle = $('<div>')
-						.addClass('mw-rtrc-navtoggle')
-						.on('click', function () {
-							$('html').toggleClass('mw-rtrc-sidebar-on').removeClass('mw-rtrc-sidebar-peak');
-						})
-						.hover(function () {
-							$('html').addClass('mw-rtrc-sidebar-peak');
-						}, function () {
-							$('html').removeClass('mw-rtrc-sidebar-peak');
-						})
-				);
+				$navToggle = $('<div>').addClass('mw-rtrc-navtoggle');
+				$('body').append($('<div>').addClass('mw-rtrc-sidebar-cover'));
+				$('#mw-panel')
+					.append($navToggle)
+					.hover(function () {
+						$('html').addClass('mw-rtrc-sidebar-on');
+					}, function () {
+						$('html').removeClass('mw-rtrc-sidebar-on');
+					});
 			});
 		}
 
