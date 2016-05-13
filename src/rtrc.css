@@ -169,14 +169,15 @@
 	margin-top: -5px;
 	margin-left: 5px;
 }
-.mw-rtrc-navtoggle:before {
+.mw-rtrc-sidebar-toggleable #mw-panel:before {
 	/* cover the space between navtoggle and mw-panel to avoid :hover gaps */
     content: "";
     position: absolute;
-    left: -14em;
+    top: 0;
+    left: 0;
     display: block;
-    width: 15em;
-    height: 100%;
+    width: calc(13em + 30px);
+    height: 40px;
 }
 
 .mw-rtrc-sidebar-toggleable #mw-panel:hover .mw-rtrc-navtoggle {
