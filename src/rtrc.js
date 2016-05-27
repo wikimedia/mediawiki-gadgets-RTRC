@@ -126,14 +126,11 @@
 	/**
 	 * Prepend a leading zero if value is under 10
 	 *
-	 * @param {number} i
+	 * @param {number} num Value between 0 and 99.
 	 * @return {string}
 	 */
-	function leadingZero(i) {
-		if (i < 10) {
-			return '0' + i;
-		}
-		return '' + i;
+	function pad(num) {
+		return (num < 10 ? '0' : '') + num;
 	}
 
 	timeUtil = {
@@ -181,7 +178,7 @@
 		getClocktimeFromApi: function (s) {
 			var d = timeUtil.applyUserOffset(timeUtil.newDateFromISO(s));
 			// Return clocktime with leading zeros
-			return leadingZero(d.getUTCHours()) + ':' + leadingZero(d.getUTCMinutes());
+			return pad(d.getUTCHours()) + ':' + pad(d.getUTCMinutes());
 		}
 	};
 
