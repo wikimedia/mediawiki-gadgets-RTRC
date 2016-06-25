@@ -1552,6 +1552,8 @@ Example:
 			'json',
 			'jquery.client',
 			'mediawiki.action.history.diff',
+			// mw-plusminus styles etc.
+			'mediawiki.special.changeslist',
 			'mediawiki.jqueryMsg',
 			'mediawiki.Uri',
 			'mediawiki.user',
