@@ -2,8 +2,8 @@
  * Real-Time Recent Changes
  * https://github.com/Krinkle/mw-gadget-rtrc
  *
- * @license http://krinkle.mit-license.org/
- * @author Timo Tijhof, 2010–2016
+ * @author Timo Tijhof
+ * @license https://krinkle.mit-license.org/@2016
  */
 /*global alert */
 (function ($, mw) {
@@ -1140,7 +1140,7 @@ Example:
 					' | <a href="' + docUrl + '">' + message('documentation').escaped() + '</a>' +
 					' | <a href="https://github.com/Krinkle/mw-gadget-rtrc/releases">' + message('changelog').escaped() + '</a>' +
 					' | <a href="https://github.com/Krinkle/mw-gadget-rtrc/issues">Feedback</a>' +
-					' | <a href="http://krinkle.mit-license.org">License</a>' +
+					' | <a href="https://krinkle.mit-license.org/@2016">License</a>' +
 				'</div>' +
 			'</div>' +
 		'</div>'
