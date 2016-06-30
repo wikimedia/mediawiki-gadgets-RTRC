@@ -29,7 +29,7 @@
 	// Can't use mw.util.wikiScript until after #init
 	apiUrl = conf.wgScriptPath + '/api.php',
 	cvnApiUrl = '//cvn.wmflabs.org/api.php',
-	oresApiUrl = '//ores.wmflabs.org/scores/' + conf.wgDBname + '/',
+	oresApiUrl = '//ores.wikimedia.org/scores/' + conf.wgDBname + '/',
 	oresModel = false,
 	intuitionLoadUrl = '//tools.wmflabs.org/intuition/load.php?env=mw',
 	docUrl = '//meta.wikimedia.org/wiki/User:Krinkle/Tools/Real-Time_Recent_Changes?uselang=' + conf.wgUserLanguage,
