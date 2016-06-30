@@ -91,14 +91,14 @@
 .mw-rtrc-ready.mw-rtrc-sidebar-toggleable #content,
 .mw-rtrc-ready.mw-rtrc-sidebar-toggleable .mw-rtrc-sidebar-cover,
 .mw-rtrc-navtoggle {
-	-webkit-transition: -webkit-transform 200ms ease-out,
-		opacity 200ms ease-out;
-	transition: transform 200ms ease-out,
-		opacity 200ms ease-out;
+	-webkit-transition: -webkit-transform 250ms ease-out,
+		opacity 250ms ease-out;
+	transition: transform 250ms ease-out,
+		opacity 250ms ease-out;
 }
 .mw-rtrc-ready.mw-rtrc-sidebar-toggleable #p-personal {
 	/* When sliding out */
-	transition: z-index 0ms linear 225ms;
+	transition: z-index 0ms linear 255ms;
 }
 .mw-rtrc-ready.mw-rtrc-sidebar-on #p-personal {
 	/* When sliding in */
