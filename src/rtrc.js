@@ -2,8 +2,8 @@
  * Real-Time Recent Changes
  * https://github.com/Krinkle/mw-gadget-rtrc
  *
- * @license http://krinkle.mit-license.org/
- * @author Timo Tijhof, 2010–2015
+ * @author Timo Tijhof
+ * @license https://krinkle.mit-license.org/@2016
  */
 /*global alert */
 (function ($, mw) {
@@ -14,7 +14,7 @@
 	 * -------------------------------------------------
 	 */
 	var
-	appVersion = 'v1.0.2',
+	appVersion = 'v1.3.0',
 	conf = mw.config.get([
 		'skin',
 		'wgAction',
@@ -24,24 +24,30 @@
 		'wgTitle',
 		'wgUserLanguage',
 		'wgDBname',
-		'wgScriptPath',
-		'wgScriptExtension'
+		'wgScriptPath'
 	]),
 	// Can't use mw.util.wikiScript until after #init
-	apiUrl = conf.wgScriptPath + '/api' + conf.wgScriptExtension,
+	apiUrl = conf.wgScriptPath + '/api.php',
 	cvnApiUrl = '//cvn.wmflabs.org/api.php',
+	oresApiUrl = '//ores.wikimedia.org/scores/' + conf.wgDBname + '/',
+	oresModel = false,
 	intuitionLoadUrl = '//tools.wmflabs.org/intuition/load.php?env=mw',
 	docUrl = '//meta.wikimedia.org/wiki/User:Krinkle/Tools/Real-Time_Recent_Changes?uselang=' + conf.wgUserLanguage,
 	// 32x32px
 	ajaxLoaderUrl = '//upload.wikimedia.org/wikipedia/commons/d/de/Ajax-loader.gif',
-	patrolCacheSize = 20,
+	annotationsCache = {
+		patrolled: {},
+		cvn: {},
+		ores: {}
+	},
+	// See annotationsCacheUp()
+	annotationsCacheSize = 0,
 
 	/**
 	 * Info from the wiki
 	 * -------------------------------------------------
 	 */
 	userHasPatrolRight = false,
-	userPatrolTokenCache = false,
 	rcTags = [],
 	wikiTimeOffset,
 
@@ -51,13 +57,12 @@
 	 */
 	updateFeedTimeout,
 
-	rcPrevDayHeading,
+	rcDayHeadPrev,
 	skippedRCIDs = [],
-	patrolledRCIDs = [],
 	monthNames,
 
 	prevFeedHtml,
-	isUpdating = false,
+	updateReq,
 
 	/**
 	 * Feed options
@@ -77,21 +82,28 @@
 			user: undefined,
 			// Tag ID
 			tag: undefined,
-			// Show filters: exclude, include, filter
-			showAnonOnly: false,
-			showUnpatrolledOnly: false,
+			// Filters
+			hideliu: false,
+			hidebots: true,
+			unpatrolled: false,
 			limit: 25,
 			// Type filters are "show matches only"
-			typeEdit: false,
-			typeNew: false
+			typeEdit: true,
+			typeNew: true
 		},
 
 		app: {
-			refresh: 3,
+			refresh: 5,
 			cvnDB: false,
+			ores: false,
 			massPatrol: false,
 			autoDiff: false
 		}
+	},
+	aliasOpt = {
+		// Back-compat for v1.0.4 and earlier
+		showAnonOnly: 'hideliu',
+		showUnpatrolledOnly: 'unpatrolled'
 	},
 	opt = $(true, {}, defOpt),
 
@@ -99,7 +111,7 @@
 	message,
 	msg,
 	navSupported = conf.skin === 'vector',
-	nextFrame = window.requestAnimationFrame || setTimeout,
+	rAF = window.requestAnimationFrame || setTimeout,
 
 	currentDiff,
 	currentDiffRcid,
@@ -111,36 +123,31 @@
 	 * -------------------------------------------------
 	 */
 
-	// Prepends a leading zero if value is under 10
-	function leadingZero(i) {
-		if (i < 10) {
-			i = '0' + i;
-		}
-		return i;
+	/**
+	 * Prepend a leading zero if value is under 10
+	 *
+	 * @param {number} num Value between 0 and 99.
+	 * @return {string}
+	 */
+	function pad(num) {
+		return (num < 10 ? '0' : '') + num;
 	}
 
 	timeUtil = {
-		// Create new Date instance from MediaWiki API timestamp string
-		newDateFromApi: function (s) {
-			// Possible number/integer to string
-			var t = Date.UTC(
-				// "2010-04-25T23:24:02Z" => 2010, 3, 25, 23, 24, 2
-				parseInt(s.slice(0, 4), 10), // Year
-				parseInt(s.slice(5, 7), 10) - 1, // Month
-				parseInt(s.slice(8, 10), 10), // Day
-				parseInt(s.slice(11, 13), 10), // Hour
-				parseInt(s.slice(14, 16), 10), // Minutes
-				parseInt(s.slice(17, 19), 10) // Seconds
-			);
-			return new Date(t);
+		// Create new Date object from an ISO-8601 formatted timestamp, as
+		// returned by the MediaWiki API (e.g. "2010-04-25T23:24:02Z")
+		newDateFromISO: function (s) {
+			return new Date(Date.parse(s));
 		},
 
 		/**
-		 * Apply user offset.
+		 * Apply user offset
 		 *
-		 * Only use this if you're extracting individual values
-		 * from the object (e.g. getUTCDay or getUTCMinutes).
-		 * The full timestamp will incorrectly claim "GMT".
+		 * Only use this if you're extracting individual values from the object (e.g. getUTCDay or
+		 * getUTCMinutes). The internal timestamp will be wrong.
+		 *
+		 * @param {Date} d
+		 * @return {Date}
 		 */
 		applyUserOffset: function (d) {
 			var parts,
@@ -160,8 +167,8 @@
 			} else {
 				offset = wikiTimeOffset;
 			}
-			// There is no way to set a timezone in javascript, so we instead pretend the real unix
-			// time is different and then get the values from that.
+			// There is no way to set a timezone in javascript, so instead we pretend the
+			// UTC timestamp is different and use getUTC* methods everywhere.
 			d.setTime(d.getTime() + (offset * 60 * 1000));
 			return d;
 		},
@@ -169,9 +176,9 @@
 		// Get clocktime string adjusted to timezone of wiki
 		// from MediaWiki timestamp string
 		getClocktimeFromApi: function (s) {
-			var d = timeUtil.applyUserOffset(timeUtil.newDateFromApi(s));
+			var d = timeUtil.applyUserOffset(timeUtil.newDateFromISO(s));
 			// Return clocktime with leading zeros
-			return leadingZero(d.getUTCHours()) + ':' + leadingZero(d.getUTCMinutes());
+			return pad(d.getUTCHours()) + ':' + pad(d.getUTCMinutes());
 		}
 	};
 
@@ -180,13 +187,17 @@
 	 * -------------------------------------------------
 	 */
 
-	function buildRcDayHead(time) {
-		var current = time.getDate();
-		if (current === rcPrevDayHeading) {
+	/**
+	 * @param {Date} date
+	 * @return {string} HTML
+	 */
+	function buildRcDayHead(date) {
+		var current = date.getDate();
+		if (current === rcDayHeadPrev) {
 			return '';
 		}
-		rcPrevDayHeading = current;
-		return '<div class="mw-rtrc-heading"><div><strong>' + time.getDate() + ' ' + monthNames[time.getMonth()] + '</strong></div></div>';
+		rcDayHeadPrev = current;
+		return '<div class="mw-rtrc-heading"><div><strong>' + date.getDate() + ' ' + monthNames[date.getMonth()] + '</strong></div></div>';
 	}
 
 	/**
@@ -194,9 +205,7 @@
 	 * @return {string} HTML
 	 */
 	function buildRcItem(rc) {
-		var diffsize, isUnpatrolled, isAnon,
-			typeSymbol, itemClass, diffLink,
-			commentHtml, el, item;
+		var diffsize, isUnpatrolled, isAnon, typeSymbol, itemClass, diffLink, el, item;
 
 		// Get size difference (can be negative, zero or positive)
 		diffsize = rc.newlen - rc.oldlen;
@@ -207,7 +216,7 @@
 
 		// typeSymbol, diffLink & itemClass
 		typeSymbol = '&nbsp;';
-		itemClass = '';
+		itemClass = [];
 
 		if (rc.type === 'new') {
 			typeSymbol += '<span class="newpage">' + mw.msg('newpageletter') + '</span>';
@@ -217,35 +226,24 @@
 			typeSymbol += '<span class="unpatrolled">!</span>';
 		}
 
-		commentHtml = rc.parsedcomment;
-
-		// Check if edit summary is an AES
-		if (commentHtml.indexOf('<a href="/wiki/Commons:AES" class="mw-redirect" title="Commons:AES">\u2190</a>') === 0) {
-			// TODO: This is specific to commons.wikimedia.org
-			itemClass += ' mw-rtrc-item-aes';
+		if (rc.oldlen > 0 && rc.newlen === 0) {
+			itemClass.push('mw-rtrc-item-alert');
 		}
 
-		// Anon-attribute
-		if (isAnon) {
-			itemClass = ' mw-rtrc-item-anon';
-		} else {
-			itemClass = ' mw-rtrc-item-liu';
-		}
-/*
-	Example:
+		/*
+Example:
 
-	<div class="mw-rtrc-item mw-rtrc-item-patrolled" data-diff="0" data-rcid="0" user="Abc">
-		<div diff>(<a class="diff" href="//">diff</a>)</div>
-		<div type><span class="unpatrolled">!</span></div>
-		<div timetitle>00:00 <a href="//?rcid=0" target="_blank">Abc</a></div>
-		<div user><a class="user mw-userlink" href="//User:Abc">Abc</a></div>
-		<div other><a href="//User talk:Abc">talk</a> / <a href="//Special:Contributions/Abc">contribs</a>&nbsp;<span class="comment">Abc</span></div>
-		<div size><span class="mw-plusminus-null">(0)</span></div>
-	</div>
-*/
+<div class="mw-rtrc-item mw-rtrc-item-patrolled" data-diff="0" data-rcid="0" user="Abc">
+	<div first>(<a>diff</a>) <span class="unpatrolled">!</span> 00:00 <a>Page</a></div>
+	<div user><a class="user" href="//User:Abc">Abc</a></div>
+	<div comment><a href="//User talk:Abc">talk</a> / <a href="//Special:Contributions/Abc">contribs</a>&nbsp;<span class="comment">Abc</span></div>
+	<div class="mw-rtrc-meta"><span class="mw-plusminus mw-plusminus-null">(0)</span></div>
+</div>
+		*/
+
 		// build & return item
-		item = buildRcDayHead(timeUtil.newDateFromApi(rc.timestamp));
-		item += '<div class="mw-rtrc-item ' + itemClass + '" data-diff="' + rc.revid + '" data-rcid="' + rc.rcid + '" user="' + rc.user + '">';
+		item = buildRcDayHead(timeUtil.newDateFromISO(rc.timestamp));
+		item += '<div class="mw-rtrc-item ' + itemClass.join(' ') + '" data-diff="' + rc.revid + '" data-rcid="' + rc.rcid + '" user="' + rc.user + '">';
 
 		if (rc.type === 'edit') {
 			diffLink = '<a class="rcitemlink diff" href="' +
@@ -257,19 +255,28 @@
 			diffLink = mw.message('diff').escaped();
 		}
 
-		item += '<div first>(' + diffLink + ') ' + typeSymbol + ' ';
-		item += timeUtil.getClocktimeFromApi(rc.timestamp) + ' <a class="page mw-title" href="' + mw.util.getUrl(rc.title) + '?rcid=' + rc.rcid + '" target="_blank">' + rc.title + '</a></div>';
-		item += '<div user>&nbsp;<small>&middot;&nbsp;<a href="' + mw.util.getUrl('User talk:' + rc.user) + '" target="_blank">' + message('Talk-short').escaped() + '</a> &middot; <a href="' + mw.util.getUrl('Special:Contributions/' + rc.user) + '" target="_blank">' + message('Contribs-short').escaped() + '</a>&nbsp;</small>&middot;&nbsp;<a class="user mw-userlink" href="' + mw.util.getUrl((mw.util.isIPv4Address(rc.user) || mw.util.isIPv6Address(rc.user) ? 'Special:Contributions/' : 'User:') + rc.user) + '" target="_blank">' + rc.user + '</a></div>';
-		item += '<div other>&nbsp;<span class="comment">' + commentHtml + '</span></div>';
+		item += '<div first>' +
+			'(' + diffLink + ') ' + typeSymbol + ' ' +
+			timeUtil.getClocktimeFromApi(rc.timestamp) +
+			' <a class="page mw-title" href="' + mw.util.getUrl(rc.title) + '?rcid=' + rc.rcid + '" target="_blank">' + rc.title + '</a>' +
+			'</div>' +
+			'<div user>&nbsp;<small>&middot;&nbsp;' +
+			'<a href="' + mw.util.getUrl('User talk:' + rc.user) + '" target="_blank">' + mw.message('talkpagelinktext').escaped() + '</a>' +
+			' &middot; ' +
+			'<a href="' + mw.util.getUrl('Special:Contributions/' + rc.user) + '" target="_blank">' + mw.message('contribslink').escaped() + '</a>' +
+			'&nbsp;</small>&middot;&nbsp;' +
+			'<a class="mw-userlink" href="' + mw.util.getUrl((mw.util.isIPv4Address(rc.user) || mw.util.isIPv6Address(rc.user) ? 'Special:Contributions/' : 'User:') + rc.user) + '" target="_blank">' + rc.user + '</a>' +
+			'</div>' +
+			'<div comment>&nbsp;<span class="comment">' + rc.parsedcomment + '</span></div>';
 
 		if (diffsize > 0) {
 			el = diffsize > 399 ? 'strong' : 'span';
-			item += '<div size><' + el + ' class="mw-plusminus-pos">(' + diffsize + ')</' + el + '></div>';
+			item += '<div class="mw-rtrc-meta"><' + el + ' class="mw-plusminus mw-plusminus-pos">(+' + diffsize.toLocaleString() + ')</' + el + '></div>';
 		} else if (diffsize === 0) {
-			item += '<div size><span class="mw-plusminus-null">(0)</span></div>';
+			item += '<div class="mw-rtrc-meta"><span class="mw-plusminus mw-plusminus-null">(0)</span></div>';
 		} else {
 			el = diffsize < -399 ? 'strong' : 'span';
-			item += '<div size><' + el + ' class="mw-plusminus-neg">(' + diffsize + ')</' + el + '></div>';
+			item += '<div class="mw-rtrc-meta"><' + el + ' class="mw-plusminus mw-plusminus-neg">(' + diffsize.toLocaleString() + ')</' + el + '></div>';
 		}
 
 		item += '</div>';
@@ -293,73 +300,18 @@
 			}
 		}
 
-		// MassPatrol requires AutoDiff
+		// MassPatrol implies AutoDiff
 		if (newOpt.app.massPatrol && !newOpt.app.autoDiff) {
 			newOpt.app.autoDiff = true;
 			mod = true;
 		}
+		// MassPatrol implies fetching only unpatrolled changes
+		if (newOpt.app.massPatrol && !newOpt.rc.unpatrolled) {
+			newOpt.rc.unpatrolled = true;
+			mod = true;
+		}
 
 		return !mod;
-	}
-
-	function readSettingsForm() {
-		// jQuery#serializeArray is nice, but doesn't include "value: false" for unchecked
-		// checkboxes that are not disabled. Using raw .elements instead and filtering
-		// out <fieldset>.
-		var $settings = $($wrapper.find('.mw-rtrc-settings')[0].elements).filter(':input');
-
-		opt = $.extend(true, {}, defOpt);
-
-		$settings.each(function (i, el) {
-			var name = el.name;
-
-			switch (name) {
-			// RC
-			case 'limit':
-				opt.rc[name] = Number(el.value);
-				break;
-			case 'namespace':
-				// Can be "0".
-				// Value "" (all) is represented by undefined.
-				// TODO: Turn this into a multi-select, the API supports it.
-				opt.rc[name] = el.value.length ? Number(el.value) : undefined;
-				break;
-			case 'user':
-			case 'start':
-			case 'end':
-			case 'tag':
-				opt.rc[name] = el.value || undefined;
-				break;
-			case 'showAnonOnly':
-			case 'showUnpatrolledOnly':
-			case 'typeEdit':
-			case 'typeNew':
-				opt.rc[name] = el.checked;
-				break;
-			case 'dir':
-				// There's more than 1 radio button with this name in this loop,
-				// use the value of the first (and only) checked one.
-				if (el.checked) {
-					opt.rc[name] = el.value;
-				}
-				break;
-			// APP
-			case 'cvnDB':
-			case 'massPatrol':
-			case 'autoDiff':
-				opt.app[name] = el.checked;
-				break;
-			case 'refresh':
-				opt.app[name] = Number(el.value);
-				break;
-			}
-		});
-
-		if (!normaliseSettings(opt)) {
-			// TODO: Optimise this, no need to repopulate the entire settings form
-			// if only 1 thing changed.
-			fillSettingsForm(opt);
-		}
 	}
 
 	function fillSettingsForm(newOpt) {
@@ -394,8 +346,9 @@
 				case 'tag':
 					setting.value = value || '';
 					break;
-				case 'showAnonOnly':
-				case 'showUnpatrolledOnly':
+				case 'hideliu':
+				case 'hidebots':
+				case 'unpatrolled':
 				case 'typeEdit':
 				case 'typeNew':
 					setting.checked = value;
@@ -427,6 +380,7 @@
 
 				switch (key) {
 				case 'cvnDB':
+				case 'ores':
 				case 'massPatrol':
 				case 'autoDiff':
 					setting.checked = value;
@@ -438,6 +392,68 @@
 			});
 		}
 
+	}
+
+	function readSettingsForm() {
+		// jQuery#serializeArray is nice, but doesn't include "value: false" for unchecked
+		// checkboxes that are not disabled. Using raw .elements instead and filtering
+		// out <fieldset>.
+		var $settings = $($wrapper.find('.mw-rtrc-settings')[0].elements).filter(':input');
+
+		opt = $.extend(true, {}, defOpt);
+
+		$settings.each(function (i, el) {
+			var name = el.name;
+
+			switch (name) {
+			// RC
+			case 'limit':
+				opt.rc[name] = Number(el.value);
+				break;
+			case 'namespace':
+				// Can be "0".
+				// Value "" (all) is represented by undefined.
+				// TODO: Turn this into a multi-select, the API supports it.
+				opt.rc[name] = el.value.length ? Number(el.value) : undefined;
+				break;
+			case 'user':
+			case 'start':
+			case 'end':
+			case 'tag':
+				opt.rc[name] = el.value || undefined;
+				break;
+			case 'hideliu':
+			case 'hidebots':
+			case 'unpatrolled':
+			case 'typeEdit':
+			case 'typeNew':
+				opt.rc[name] = el.checked;
+				break;
+			case 'dir':
+				// There's more than 1 radio button with this name in this loop,
+				// use the value of the first (and only) checked one.
+				if (el.checked) {
+					opt.rc[name] = el.value;
+				}
+				break;
+			// APP
+			case 'cvnDB':
+			case 'ores':
+			case 'massPatrol':
+			case 'autoDiff':
+				opt.app[name] = el.checked;
+				break;
+			case 'refresh':
+				opt.app[name] = Number(el.value);
+				break;
+			}
+		});
+
+		if (!normaliseSettings(opt)) {
+			// TODO: Optimise this, no need to repopulate the entire settings form
+			// if only 1 thing changed.
+			fillSettingsForm(opt);
+		}
 	}
 
 	function getPermalink() {
@@ -454,7 +470,8 @@
 		});
 
 		$.each(opt.app, function (key, value) {
-			if (defOpt.app[key] !== value) {
+			// Don't permalink MassPatrol (issue Krinkle/mw-rtrc-gadget#59)
+			if (key !== 'massPatrol' && defOpt.app[key] !== value) {
 				if (!reducedOpt.app) {
 					reducedOpt.app = {};
 				}
@@ -465,41 +482,81 @@
 		reducedOpt = JSON.stringify(reducedOpt);
 
 		uri.extend({
-			opt: reducedOpt === '{}' ? undefined : reducedOpt,
-			kickstart: 1
+			opt: reducedOpt === '{}' ? '' : reducedOpt
 		});
 
 		return uri.toString();
 	}
 
-	// Read permalink into the program and reflect into settings form.
-	// TODO: Refactor into init, as this does more than read permalink.
-	// It also inits the settings form and handles kickstart
-	function readPermalink() {
-		var url = new mw.Uri(),
-			newOpt = url.query.opt,
-			kickstart = url.query.kickstart;
+	function updateFeedNow() {
+		$('#rc-options-pause').prop('checked', false);
+		if (updateReq) {
+			// Try to abort the current request
+			updateReq.abort();
+		}
+		clearTimeout(updateFeedTimeout);
+		return updateFeed();
+	}
 
-		newOpt = newOpt ? JSON.parse(newOpt) : {};
+	/**
+	 * @param {jQuery} $element
+	 */
+	function scrollIntoView($element) {
+		$element[0].scrollIntoView({ block: 'start', behavior: 'smooth' });
+	}
+
+	/**
+	 * @param {jQuery} $element
+	 */
+	function scrollIntoViewIfNeeded($element) {
+		if ($element[0].scrollIntoViewIfNeeded) {
+			$element[0].scrollIntoViewIfNeeded({ block: 'start', behavior: 'smooth' });
+		} else {
+			$element[0].scrollIntoView({ block: 'start', behavior: 'smooth' });
+		}
+	}
+
+	// Read permalink into the program and reflect into settings form.
+	function readPermalink() {
+		var group, oldKey, newKey, newOpt,
+			url = new mw.Uri();
+
+		if (url.query.opt) {
+			try {
+				newOpt = JSON.parse(url.query.opt);
+			} catch (e) {
+				// TODO: Report error to user
+			}
+		}
+		if (newOpt) {
+			// Rename values for old aliases
+			for (group in newOpt) {
+				for (oldKey in newOpt[group]) {
+					newKey = aliasOpt[oldKey];
+					if (newKey && !newOpt[group].hasOwnProperty(newKey)) {
+						newOpt[group][newKey] = newOpt[group][oldKey];
+						delete newOpt[group][oldKey];
+					}
+				}
+			}
+
+			if (newOpt.app) {
+				// Don't permalink MassPatrol (issue Krinkle/mw-rtrc-gadget#59)
+				delete newOpt.app.massPatrol;
+			}
+		}
 
 		newOpt = $.extend(true, {}, defOpt, newOpt);
 
 		normaliseSettings(newOpt, 'quiet');
-
 		fillSettingsForm(newOpt);
 
 		opt = newOpt;
-
-		if (kickstart === '1') {
-			updateFeedNow();
-			if ($wrapper[0].scrollIntoView) {
-				$wrapper[0].scrollIntoView();
-			}
-		}
 	}
 
 	function getApiRcParams(rc) {
-		var rcprop = [
+		var params,
+			rcprop = [
 				'flags',
 				'timestamp',
 				'user',
@@ -508,11 +565,41 @@
 				'sizes',
 				'ids'
 			],
-			rcshow = ['!bot'],
-			rctype = [],
-			params = {};
+			rcshow = [],
+			rctype = [];
 
-		params.rcdir = rc.dir;
+		if (userHasPatrolRight) {
+			rcprop.push('patrolled');
+		}
+
+		if (rc.hideliu) {
+			rcshow.push('anon');
+		}
+		if (rc.hidebots) {
+			rcshow.push('!bot');
+		}
+		if (rc.unpatrolled) {
+			rcshow.push('!patrolled');
+		}
+
+		if (rc.typeEdit) {
+			rctype.push('edit');
+		}
+		if (rc.typeNew) {
+			rctype.push('new');
+		}
+		if (!rctype.length) {
+			// Custom default instead of MediaWiki's default (in case both checkboxes were unchecked)
+			rctype = ['edit', 'new'];
+		}
+
+		params = {
+			rcdir: rc.dir,
+			rclimit: rc.limit,
+			rcshow: rcshow.join('|'),
+			rcprop: rcprop.join('|'),
+			rctype: rctype.join('|')
+		};
 
 		if (rc.dir === 'older') {
 			if (rc.end !== undefined) {
@@ -538,47 +625,18 @@
 			params.rcuser = rc.user;
 		}
 
-		// params.titles: Title filter option (rctitles) is no longer supported by MediaWiki,
-		// see https://bugzilla.wikimedia.org/show_bug.cgi?id=12394#c5.
-
 		if (rc.tag !== undefined) {
 			params.rctag = rc.tag;
 		}
 
-		if (userHasPatrolRight) {
-			rcprop.push('patrolled');
-		}
-
-		params.rcprop = rcprop.join('|');
-
-		if (rc.showAnonOnly) {
-			rcshow.push('anon');
-		}
-
-		if (rc.showUnpatrolledOnly) {
-			rcshow.push('!patrolled');
-		}
-
-		params.rcshow = rcshow.join('|');
-
-		params.rclimit = rc.limit;
-
-		if (rc.typeEdit) {
-			rctype.push('edit');
-		}
-
-		if (rc.typeNew) {
-			rctype.push('new');
-		}
-
-		params.rctype = rctype.length ? rctype.join('|') : 'edit|new';
+		// params.titles: Title filter (rctitles) is no longer supported by MediaWiki,
+		// see https://bugzilla.wikimedia.org/show_bug.cgi?id=12394#c5.
 
 		return params;
 	}
 
 	// Called when the feed is regenerated before being inserted in the document
 	function applyRtrcAnnotations($feedContent) {
-
 		// Re-apply item classes
 		$feedContent.filter('.mw-rtrc-item').each(function () {
 			var $el = $(this),
@@ -587,7 +645,7 @@
 			// Mark skipped and patrolled items as such
 			if ($.inArray(rcid, skippedRCIDs) !== -1) {
 				$el.addClass('mw-rtrc-item-skipped');
-			} else if ($.inArray(rcid, patrolledRCIDs) !== -1) {
+			} else if (annotationsCache.patrolled.hasOwnProperty(rcid)) {
 				$el.addClass('mw-rtrc-item-patrolled');
 			} else if (rcid === currentDiffRcid) {
 				$el.addClass('mw-rtrc-item-current');
@@ -595,73 +653,121 @@
 		});
 	}
 
-	/**
-	 * @param {Object} update
-	 * @param {jQuery} update.$feedContent
-	 * @param {string} update.rawHtml
-	 */
-	function pushFeedContent(update) {
-		// TODO: Only do once
-		$body.removeClass('placeholder');
+	function applyOresAnnotations($feedContent) {
+		var dAnnotations, revids, fetchRevids;
 
-		$feed.find('.mw-rtrc-feed-update').html(
-			message('lastupdate-rc', new Date().toLocaleString()).escaped() +
-			' | <a href="' + getPermalink() + '">' +
-			message('permalink').escaped() +
-			'</a>'
-		);
-
-		if (update.rawHtml !== prevFeedHtml) {
-			prevFeedHtml = update.rawHtml;
-			applyRtrcAnnotations(update.$feedContent);
-			$feed.find('.mw-rtrc-feed-content').empty().append(update.$feedContent);
+		if (!oresModel) {
+			return $.Deferred().resolve();
 		}
 
-		// Schedule next update
-		updateFeedTimeout = setTimeout(updateFeed, opt.app.refresh * 1000);
-		$('#krRTRC_loader').hide();
+		// Find all revids names inside the feed
+		revids = $.map($feedContent.filter('.mw-rtrc-item'), function (node) {
+			return $(node).attr('data-diff');
+		});
+
+		if (!revids.length) {
+			return $.Deferred().resolve();
+		}
+
+		fetchRevids = $.grep(revids, function (revid) {
+			return !annotationsCache.ores.hasOwnProperty(revid);
+		});
+
+		if (!fetchRevids.length) {
+			// No (new) revisions
+			dAnnotations = $.Deferred().resolve(annotationsCache.ores);
+		} else {
+			dAnnotations = $.ajax({
+				url: oresApiUrl,
+				data: {
+					models: oresModel,
+					revids: fetchRevids.join('|')
+				},
+				timeout: 10000,
+				dataType: $.support.cors ? 'json' : 'jsonp',
+				cache: true
+			}).then(function (resp) {
+				var len;
+				if (resp) {
+					len = Object.keys ? Object.keys(resp).length : fetchRevids.length;
+					annotationsCacheUp(len);
+					$.each(resp, function (revid, item) {
+						if (!item || item.error || !item[oresModel] || item[oresModel].error) {
+							return;
+						}
+						annotationsCache.ores[revid] = item[oresModel].probability['true'];
+					});
+				}
+				return annotationsCache.ores;
+			});
+		}
+
+		return dAnnotations.then(function (annotations) {
+			// Loop through all revision ids
+			$.each(revids, function (i, revid) {
+				var tooltip,
+					score = annotations[revid];
+				// Only highlight high probability scores
+				if (!score || score <= 0.45) {
+					return;
+				}
+				tooltip = msg('ores-damaging-probability', (100 * score).toFixed(0) + '%');
+
+				// Add alert
+				$feedContent
+					.filter('.mw-rtrc-item[data-diff="' + Number(revid) + '"]')
+					.addClass('mw-rtrc-item-alert mw-rtrc-item-alert-rev')
+					.find('.mw-rtrc-meta')
+					.prepend(
+						$('<span>')
+							.addClass('mw-rtrc-revscore')
+							.attr('title', tooltip)
+					);
+			});
+		});
 	}
 
-	function applyCvnAnnotations($feedContent, callback) {
-		var users;
+	function applyCvnAnnotations($feedContent) {
+		var dAnnotations,
+			users = [];
 
-		// Find all user names inside the feed
-		users = [];
+		// Collect user names
 		$feedContent.filter('.mw-rtrc-item').each(function () {
 			var user = $(this).attr('user');
-			// Keep the list values unique to avoid long API query strings.
-			if (user && $.inArray(user, users) === -1) {
+			// Don't query the same user multiple times
+			if (user && $.inArray(user, users) === -1 && !annotationsCache.cvn.hasOwnProperty(user)) {
 				users.push(user);
 			}
 		});
 
 		if (!users.length) {
-			callback();
-			return;
+			// No (new) users
+			dAnnotations = $.Deferred().resolve(annotationsCache.cvn);
+		} else {
+			dAnnotations = $.ajax({
+				url: cvnApiUrl,
+				data: { users: users.join('|') },
+				timeout: 2000,
+				dataType: $.support.cors ? 'json' : 'jsonp',
+				cache: true
+			})
+			.then(function (resp) {
+				if (resp.users) {
+					annotationsCacheUp(resp.users.length);
+					$.each(resp.users, function (name, user) {
+						annotationsCache.cvn[name] = user;
+					});
+				}
+				return annotationsCache.cvn;
+			});
 		}
 
-		$.ajax({
-			url: cvnApiUrl,
-			data: {
-				users: users.join('|')
-			},
-			timeout: 2000,
-			dataType: $.support.cors ? 'json' : 'jsonp',
-			// Don't force cache invalidation
-			cache: true
-		})
-		.done(function (data) {
-			var d;
-
-			if (!data.users) {
-				return;
-			}
-
-			// Loop through all users
-			$.each(data.users, function (name, user) {
+		return dAnnotations.then(function (annotations) {
+			// Loop through all cvn user annotations
+			$.each(annotations, function (name, user) {
 				var tooltip;
 
-				// Only if blacklisted, otherwise dont highlight
+				// Only if blacklisted, otherwise don't highlight
 				if (user.type === 'blacklist') {
 					tooltip = '';
 
@@ -677,112 +783,135 @@
 						tooltip += msg('cvn-adder') + ': ' + msg('cvn-adder-empty');
 					}
 
-					// Apply blacklisted-class, and insert icon with tooltip
+					// Add alert
 					$feedContent
 						.filter('.mw-rtrc-item')
 						.filter(function () {
 							return $(this).attr('user') === name;
 						})
-						.find('.user')
-						.addClass('blacklisted')
+						.addClass('mw-rtrc-item-alert mw-rtrc-item-alert-user')
+						.find('.mw-userlink')
 						.attr('title', tooltip);
 				}
 
 			});
-
-			d = new Date();
-			d.setTime(data.lastUpdate * 1000);
-			$feed.find('.mw-rtrc-feed-cvninfo').text('CVN DB ' + msg('lastupdate-cvn', d.toUTCString()));
-		})
-		// Push the feed to the frontend
-		.always(callback);
+		});
 	}
 
-	function updateFeedNow() {
-		$('#rc-options-pause').prop('checked', false);
-		clearTimeout(updateFeedTimeout);
-		updateFeed();
+	/**
+	 * @param {Object} update
+	 * @param {jQuery} update.$feedContent
+	 * @param {string} update.rawHtml
+	 */
+	function pushFeedContent(update) {
+		$body.removeClass('placeholder');
+
+		$feed.find('.mw-rtrc-feed-update').html(
+			message('lastupdate-rc', new Date().toLocaleString()).escaped() +
+			' | <a href="' + mw.html.escape(getPermalink()) + '">' +
+			message('permalink').escaped() +
+			'</a>'
+		);
+
+		if (update.rawHtml !== prevFeedHtml) {
+			prevFeedHtml = update.rawHtml;
+			applyRtrcAnnotations(update.$feedContent);
+			$feed.find('.mw-rtrc-feed-content').empty().append(update.$feedContent);
+		}
 	}
 
 	function updateFeed() {
-		var rcparams;
-		if (!isUpdating) {
+		if (updateReq) {
+			updateReq.abort();
+		}
 
-			// Indicate updating
-			$('#krRTRC_loader').show();
-			isUpdating = true;
+		// Indicate updating
+		$('#krRTRC_loader').show();
 
-			// Download recent changes
+		// Download recent changes
+		updateReq = $.ajax({
+			url: apiUrl,
+			dataType: 'json',
+			data: $.extend(getApiRcParams(opt.rc), {
+				format: 'json',
+				action: 'query',
+				list: 'recentchanges'
+			})
+		});
+		// This waterfall flows in one of two ways:
+		// - Everything casts to success and results in a UI update (maybe an error message),
+		//   loading indicator hidden, and the next update scheduled.
+		// - Request is aborted and nothing happens (instead, the final handling will
+		//   be done by the new request).
+		return updateReq.always(function () {
+			updateReq = null;
+		})
+		.then(null, function (jqXhr, textStatus) {
+			var feedContentHTML = '<h3>Downloading recent changes failed</h3>';
+			if (textStatus === 'abort') {
+				return $.Deferred().reject();
+			}
+			pushFeedContent({
+				$feedContent: $(feedContentHTML),
+				rawHtml: feedContentHTML
+			});
+			// Error is handled. Move on normally.
+			return $.Deferred().resolve();
+		}).then(function (data) {
+			var recentchanges, $feedContent, client,
+				feedContentHTML = '';
 
-			rcparams = getApiRcParams(opt.rc);
-			rcparams.format = 'json';
-			rcparams.action = 'query';
-			rcparams.list = 'recentchanges';
+			if (data.error) {
+				// Account doesn't have patrol flag
+				if (data.error.code === 'rcpermissiondenied') {
+					feedContentHTML += '<h3>Downloading recent changes failed</h3><p>Please untick the "Unpatrolled only"-checkbox or request the Patroller-right.</a>';
 
-			$.ajax({
-				url: apiUrl,
-				dataType: 'json',
-				data: rcparams
-			}).fail(function () {
-				var feedContentHTML = '<h3>Downloading recent changes failed</h3>';
+				// Other error
+				} else {
+					client = $.client.profile();
+					feedContentHTML += '<h3>Downloading recent changes failed</h3>' +
+						'<p>Please check the settings above and try again. If you believe this is a bug, please <strong>' +
+						'<a href="https://github.com/Krinkle/mw-gadget-rtrc/issues/new?body=' + encodeURIComponent('\n\n\n----' +
+						'\npackage: mw-gadget-rtrc ' + appVersion +
+						mw.format('\nbrowser: $1 $2 ($3)', client.name, client.version, client.platform)
+						) + '" target="_blank">let me know</a></strong>.';
+				}
+			} else {
+				recentchanges = data.query.recentchanges;
+
+				if (recentchanges.length) {
+					$.each(recentchanges, function (i, rc) {
+						feedContentHTML += buildRcItem(rc);
+					});
+				} else {
+					// Everything is OK - no results
+					feedContentHTML += '<strong><em>' + message('nomatches').escaped() + '</em></strong>';
+				}
+
+				// Reset day
+				rcDayHeadPrev = undefined;
+			}
+
+			$feedContent = $($.parseHTML(feedContentHTML));
+			return $.when(
+				opt.app.cvnDB && applyCvnAnnotations($feedContent),
+				oresModel && opt.app.ores && applyOresAnnotations($feedContent)
+			).then(null, function () {
+				// Ignore errors from annotation handlers
+				return $.Deferred().resolve();
+			}).then(function () {
 				pushFeedContent({
-					$feedContent: $(feedContentHTML),
+					$feedContent: $feedContent,
 					rawHtml: feedContentHTML
 				});
-				isUpdating = false;
-				$RCOptionsSubmit.prop('disabled', false).css('opacity', '1.0');
-
-			}).done(function (data) {
-				var recentchanges, $feedContent, feedContentHTML = '';
-
-				if (data.error) {
-					$body.removeClass('placeholder');
-
-					// Account doesn't have patrol flag
-					if (data.error.code === 'rcpermissiondenied') {
-						feedContentHTML += '<h3>Downloading recent changes failed</h3><p>Please untick the "Unpatrolled only"-checkbox or request the Patroller-right.</a>';
-
-					// Other error
-					} else {
-						feedContentHTML += '<h3>Downloading recent changes failed</h3><p>Please check the settings above and try again. If you believe this is a bug, please <a href="//meta.wikimedia.org/w/index.php?title=User_talk:Krinkle/Tools&action=edit&section=new&preload=User_talk:Krinkle/Tools/Preload" target="_blank"><strong>let me know</strong></a>.';
-					}
-
-				} else {
-					recentchanges = data.query.recentchanges;
-
-					if (recentchanges.length) {
-						$.each(recentchanges, function (i, rc) {
-							feedContentHTML += buildRcItem(rc);
-						});
-					} else {
-						// Everything is OK - no results
-						feedContentHTML += '<strong><em>' + message('nomatches').escaped() + '</em></strong>';
-					}
-
-					// Reset day
-					rcPrevDayHeading = undefined;
-				}
-
-				$feedContent = $($.parseHTML(feedContentHTML));
-				if (opt.app.cvnDB) {
-					applyCvnAnnotations($feedContent, function () {
-						pushFeedContent({
-							$feedContent: $feedContent,
-							rawHtml: feedContentHTML
-						});
-						isUpdating = false;
-					});
-				} else {
-					pushFeedContent({
-						$feedContent: $feedContent,
-						rawHtml: feedContentHTML
-					});
-					isUpdating = false;
-				}
-
-				$RCOptionsSubmit.prop('disabled', false).css('opacity', '1.0');
 			});
-		}
+		}).then(function () {
+			$RCOptionsSubmit.prop('disabled', false).css('opacity', '1.0');
+
+			// Schedule next update
+			updateFeedTimeout = setTimeout(updateFeed, opt.app.refresh * 1000);
+			$('#krRTRC_loader').hide();
+		});
 	}
 
 	function nextDiff() {
@@ -790,8 +919,8 @@
 		$lis.eq(0).find('a.rcitemlink').click();
 	}
 
-	function toggleMassPatrol(b) {
-		if (b === true) {
+	function wakeupMassPatrol(settingVal) {
+		if (settingVal === true) {
 			if (!currentDiff) {
 				nextDiff();
 			} else {
@@ -802,8 +931,7 @@
 
 	// Build the main interface
 	function buildInterface() {
-		var namespaceOptionsHtml, tagOptionsHtml,
-			key,
+		var namespaceOptionsHtml, tagOptionsHtml, key,
 			fmNs = mw.config.get('wgFormattedNamespaces');
 
 		namespaceOptionsHtml = '<option value>' + mw.message('namespacesall').escaped() + '</option>';
@@ -823,59 +951,47 @@
 		$wrapper = $($.parseHTML(
 		'<div class="mw-rtrc-wrapper">' +
 			'<div class="mw-rtrc-head">' +
-				'Real-Time Recent Changes <small>(' + appVersion + ')</small>' +
+				message('title').escaped() + ' <small>(' + appVersion + ')</small>' +
 				'<div class="mw-rtrc-head-links">' +
 					(!mw.user.isAnon() ? (
-						'<a target="_blank" href="' + mw.util.getUrl('Special:Log/patrol') + '?user=' + encodeURIComponent(mw.user.getName()) + '">' +
+						'<a target="_blank" href="' + mw.util.getUrl('Special:Log', { type: 'patrol', user: mw.user.getName(), subtype: 'patrol' }) + '">' +
 							message('mypatrollog').escaped() +
-						'</a>') :
-						''
-					) +
-					'<a id="mw-rtrc-toggleHelp">Help</a>' +
+						'</a>'
+					) : '') +
+					'<a id="mw-rtrc-toggleHelp">' + message('help').escaped() + '</a>' +
 				'</div>' +
 			'</div>' +
 			'<form id="krRTRC_RCOptions" class="mw-rtrc-settings mw-rtrc-nohelp make-switch"><fieldset>' +
 				'<div class="panel-group">' +
 					'<div class="panel">' +
-						'<label for="mw-rtrc-settings-limit" class="head">' + message('limit').escaped() + '</label>' +
-						'<select id="mw-rtrc-settings-limit" name="limit">' +
-							'<option value="10">10</option>' +
-							'<option value="25" selected>25</option>' +
-							'<option value="50">50</option>' +
-							'<option value="75">75</option>' +
-							'<option value="100">100</option>' +
-							'<option value="250">250</option>' +
-							'<option value="500">500</option>' +
-						'</select>' +
-					'</div>' +
-					'<div class="panel">' +
 						'<label class="head">' + message('filter').escaped() + '</label>' +
-						'<div style="text-align: left;">' +
+						'<div class="sub-panel">' +
 							'<label>' +
-								'<input type="checkbox" name="showAnonOnly" />' +
-								' ' + message('showAnonOnly').escaped() +
+								'<input type="checkbox" name="hideliu" />' +
+								' ' + message('filter-hideliu').escaped() +
 							'</label>' +
 							'<br />' +
 							'<label>' +
-								'<input type="checkbox" name="showUnpatrolledOnly" />' +
-								' ' + message('showUnpatrolledOnly').escaped() +
+								'<input type="checkbox" name="hidebots" />' +
+								' ' + message('filter-hidebots').escaped() +
 							'</label>' +
 						'</div>' +
-					'</div>' +
-					'<div class="panel">' +
-						'<label for="mw-rtrc-settings-user" class="head">' +
-							message('userfilter').escaped() +
-							'<span section="Userfilter" class="helpicon"></span>' +
-						'</label>' +
-						'<div style="text-align: center;">' +
-							'<input type="text" size="16" id="mw-rtrc-settings-user" name="user" />' +
+						'<div class="sub-panel">' +
+							'<label>' +
+								'<input type="checkbox" name="unpatrolled" />' +
+								' ' + message('filter-unpatrolled').escaped() +
+							'</label>' +
 							'<br />' +
-							'<input class="button button-small" type="button" id="mw-rtrc-settings-user-clr" value="' + message('clear').escaped() + '" />' +
+							'<label>' +
+								message('userfilter').escaped() +
+								'<span section="Userfilter" class="helpicon"></span>: ' +
+								'<input type="search" size="16" name="user" />' +
+							'</label>' +
 						'</div>' +
 					'</div>' +
 					'<div class="panel">' +
 						'<label class="head">' + message('type').escaped() + '</label>' +
-						'<div style="text-align: left;">' +
+						'<div class="sub-panel">' +
 							'<label>' +
 								'<input type="checkbox" name="typeEdit" checked />' +
 								' ' + message('typeEdit').escaped() +
@@ -884,23 +1000,6 @@
 							'<label>' +
 								'<input type="checkbox" name="typeNew" checked />' +
 								' ' + message('typeNew').escaped() +
-							'</label>' +
-						'</div>' +
-					'</div>' +
-					'<div class="panel">' +
-						'<label class="head">' +
-							message('timeframe').escaped() +
-							'<span section="Timeframe" class="helpicon"></span>' +
-						'</label>' +
-						'<div style="text-align: right;">' +
-							'<label>' +
-								message('time-from').escaped() + ': ' +
-								'<input type="text" size="18" name="start" />' +
-							'</label>' +
-							'<br />' +
-							'<label>' +
-								message('time-untill').escaped() + ': ' +
-								'<input type="text" size="18" name="end" />' +
 							'</label>' +
 						'</div>' +
 					'</div>' +
@@ -915,11 +1014,28 @@
 					'</div>' +
 					'<div class="panel">' +
 						'<label class="head">' +
+							message('timeframe').escaped() +
+							'<span section="Timeframe" class="helpicon"></span>' +
+						'</label>' +
+						'<div class="sub-panel" style="text-align: right;">' +
+							'<label>' +
+								message('time-from').escaped() + ': ' +
+								'<input type="text" size="16" placeholder="YYYYMMDDHHIISS" name="start" />' +
+							'</label>' +
+							'<br />' +
+							'<label>' +
+								message('time-untill').escaped() + ': ' +
+								'<input type="text" size="16" placeholder="YYYYMMDDHHIISS" name="end" />' +
+							'</label>' +
+						'</div>' +
+					'</div>' +
+					'<div class="panel">' +
+						'<label class="head">' +
 							message('order').escaped() +
 							' <br />' +
 							'<span section="Order" class="helpicon"></span>' +
 						'</label>' +
-						'<div style="text-align: left;">' +
+						'<div class="sub-panel">' +
 							'<label>' +
 								'<input type="radio" name="dir" value="newer" />' +
 								' ' + message('asc').escaped() +
@@ -938,18 +1054,23 @@
 						'</label>' +
 						'<input type="number" value="3" min="0" max="99" size="2" id="mw-rtrc-settings-refresh" name="refresh" />' +
 					'</div>' +
-					'<div class="panel">' +
-						'<label class="head">' +
-							'CVN DB<br />' +
-							'<span section="IRC_Blacklist" class="helpicon"></span>' +
-							'<input type="checkbox" class="switch" name="cvnDB" />' +
-						'</label>' +
-					'</div>' +
 					'<div class="panel panel-last">' +
 						'<input class="button" type="button" id="RCOptions_submit" value="' + message('apply').escaped() + '" />' +
 					'</div>' +
 				'</div>' +
 				'<div class="panel-group panel-group-mini">' +
+					'<div class="panel">' +
+						'<label for="mw-rtrc-settings-limit" class="head">' + message('limit').escaped() + '</label>' +
+						' <select id="mw-rtrc-settings-limit" name="limit">' +
+							'<option value="10">10</option>' +
+							'<option value="25" selected>25</option>' +
+							'<option value="50">50</option>' +
+							'<option value="75">75</option>' +
+							'<option value="100">100</option>' +
+							'<option value="250">250</option>' +
+							'<option value="500">500</option>' +
+						'</select>' +
+					'</div>' +
 					'<div class="panel">' +
 						'<label class="head">' +
 							message('tag').escaped() +
@@ -960,14 +1081,30 @@
 					'</div>' +
 					'<div class="panel">' +
 						'<label class="head">' +
-							message('massPatrol').escaped() +
+							message('cvn-scores').escaped() +
+							'<span section="CVN_Scores" class="helpicon"></span>' +
+							'<input type="checkbox" class="switch" name="cvnDB" />' +
+						'</label>' +
+					'</div>' +
+					(oresModel ? (
+						'<div class="panel">' +
+							'<label class="head">' +
+								message('ores-scores').escaped() +
+								'<span section="ORES_Scores" class="helpicon"></span>' +
+								'<input type="checkbox" class="switch" name="ores" />' +
+							'</label>' +
+						'</div>'
+					) : '') +
+					'<div class="panel">' +
+						'<label class="head">' +
+							message('masspatrol').escaped() +
 							'<span section="MassPatrol" class="helpicon"></span>' +
 							'<input type="checkbox" class="switch" name="massPatrol" />' +
 						'</label>' +
 					'</div>' +
 					'<div class="panel">' +
 						'<label class="head">' +
-							message('autoDiff').escaped() +
+							message('autodiff').escaped() +
 							'<span section="AutoDiff" class="helpicon"></span>' +
 							'<input type="checkbox" class="switch" name="autoDiff" />' +
 						'</label>' +
@@ -986,27 +1123,24 @@
 				'<div class="mw-rtrc-feed">' +
 					'<div class="mw-rtrc-feed-update"></div>' +
 					'<div class="mw-rtrc-feed-content"></div>' +
-					'<small class="mw-rtrc-feed-cvninfo"></small>' +
 				'</div>' +
 				'<img src="' + ajaxLoaderUrl + '" id="krRTRC_loader" style="display: none;" />' +
 				'<div class="mw-rtrc-legend">' +
-					'Colors: <div class="mw-rtrc-item mw-rtrc-item-patrolled inline-block">&nbsp;' +
-					mw.message('markedaspatrolled').escaped() + '&nbsp;</div>, <div class="mw-rtrc-item mw-rtrc-item-current inline-block">&nbsp;' +
-					message('currentedit').escaped() + '&nbsp;</div>, ' +
-					'<div class="mw-rtrc-item mw-rtrc-item-skipped inline-block">&nbsp;' + message('skippededit').escaped() + '&nbsp;</div>, ' +
-					'<div class="mw-rtrc-item mw-rtrc-item-aes inline-block">&nbsp;Edit with an Automatic Edit Summary&nbsp;</div>' +
-					'<br />Abbreviations: T - ' + mw.message('talkpagelinktext').escaped() + ', C - ' + mw.message('contributions', mw.user).escaped() +
+					message('legend').escaped() + ': ' +
+					'<div class="mw-rtrc-item mw-rtrc-item-patrolled">' + mw.message('markedaspatrolled').escaped() + '</div>, ' +
+					'<div class="mw-rtrc-item mw-rtrc-item-current">' + message('currentedit').escaped() + '</div>, ' +
+					'<div class="mw-rtrc-item mw-rtrc-item-skipped">' + message('skippededit').escaped() + '</div>' +
 				'</div>' +
 			'</div>' +
 			'<div style="clear: both;"></div>' +
 			'<div class="mw-rtrc-foot">' +
 				'<div class="plainlinks" style="text-align: right;">' +
 					'Real-Time Recent Changes by ' +
-					'<a href="//meta.wikimedia.org/wiki/User:Krinkle" class="external text" rel="nofollow">Krinkle</a>' +
-					' | <a href="//meta.wikimedia.org/wiki/User:Krinkle/Tools/Real-Time_Recent_Changes" class="external text" rel="nofollow">' + message('documentation').escaped() + '</a>' +
-					' | <a href="https://github.com/Krinkle/mw-gadget-rtrc/releases" class="external text" rel="nofollow">' + message('changelog').escaped() + '</a>' +
-					' | <a href="https://github.com/Krinkle/mw-gadget-rtrc/issues" class="external text" rel="nofollow">' + message('feedback').escaped() + '</a>' +
-					' | <a href="http://krinkle.mit-license.org" class="external text" rel="nofollow">' + message('license').escaped() + '</a>' +
+					'<a href="//meta.wikimedia.org/wiki/User:Krinkle">Krinkle</a>' +
+					' | <a href="' + docUrl + '">' + message('documentation').escaped() + '</a>' +
+					' | <a href="https://github.com/Krinkle/mw-gadget-rtrc/releases">' + message('changelog').escaped() + '</a>' +
+					' | <a href="https://github.com/Krinkle/mw-gadget-rtrc/issues">' + message('feedback').escaped() + '</a>' +
+					' | <a href="https://krinkle.mit-license.org/@2016">' + message('license').escaped() + '</a>' +
 				'</div>' +
 			'</div>' +
 		'</div>'
@@ -1024,17 +1158,23 @@
 		});
 
 		$('#content').empty().append($wrapper);
-		nextFrame(function () {
-			$('html').addClass('mw-rtrc-ready');
-		});
 
 		$body = $wrapper.find('.mw-rtrc-body');
 		$feed = $body.find('.mw-rtrc-feed');
 	}
 
+	function annotationsCacheUp(increment) {
+		annotationsCacheSize += increment || 1;
+		if (annotationsCacheSize > 1000) {
+			annotationsCache.patrolled = {};
+			annotationsCache.ores = {};
+			annotationsCache.cvn = {};
+		}
+	}
+
 	// Bind event hanlders in the user interface
 	function bindInterface() {
-
+		var api = new mw.Api();
 		$RCOptionsSubmit = $('#RCOptions_submit');
 
 		// Apply button
@@ -1043,9 +1183,9 @@
 
 			readSettingsForm();
 
-			toggleMassPatrol(opt.app.massPatrol);
-
-			updateFeedNow();
+			updateFeedNow().then(function () {
+				wakeupMassPatrol(opt.app.massPatrol);
+			});
 			return false;
 		});
 
@@ -1086,7 +1226,7 @@
 					.append(jqXhr.responseText || 'Loading diff failed.')
 					.removeClass('mw-rtrc-diff-loading');
 			}).done(function (data) {
-				var skipButtonHtml;
+				var skipButtonHtml, $diff;
 				if ($.inArray(currentDiffRcid, skippedRCIDs) !== -1) {
 					skipButtonHtml = '<span class="tab"><a id="diffUnskip">' + message('unskip').escaped() + '</a></span>';
 				} else {
@@ -1099,8 +1239,8 @@
 						'<h3>' + mw.html.escape(title) + '</h3>' +
 						'<div class="mw-rtrc-diff-tools">' +
 							'<span class="tab"><a id="diffClose">' + message('close').escaped() + '</a></span>' +
-							'<span class="tab"><a href="' + href + '" target="_blank" id="diffNewWindow">' + message('openInWiki').escaped() + '</a></span>' +
-							(userPatrolTokenCache ?
+							'<span class="tab"><a href="' + href + '" target="_blank" id="diffNewWindow">' + message('open-in-wiki').escaped() + '</a></span>' +
+							(userHasPatrolRight ?
 								'<span class="tab"><a onclick="(function(){ if($(\'.patrollink a\').length){ $(\'.patrollink a\').click(); } else { $(\'#diffSkip\').click(); } })();">[' + message('mark').escaped() + ']</a></span>' :
 								''
 							) +
@@ -1112,6 +1252,14 @@
 
 				if (opt.app.massPatrol) {
 					$frame.find('.patrollink a').click();
+				} else {
+					$diff = $frame.find('table.diff');
+					if ($diff.length) {
+						mw.hook('wikipage.diff').fire($diff.eq(0));
+					}
+					// Only scroll up if the user scrolled down
+					// Leave scroll offset unchanged otherwise
+					scrollIntoViewIfNeeded($frame);
 				}
 			});
 
@@ -1146,9 +1294,9 @@
 			}).done(function (data) {
 				var skipButtonHtml;
 				if ($.inArray(currentDiffRcid, skippedRCIDs) !== -1) {
-					skipButtonHtml = '<span class="tab"><a id="diffUnskip">' + message('Unskip').escaped() + '</a></span>';
+					skipButtonHtml = '<span class="tab"><a id="diffUnskip">' + message('unskip').escaped() + '</a></span>';
 				} else {
-					skipButtonHtml = '<span class="tab"><a id="diffSkip">' + message('Skip').escaped() + '</a></span>';
+					skipButtonHtml = '<span class="tab"><a id="diffSkip">' + message('skip').escaped() + '</a></span>';
 				}
 
 				$frame
@@ -1177,40 +1325,29 @@
 		$wrapper.on('click', '.patrollink', function () {
 			var $el = $(this);
 			$el.find('a').text(mw.msg('markaspatrolleddiff') + '...');
-			$.ajax({
-				type: 'POST',
-				url: apiUrl,
-				dataType: 'json',
-				data: {
-					action: 'patrol',
-					format: 'json',
-					list: 'recentchanges',
-					rcid: currentDiffRcid,
-					token: userPatrolTokenCache
-				}
+			api.postWithToken('patrol', {
+				action: 'patrol',
+				rcid: currentDiffRcid
 			}).done(function (data) {
 				if (!data || data.error) {
 					$el.empty().append(
 						$('<span style="color: red;"></span>').text(mw.msg('markedaspatrollederror'))
 					);
 					mw.log('Patrol error:', data);
-				} else {
-					$el.empty().append(
-						$('<span style="color: green;"></span>').text(mw.msg('markedaspatrolled'))
-					);
-					$feed.find('.mw-rtrc-item[data-rcid="' + currentDiffRcid + '"]').addClass('mw-rtrc-item-patrolled');
+					return;
+				}
+				$el.empty().append(
+					$('<span style="color: green;"></span>').text(mw.msg('markedaspatrolled'))
+				);
+				$feed.find('.mw-rtrc-item[data-rcid="' + currentDiffRcid + '"]').addClass('mw-rtrc-item-patrolled');
 
-					// Patrolling/Refreshing sometimes overlap eachother causing patrolled edits to show up in an 'unpatrolled only' feed.
-					// Make sure that any patrolled edits stay marked as such to prevent AutoDiff from picking a patrolled edit
-					patrolledRCIDs.push(currentDiffRcid);
+				// Feed refreshes may overlap with patrol actions, which can cause patrolled edits
+				// to show up in an "Unpatrolled only" feed. This is make nextDiff() skip those.
+				annotationsCacheUp();
+				annotationsCache.patrolled[currentDiffRcid] = true;
 
-					while (patrolledRCIDs.length > patrolCacheSize) {
-						patrolledRCIDs.shift();
-					}
-
-					if (opt.app.autoDiff) {
-						nextDiff();
-					}
+				if (opt.app.autoDiff) {
+					nextDiff();
 				}
 			}).fail(function () {
 				$el.empty().append(
@@ -1255,12 +1392,6 @@
 				window.open(docUrl + '#' + $(this).attr('section'), '_blank');
 			});
 
-		// Clear rcuser-field
-		// If MassPatrol is active, warn that clearing rcuser will automatically disable MassPatrol f
-		$('#mw-rtrc-settings-user-clr').click(function () {
-			$('#mw-rtrc-settings-user').val('');
-		});
-
 		// Mark as patrolled when rollbacking
 		// Note: As of MediaWiki r(unknown) rollbacking does already automatically patrol all reverted revisions.
 		// But by doing it anyway it saves a click for the AutoDiff-users
@@ -1270,11 +1401,12 @@
 
 		// Button: Pause
 		$('#rc-options-pause').click(function () {
-			if (this.checked) {
-				clearTimeout(updateFeedTimeout);
+			if (!this.checked) {
+				// Unpause
+				updateFeedNow();
 				return;
 			}
-			updateFeedNow();
+			clearTimeout(updateFeedTimeout);
 		});
 	}
 
@@ -1308,48 +1440,27 @@
 	 * @return {jQuery.Promise}
 	 */
 	function initData() {
-		var dRights = $.Deferred(),
-			promises = [dRights.promise()];
+		var promises = [];
 
 		// Get userrights
-		mw.loader.using('mediawiki.user', function () {
-			mw.user.getRights(function (rights) {
-				if ($.inArray('patrol', rights) !== -1) {
-					userHasPatrolRight = true;
-				}
-				dRights.resolve();
-			});
-		});
-
-		// Get a patroltoken
-		promises.push($.ajax({
-			url: apiUrl,
-			dataType: 'json',
-			data: {
-				format: 'json',
-				action: 'tokens',
-				type: 'patrol'
-			}
-		}).done(function (data) {
-			userPatrolTokenCache = data.tokens.patroltoken;
-		}));
+		promises.push(
+			mw.loader.using('mediawiki.user').then(function () {
+				return mw.user.getRights().then(function (rights) {
+					if ($.inArray('patrol', rights) !== -1) {
+						userHasPatrolRight = true;
+					}
+				});
+			})
+		);
 
 		// Get MediaWiki interface messages
-		promises.push($.ajax({
-			url: apiUrl,
-			dataType: 'json',
-			data: {
-				action: 'query',
-				format: 'json',
-				meta: 'allmessages',
-				amlang: conf.wgUserLanguage,
-				ammessages: ([
-					'ascending abbrev',
+		promises.push(
+			mw.loader.using('mediawiki.api.messages').then(function () {
+				return new mw.Api().loadMessages([
 					'blanknamespace',
 					'contributions',
-					'descending abbrev',
+					'contribslink',
 					'diff',
-					'hide',
 					'markaspatrolleddiff',
 					'markedaspatrolled',
 					'markedaspatrollederror',
@@ -1357,20 +1468,10 @@
 					'namespacesall',
 					'newpageletter',
 					'next',
-					'recentchanges-label-bot',
-					'recentchanges-label-minor',
-					'recentchanges-label-newpage',
-					'recentchanges-label-unpatrolled',
-					'show',
 					'talkpagelinktext'
-				].join('|'))
-			}
-		}).done(function (data) {
-			data = data.query.allmessages;
-			for (var i = 0; i < data.length; i++) {
-				mw.messages.set(data[i].name, data[i]['*']);
-			}
-		}));
+				]);
+			})
+		);
 
 		promises.push($.ajax({
 			url: apiUrl,
@@ -1381,7 +1482,7 @@
 				list: 'tags',
 				tgprop: 'displayname'
 			}
-		}).done(function (data) {
+		}).then(function (data) {
 			var tags = data.query && data.query.tags;
 			if (tags) {
 				rcTags = $.map(tags, function (tag) {
@@ -1398,7 +1499,7 @@
 				action: 'query',
 				meta: 'siteinfo'
 			}
-		}).done(function (data) {
+		}).then(function (data) {
 			wikiTimeOffset = (data.query && data.query.general.timeoffset) || 0;
 		}));
 
@@ -1409,7 +1510,7 @@
 	 * @return {jQuery.Promise}
 	 */
 	function init() {
-		var dModules, dI18N, featureTest, $navToggle;
+		var dModules, dI18N, featureTest, $navToggle, dOres;
 
 		// Transform title and navigation tabs
 		document.title = 'RTRC: ' + conf.wgDBname;
@@ -1421,7 +1522,7 @@
 						.text('RTRC');
 		});
 
-		featureTest = !!(Date.UTC);
+		featureTest = !!(Date.parse);
 
 		if (!featureTest) {
 			$(showUnsupported);
@@ -1436,34 +1537,53 @@
 		if (navSupported) {
 			$('html').addClass('mw-rtrc-sidebar-toggleable');
 			$(function () {
-				$('body').append(
-					$('<div>').addClass('mw-rtrc-sidebar-cover'),
-					$navToggle = $('<div>')
-						.addClass('mw-rtrc-navtoggle')
-						.on('click', function () {
-							$('html').toggleClass('mw-rtrc-sidebar-on').removeClass('mw-rtrc-sidebar-peak');
-						})
-						.hover(function () {
-							$('html').addClass('mw-rtrc-sidebar-peak');
-						}, function () {
-							$('html').removeClass('mw-rtrc-sidebar-peak');
-						})
-				);
+				$navToggle = $('<div>').addClass('mw-rtrc-navtoggle');
+				$('body').append($('<div>').addClass('mw-rtrc-sidebar-cover'));
+				$('#mw-panel')
+					.append($navToggle)
+					.hover(function () {
+						$('html').addClass('mw-rtrc-sidebar-on');
+					}, function () {
+						$('html').removeClass('mw-rtrc-sidebar-on');
+					});
 			});
 		}
 
 		dModules = mw.loader.using([
 			'json',
+			'jquery.client',
 			'mediawiki.action.history.diff',
+			// mw-plusminus styles etc.
+			'mediawiki.special.changeslist',
 			'mediawiki.jqueryMsg',
 			'mediawiki.Uri',
 			'mediawiki.user',
-			'mediawiki.util'
+			'mediawiki.util',
+			'mediawiki.api',
+			'mediawiki.api.messages'
 		]);
 
 		if (!mw.libs.getIntuition) {
 			mw.libs.getIntuition = $.ajax({ url: intuitionLoadUrl, dataType: 'script', cache: true, timeout: 7000 /*ms*/ });
 		}
+
+		dOres = $.ajax({
+			url: oresApiUrl,
+			dataType: $.support.cors ? 'json' : 'jsonp',
+			cache: true,
+			timeout: 2000
+		}).then(function (data) {
+			if (data && data.models) {
+				if (data.models.damaging) {
+					oresModel = 'damaging';
+				} else if (data.models.reverted) {
+					oresModel = 'reverted';
+				}
+			}
+		}, function () {
+			// If ORES doesn't have models for this wiki, do continue loading without
+			return $.Deferred().resolve();
+		});
 
 		dI18N = mw.libs.getIntuition
 			.then(function () {
@@ -1485,7 +1605,7 @@
 				return $.Deferred().resolve();
 			});
 
-		$.when(initData(), dModules, dI18N, $.ready).fail(showFail).done(function () {
+		$.when(initData(), dModules, dI18N, dOres, $.ready).fail(showFail).done(function () {
 			if ($navToggle) {
 				$navToggle.attr('title', msg('navtoggle-tooltip'));
 			}
@@ -1495,6 +1615,13 @@
 
 			buildInterface();
 			readPermalink();
+			updateFeedNow();
+
+			scrollIntoView($wrapper);
+			rAF(function () {
+				$('html').addClass('mw-rtrc-ready');
+			});
+
 			bindInterface();
 		});
 	}

@@ -2,8 +2,8 @@
  * Real-Time Recent Changes
  * https://github.com/Krinkle/mw-gadget-rtrc
  *
- * @license http://krinkle.mit-license.org/
- * @author Timo Tijhof, 2010–2015
+ * @author Timo Tijhof
+ * @license https://krinkle.mit-license.org/@2016
  */
 
 /* Minimise MediaWiki frame */
@@ -35,16 +35,17 @@
 	line-height: 1.4;
 	color: #343434;
 	opacity: 0;
-	-webkit-transition: opacity 250ms ease-out 255ms;
-	transition: opacity 250ms ease-out 255ms;
+	-webkit-transition: opacity 150ms ease-out 50ms;
+	transition: opacity 150ms ease-out 50ms;
 }
 
 .mw-rtrc-ready .mw-rtrc-wrapper {
 	opacity: 1;
 }
 
-.mw-rtrc-wrapper .inline-block {
+.mw-rtrc-legend .mw-rtrc-item {
 	display: inline-block;
+	padding: 0 0.6em;
 }
 
 .mw-rtrc-available #content {
@@ -72,9 +73,9 @@
 	border-top: 1px solid #a1cef5;
 	text-align: center;
 	color: #343434;
-	-webkit-transition: all 250ms ease-out;
+	-webkit-transition: all 150ms ease-out;
 	-webkit-transition-property: opacity, background;
-	transition: all 250ms ease-out;
+	transition: all 150ms ease-out;
 	transition-property: opacity, background;
 }
 
@@ -84,37 +85,26 @@
 
 /* Sidebar overlay */
 
-.mw-rtrc-sidebar-toggleable #mw-panel,
-.mw-rtrc-sidebar-toggleable #left-navigation,
-.mw-rtrc-sidebar-toggleable #content,
-.mw-rtrc-sidebar-toggleable .mw-rtrc-sidebar-cover,
+/* Don't animate initial hide from init(), only after its ready */
+.mw-rtrc-ready.mw-rtrc-sidebar-toggleable #mw-panel,
+.mw-rtrc-ready.mw-rtrc-sidebar-toggleable #left-navigation,
+.mw-rtrc-ready.mw-rtrc-sidebar-toggleable #content,
+.mw-rtrc-ready.mw-rtrc-sidebar-toggleable .mw-rtrc-sidebar-cover,
 .mw-rtrc-navtoggle {
-	-webkit-transition: visibility 0s linear 300ms,
-		-webkit-transform 275ms ease-out,
-		opacity 275ms ease-out;
-	transition: visibility 0s linear 300ms,
-		transform 275ms ease-out,
-		opacity 275ms ease-out;
+	-webkit-transition: -webkit-transform 250ms ease-out,
+		opacity 250ms ease-out;
+	transition: transform 250ms ease-out,
+		opacity 250ms ease-out;
+}
+.mw-rtrc-ready.mw-rtrc-sidebar-toggleable #p-personal {
+	/* When sliding out */
+	transition: z-index 0ms linear 255ms;
+}
+.mw-rtrc-ready.mw-rtrc-sidebar-on #p-personal {
+	/* When sliding in */
+	transition: z-index 0ms linear 0ms;
 }
 
-/* Reverse visibility */
-.mw-rtrc-sidebar-peak #mw-panel,
-.mw-rtrc-sidebar-on #mw-panel,
-.mw-rtrc-sidebar-peak #left-navigation,
-.mw-rtrc-sidebar-on #left-navigation,
-.mw-rtrc-sidebar-peak #content,
-.mw-rtrc-sidebar-on #content,
-.mw-rtrc-sidebar-peak .mw-rtrc-sidebar-cover,
-.mw-rtrc-sidebar-on .mw-rtrc-sidebar-cover,
-.mw-rtrc-sidebar-peak .mw-rtrc-navtoggle,
-.mw-rtrc-sidebar-on .mw-rtrc-navtoggle {
-	-webkit-transition: visibility 0s linear 0s,
-		-webkit-transform 275ms ease-out,
-		opacity 275ms ease-out;
-	transition: visibility 0s linear 0s,
-		transform 275ms ease-out,
-		opacity 275ms ease-out;
-}
 
 /* Make the sidebar standalone for transitioning. */
 .mw-rtrc-sidebar-toggleable #mw-panel {
@@ -128,8 +118,6 @@
 	z-index: 1; /* overlap mw-rtrc-sidebar-cover */
 	box-shadow: rgba(0, 0, 0, 0.5) 0 0 25px;
 
-	visibility: hidden;
-	pointer-events: none;
 	-webkit-transform: translate(-12em, 0);
 	transform: translate(-12em, 0);
 }
@@ -144,7 +132,7 @@
 	margin-left: 0;
 	border-left: 0;
 }
-.mw-rtrc-sidebar-toggleable .mw-rtrc-sidebar-cover {
+.mw-rtrc-sidebar-cover {
 	position: absolute;
 	left: 0;
 	right: 0;
@@ -152,12 +140,13 @@
 	bottom: 0;
 	background: #000;
 	opacity: 0;
-	visibility: hidden;
+	pointer-events: none;
 }
 
+/* navtoggle is inside #mw-panel and relative to its box */
 .mw-rtrc-navtoggle {
 	position: absolute;
-	left: 1.5em;
+	left: 13.5em;
 	top: 10px;
 	border: 0 solid #aaa;
     border-width: 0 0 0 5px;
@@ -165,54 +154,46 @@
 	height: 15px;
 	cursor: pointer;
 
-	-webkit-transform: translate(0, 0);
-	transform: translate(0, 0);
+	-webkit-transform: scaleX(1);
+	transform: scaleX(1);
 }
 .mw-rtrc-navtoggle:after {
+	/* arrow */
 	content: " ";
 	width: 0;
 	height: 0;
 	position: absolute;
-	pointer-events: none;
 	border: 5px solid transparent;
     border-left-color: #333;
 	top: 50%;
 	margin-top: -5px;
 	margin-left: 5px;
 }
-.mw-rtrc-sidebar-peak .mw-rtrc-navtoggle {
-	-webkit-transform: scale(1.5);
-	transform: scale(1.5);
+.mw-rtrc-sidebar-toggleable #mw-panel:before {
+	/* cover the space between navtoggle and mw-panel to avoid :hover gaps */
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: block;
+    width: calc(13em + 30px);
+    height: 40px;
 }
 
-.mw-rtrc-sidebar-peak .mw-rtrc-sidebar-cover {
-	visibility: visible;
-	opacity: 0.1;
-}
-.mw-rtrc-sidebar-peak #mw-panel {
-	z-index: 1;
-	visibility: visible;
-	-webkit-transform: translate(-11em, 0);
-	transform: translate(-11em, 0);
-}
-
-.mw-rtrc-sidebar-on .mw-rtrc-navtoggle {
+.mw-rtrc-sidebar-toggleable #mw-panel:hover .mw-rtrc-navtoggle {
 	border-color: #fff;
-	-webkit-transform: scaleX(-1) translate(-12em, 0);
-	transform: scaleX(-1) translate(-12em, 0);
+	-webkit-transform: scaleX(-1);
+	transform: scaleX(-1);
 }
-.mw-rtrc-sidebar-on #mw-panel {
+.mw-rtrc-sidebar-toggleable #mw-panel:hover {
 	z-index: 1;
-	visibility: visible;
 	-webkit-transform: translate(0, 0);
 	transform: translate(0, 0);
-	pointer-events: auto;
 }
 .mw-rtrc-sidebar-on #p-personal {
 	z-index: 0; /* was 100 */
 }
 .mw-rtrc-sidebar-on .mw-rtrc-sidebar-cover {
-	visibility: visible;
 	opacity: 0.5;
 }
 
@@ -310,8 +291,20 @@
 	text-align: center;
 }
 
-.mw-rtrc-settings .panel-last {
+.mw-rtrc-settings .sub-panel {
+	display: inline-block;
+	vertical-align: top;
+	text-align: left;
+	padding: 0 5px;
+	border-right: 1px solid #ddd;
+}
+
+.mw-rtrc-settings .sub-panel:first-of-type {
+	padding-left: 0;
+}
+.mw-rtrc-settings .sub-panel:last-of-type {
 	border-right: 0;
+	padding-right: 0;
 }
 
 .mw-rtrc-settings .panel .head {
@@ -494,13 +487,6 @@
 	right: 0;
 }
 
-.mw-rtrc-feed-cvninfo {
-	position: absolute;
-	bottom: -3em;
-	right: 5px;
-	text-align: right;
-}
-
 .mw-rtrc-feed-content {
 	margin: 0 0 -1.5em 0;
 	width: 100%;
@@ -510,6 +496,7 @@
 .mw-rtrc-heading {
 	padding: 0 5px;
 	white-space: nowrap;
+	border: 1px solid transparent;
 }
 
 .mw-rtrc-item:nth-child(odd),
@@ -517,36 +504,39 @@
 	background: #f3f3f3;
 }
 
-.mw-rtrc-item-aes,
-.mw-rtrc-item-aes:nth-child(odd) {
-	background: #fff0f0;
+.mw-rtrc-item.mw-rtrc-item-alert {
+	background: #ffd5d5;
 }
 
-.mw-rtrc-item-aes .comment {
-	font-weight: bold;
-}
-
-.mw-rtrc-item-skipped,
-.mw-rtrc-item-skipped:nth-child(odd) {
+.mw-rtrc-item.mw-rtrc-item-skipped {
 	background: #d6d9e9;
 }
 
-.mw-rtrc-item-patrolled,
-.mw-rtrc-item-patrolled:nth-child(odd) {
+.mw-rtrc-item.mw-rtrc-item-patrolled {
 	background: #d9e9d6;
 }
 
-.mw-rtrc-item-current,
-.mw-rtrc-item-current:nth-child(odd) {
+.mw-rtrc-item.mw-rtrc-item-current {
 	background: #ffce7b;
 	border: 1px solid orange;
 }
 
-.mw-rtrc-item .user.blacklisted {
-	font-weight: bold;
-	color: red;
+.mw-rtrc-item-alert-rev .mw-rtrc-revscore {
+	cursor: help;
+}
+
+.mw-rtrc-item-alert-user .mw-userlink,
+.mw-rtrc-item-alert-rev .mw-rtrc-revscore {
 	background: url(//upload.wikimedia.org/wikipedia/commons/thumb/f/f7/Nuvola_apps_important.svg/18px-Nuvola_apps_important.svg.png) 0 50% no-repeat;
 	padding-left: 20px;
+}
+
+@media (min-resolution: 2dppx), (min-resolution: 192dpi) {
+	.mw-rtrc-item-alert-user .mw-userlink,
+	.mw-rtrc-item-alert-rev .mw-rtrc-revscore {
+		background-image: url(//upload.wikimedia.org/wikipedia/commons/thumb/f/f7/Nuvola_apps_important.svg/36px-Nuvola_apps_important.svg.png);
+		background-size: 18px;
+	}
 }
 
 /* Acts like a table with table-rows, using divs to avoid fixed table-layout with forced width and oveflow issues */
@@ -557,10 +547,17 @@
 	vertical-align: middle;
 }
 
-.mw-rtrc-item div[first] { width: 38% }
-.mw-rtrc-item div[user] { width: 21% }
-.mw-rtrc-item div[other] { width: 35% }
-.mw-rtrc-item div[size] { width: 6%;font-size: smaller; text-align: right }
+.mw-rtrc-item div[first] { width: 40% }
+.mw-rtrc-item div[user] { width: 24% }
+.mw-rtrc-item div[comment] { width: 30% }
+.mw-rtrc-item .mw-rtrc-meta {
+	width: 6%;
+	text-align: right;
+}
+
+.mw-rtrc-meta .mw-plusminus {
+	font-size: smaller;
+}
 
 .mw-rtrc-legend {
 	margin: 5px auto;
@@ -572,8 +569,6 @@
 }
 
 /* Diff pre-wrap (partially from wikibits/diff.css but there only adds pre-wrap for diffchange */
-
-.mw-rtrc-available .diffchange,
 .mw-rtrc-available table.diff td {
 	white-space: -moz-pre-wrap;
 	white-space: pre-wrap;
