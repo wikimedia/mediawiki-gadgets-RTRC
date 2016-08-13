@@ -55,12 +55,18 @@
 
 .mw-rtrc-head {
 	position: absolute;
+	left: 1em;
+	right: 1em;
+	/* See .mw-rtrc-wrapper#border-top */
 	top: -30px;
-	left: 20%;
-	right: 10%;
 	line-height: 30px;
 	text-align: center;
 	color: #ccc;
+	/* Avoid overlap with head-links on narrow screens */
+	padding: 0 11em;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
 }
 
 .mw-rtrc-foot {
@@ -118,18 +124,29 @@
 	z-index: 1; /* overlap mw-rtrc-sidebar-cover */
 	box-shadow: rgba(0, 0, 0, 0.5) 0 0 25px;
 
+	/* @noflip */
 	-webkit-transform: translate(-12em, 0);
+	/* @noflip */
 	transform: translate(-12em, 0);
+}
+.mw-rtrc-sidebar-toggleable .rtl #mw-panel {
+	/* @noflip */
+	-webkit-transform: translate(12em, 0);
+	/* @noflip */
+	transform: translate(12em, 0);
 }
 .mw-rtrc-sidebar-toggleable #p-logo {
 	position: static; /* was absolute */
 	margin-bottom: 1em; /* transferred from #mw-panel/padding-top */
 }
 .mw-rtrc-sidebar-toggleable #left-navigation {
+	/* @flip */
 	margin-left: 1em;
 }
 .mw-rtrc-sidebar-toggleable #content {
+	/* @flip */
 	margin-left: 0;
+	/* @flip */
 	border-left: 0;
 }
 .mw-rtrc-sidebar-cover {
@@ -200,7 +217,10 @@
 /* Buttons / Links */
 
 .mw-rtrc-head-links {
-	float: right;
+	position: absolute;
+	top: 0;
+	/* @flip */
+	right: 1em;
 }
 
 .mw-rtrc-head-links a {
@@ -227,7 +247,7 @@
 
 .mw-rtrc-wrapper .helpicon {
 	display: inline-block;
-	margin-left: 0.3em;
+	margin: 0 0.3em;
 	vertical-align: middle;
 	width: 18px;
 	height: 18px;
@@ -262,7 +282,7 @@
 	border-bottom-left-radius: 11px;
 	border-bottom-right-radius: 11px;
 	box-shadow: rgba(200, 200, 200, 1) 0 5px 15px;
-	text-align: left;
+	text-align: initial;
 	/* reset mw/fieldset */
 	margin: 0;
 	padding: 0;
@@ -294,7 +314,7 @@
 .mw-rtrc-settings .sub-panel {
 	display: inline-block;
 	vertical-align: top;
-	text-align: left;
+	text-align: initial;
 	padding: 0 5px;
 	border-right: 1px solid #ddd;
 }
@@ -584,7 +604,10 @@
 	opacity: 0;
 }
 
+/* @noflip */
 .mw-rtrc-settings .switch + div {
+	direction: ltr;
+
 	display: inline-block;
 	vertical-align: middle;
 	margin: 0 .5em;
@@ -610,12 +633,14 @@
 	transition-property: padding, width, background-position, text-indent;
 }
 
+/* @noflip */
 .mw-rtrc-settings .switch:checked + div {
 	padding-left: 2em;
 	width: 1em;
 	background-position: 0 0;
 }
 
+/* @noflip */
 .mw-rtrc-settings .switch + div:before {
 	content: 'On';
 	float: left;
@@ -650,6 +675,7 @@
 	text-transform: uppercase;
 }
 
+/* @noflip */
 .mw-rtrc-settings .switch + div:after {
 	content: 'Off';
 	text-align: left;
