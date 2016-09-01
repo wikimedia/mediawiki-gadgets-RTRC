@@ -35,7 +35,6 @@
 	line-height: 1.4;
 	color: #343434;
 	opacity: 0;
-	-webkit-transition: opacity 150ms ease-out 50ms;
 	transition: opacity 150ms ease-out 50ms;
 }
 
@@ -79,8 +78,6 @@
 	border-top: 1px solid #a1cef5;
 	text-align: center;
 	color: #343434;
-	-webkit-transition: all 150ms ease-out;
-	-webkit-transition-property: opacity, background;
 	transition: all 150ms ease-out;
 	transition-property: opacity, background;
 }
@@ -97,8 +94,6 @@
 .mw-rtrc-ready.mw-rtrc-sidebar-toggleable #content,
 .mw-rtrc-ready.mw-rtrc-sidebar-toggleable .mw-rtrc-sidebar-cover,
 .mw-rtrc-navtoggle {
-	-webkit-transition: -webkit-transform 250ms ease-out,
-		opacity 250ms ease-out;
 	transition: transform 250ms ease-out,
 		opacity 250ms ease-out;
 }
@@ -125,13 +120,9 @@
 	box-shadow: rgba(0, 0, 0, 0.5) 0 0 25px;
 
 	/* @noflip */
-	-webkit-transform: translate(-12em, 0);
-	/* @noflip */
 	transform: translate(-12em, 0);
 }
 .mw-rtrc-sidebar-toggleable .rtl #mw-panel {
-	/* @noflip */
-	-webkit-transform: translate(12em, 0);
 	/* @noflip */
 	transform: translate(12em, 0);
 }
@@ -171,7 +162,6 @@
 	height: 15px;
 	cursor: pointer;
 
-	-webkit-transform: scaleX(1);
 	transform: scaleX(1);
 }
 .mw-rtrc-navtoggle:after {
@@ -199,12 +189,10 @@
 
 .mw-rtrc-sidebar-toggleable #mw-panel:hover .mw-rtrc-navtoggle {
 	border-color: #fff;
-	-webkit-transform: scaleX(-1);
 	transform: scaleX(-1);
 }
 .mw-rtrc-sidebar-toggleable #mw-panel:hover {
 	z-index: 1;
-	-webkit-transform: translate(0, 0);
 	transform: translate(0, 0);
 }
 .mw-rtrc-sidebar-on #p-personal {
@@ -394,28 +382,20 @@
 	border-radius: 11px;
 	box-shadow: rgba(200, 200, 200, 1) 0 5px 15px;
 
-	-webkit-transform: scaleY(1);
+	transform-origin: top;
 	transform: scaleY(1);
 	max-height: 1000px;
 
-	-webkit-transform-origin: top;
-	transform-origin: top;
-
 	/* When opening, delay the slide until after we reserve the height */
-	-webkit-transition:
-		-webkit-transform 300ms ease-out 200ms, max-height 500ms ease-in;
 	transition: transform 300ms ease-out 200ms, max-height 500ms ease-in;
 }
 
 .mw-rtrc-diff-closed {
 	max-height: 0;
-	-webkit-transform: scaleY(0);
 	transform: scaleY(0);
 
 	/* When closing, no delay for height change since it is naturally behind
 	   while lowering the height hidden in overflow to the actual height */
-	-webkit-transition:
-		-webkit-transform 300ms ease-in, max-height 300ms ease-out;
 	transition: transform 300ms ease-in, max-height 300ms ease-out;
 }
 
@@ -590,7 +570,6 @@
 
 /* Diff pre-wrap (partially from wikibits/diff.css but there only adds pre-wrap for diffchange */
 .mw-rtrc-available table.diff td {
-	white-space: -moz-pre-wrap;
 	white-space: pre-wrap;
 }
 
@@ -615,8 +594,6 @@
 	height: 1em;
 	overflow: hidden;
 	background: #fff;
-	background-image: -webkit-linear-gradient(rgba(0, 0, 0, .1), transparent),
-	                  -webkit-linear-gradient(0, #357ebd 50%, transparent 50%);
 	background-image: linear-gradient(rgba(0, 0, 0, .1), transparent),
 	                  linear-gradient(90deg, #357ebd 50%, transparent 50%);
 	background-size: 200% 100%;
@@ -648,7 +625,6 @@
 	width: 1.65em;
 	height: 1.65em;
 	background: #fff;
-	background-image: -webkit-linear-gradient(rgba(0, 0, 0, .2), transparent);
 	background-image: linear-gradient(rgba(0, 0, 0, .2), transparent);
 	border: 1px solid rgba(0,0,0,.35);
 	border-radius: inherit;
