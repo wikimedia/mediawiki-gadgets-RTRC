@@ -106,38 +106,37 @@
 	transition: z-index 0ms linear 0ms;
 }
 
-
 /* Make the sidebar standalone for transitioning. */
 .mw-rtrc-sidebar-toggleable #mw-panel {
 	background-color: #f6f6f6;
 	top: 0; /* was 160px */
 	padding-top: 0; /* was 1em */
 	width: 11em; /* was 10em with 1em offset from #content */
-	border-right: 1px solid #a7d7f9; /* transferred from #content/border-left */
 	min-height: 100%;
 
 	z-index: 1; /* overlap mw-rtrc-sidebar-cover */
 	box-shadow: rgba(0, 0, 0, 0.5) 0 0 25px;
 
-	/* @noflip */
-	transform: translate(-12em, 0);
 }
-.mw-rtrc-sidebar-toggleable .rtl #mw-panel {
-	/* @noflip */
-	transform: translate(12em, 0);
+/* flipped */
+/* @noflip */
+.mw-rtrc-sidebar-toggleable .ltr #mw-panel {
+	border-right: 1px solid #a7d7f9; /* transferred from #content/border-left */
+	transform: translate(-12em, 0);
 }
 .mw-rtrc-sidebar-toggleable #p-logo {
 	position: static; /* was absolute */
 	margin-bottom: 1em; /* transferred from #mw-panel/padding-top */
 }
-.mw-rtrc-sidebar-toggleable #left-navigation {
-	/* @flip */
+/* flipped */
+/* @noflip */
+.mw-rtrc-sidebar-toggleable .ltr #left-navigation {
 	margin-left: 1em;
 }
-.mw-rtrc-sidebar-toggleable #content {
-	/* @flip */
+/* flipped */
+/* @noflip */
+.mw-rtrc-sidebar-toggleable .ltr #content {
 	margin-left: 0;
-	/* @flip */
 	border-left: 0;
 }
 .mw-rtrc-sidebar-cover {
@@ -154,44 +153,58 @@
 /* navtoggle is inside #mw-panel and relative to its box */
 .mw-rtrc-navtoggle {
 	position: absolute;
-	left: 13.5em;
 	top: 10px;
 	border: 0 solid #aaa;
-    border-width: 0 0 0 5px;
 	width: 10px;
 	height: 15px;
 	cursor: pointer;
 
 	transform: scaleX(1);
 }
+/* flipped */
+/* @noflip */
+.ltr .mw-rtrc-navtoggle {
+	left: 13.5em;
+	border-width: 0 0 0 5px;
+}
+/* arrow */
 .mw-rtrc-navtoggle:after {
-	/* arrow */
 	content: " ";
 	width: 0;
 	height: 0;
 	position: absolute;
 	border: 5px solid transparent;
-    border-left-color: #333;
 	top: 50%;
 	margin-top: -5px;
+}
+/* flipped */
+/* @noflip */
+.ltr .mw-rtrc-navtoggle:after {
+	border-left-color: #333;
 	margin-left: 5px;
 }
 .mw-rtrc-sidebar-toggleable #mw-panel:before {
 	/* cover the space between navtoggle and mw-panel to avoid :hover gaps */
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    display: block;
-    width: calc(13em + 30px);
-    height: 40px;
+	content: "";
+	position: absolute;
+	top: 0;
+	display: block;
+	width: calc(13em + 30px);
+	height: 40px;
+}
+/* flipped */
+/* @noflip */
+.mw-rtrc-sidebar-toggleable .ltr #mw-panel:before  {
+	left: 0;
 }
 
 .mw-rtrc-sidebar-toggleable #mw-panel:hover .mw-rtrc-navtoggle {
 	border-color: #fff;
 	transform: scaleX(-1);
 }
-.mw-rtrc-sidebar-toggleable #mw-panel:hover {
+/* Must specify .ltr/.rtl to match specificity */
+.mw-rtrc-sidebar-toggleable .ltr #mw-panel:hover,
+.mw-rtrc-sidebar-toggleable .rtl #mw-panel:hover {
 	z-index: 1;
 	transform: translate(0, 0);
 }
@@ -207,7 +220,10 @@
 .mw-rtrc-head-links {
 	position: absolute;
 	top: 0;
-	/* @flip */
+}
+/* flipped */
+/* @noflip */
+.ltr .mw-rtrc-head-links {
 	right: 1em;
 }
 
@@ -659,4 +675,51 @@
 	text-indent: .5em;
 	color: rgba(0, 0, 0, .45);
 	text-shadow: none;
+}
+
+
+/**
+ * Manually flipped declarations
+ * - We set @noflip everywhere because this gadget will
+ *   be stored on-wiki and we need to disable the native flip
+ *   mechanism because we'll deliver one version to all users.
+ */
+
+/* @noflip */
+.mw-rtrc-sidebar-toggleable .rtl #mw-panel {
+	border-left: 1px solid #a7d7f9;
+	transform: translate(12em, 0);
+}
+
+/* @noflip */
+.mw-rtrc-sidebar-toggleable .rtl #left-navigation {
+	margin-right: 1em;
+}
+
+/* @noflip */
+.mw-rtrc-sidebar-toggleable .rtl #content {
+	margin-right: 0;
+	border-right: 0;
+}
+
+/* @noflip */
+.rtl .mw-rtrc-navtoggle {
+	right: 13.5em;
+	border-width: 0 5px 0 0;
+}
+
+/* @noflip */
+.rtl .mw-rtrc-navtoggle:after {
+	border-right-color: #333;
+	margin-right: 5px;
+}
+
+/* @noflip */
+.mw-rtrc-sidebar-toggleable .rtl #mw-panel:before  {
+	right: 0;
+}
+
+/* @noflip */
+.rtl .mw-rtrc-head-links {
+	left: 1em;
 }
