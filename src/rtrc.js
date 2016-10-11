@@ -1551,7 +1551,7 @@ Example:
 		dModules = mw.loader.using([
 			'json',
 			'jquery.client',
-			'mediawiki.action.history.diff',
+			'mediawiki.diff.styles',
 			// mw-plusminus styles etc.
 			'mediawiki.special.changeslist',
 			'mediawiki.jqueryMsg',
