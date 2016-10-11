@@ -1631,19 +1631,26 @@ Example:
 	 */
 
 	// On every page
-	$(function () {
+	$.when(mw.loader.using('mediawiki.util'), $.ready).then(function () {
 		if (!$('#t-rtrc').length) {
-			mw.loader.using('mediawiki.util', function () {
-				mw.util.addPortletLink(
-					'p-tb',
-					mw.util.getUrl('Special:BlankPage/RTRC'),
-					'RTRC',
-					't-rtrc',
-					'Monitor and patrol recent changes in real-time',
-					null,
-					'#t-specialpages'
-				);
-			});
+			mw.util.addPortletLink(
+				'p-tb',
+				mw.util.getUrl('Special:BlankPage/RTRC'),
+				'RTRC',
+				't-rtrc',
+				'Monitor and patrol recent changes in real-time',
+				null,
+				'#t-specialpages'
+			);
+		}
+		if (conf.wgCanonicalSpecialPageName === 'Recentchanges' && !$('#ca-nstab-rtrc').length) {
+			mw.util.addPortletLink(
+				'p-namespaces',
+				mw.util.getUrl('Special:BlankPage/RTRC'),
+				'RTRC',
+				'ca-nstab-rtrc',
+				'Monitor and patrol recent changes in real-time'
+			);
 		}
 	});
 
