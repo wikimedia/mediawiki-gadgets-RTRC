@@ -219,7 +219,7 @@
 		itemClass = [];
 
 		if (rc.type === 'new') {
-			typeSymbol += '<span class="newpage">' + mw.msg('newpageletter') + '</span>';
+			typeSymbol += '<span class="newpage">' + mw.message('newpageletter').escaped() + '</span>';
 		}
 
 		if ((rc.type === 'edit' || rc.type === 'new') && userHasPatrolRight && isUnpatrolled) {
@@ -1305,7 +1305,7 @@ Example:
 						'<h3>' + title + '</h3>' +
 						'<div class="mw-rtrc-diff-tools">' +
 							'<span class="tab"><a id="diffClose">X</a></span>' +
-							'<span class="tab"><a href="' + href + '" target="_blank" id="diffNewWindow">' + message('openInWiki').escaped() + '</a></span>' +
+							'<span class="tab"><a href="' + href + '" target="_blank" id="diffNewWindow">' + message('open-in-wiki').escaped() + '</a></span>' +
 							'<span class="tab"><a onclick="$(\'.patrollink a\').click()">[' + message('mark').escaped() + ']</a></span>' +
 							'<span class="tab"><a id="diffNext">' + mw.message('next').escaped() + ' &raquo;</a></span>' +
 							skipButtonHtml +
