@@ -1250,6 +1250,8 @@ Example:
 					)
 					.removeClass('mw-rtrc-diff-loading');
 
+				mw.hook('wikipage.content').fire($frame);
+
 				if (opt.app.massPatrol) {
 					$frame.find('.patrollink a').click();
 				} else {
