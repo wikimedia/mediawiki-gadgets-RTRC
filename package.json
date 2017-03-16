@@ -23,11 +23,11 @@
     "build": "npm run build-fetch && npm run build-min"
   },
   "devDependencies": {
-    "eslint": "^3.16.1",
-    "eslint-config-semistandard": "^7.0.0",
-    "eslint-config-standard": "^6.2.1",
-    "eslint-plugin-promise": "^3.4.2",
-    "eslint-plugin-standard": "^2.0.1",
-    "uglify-js": "^2.7.5"
+    "eslint": "^3.17.1",
+    "eslint-config-semistandard": "^8.0.0",
+    "eslint-config-standard": "^7.0.1",
+    "eslint-plugin-promise": "^3.5.0",
+    "eslint-plugin-standard": "^2.1.1",
+    "uglify-js": "^2.8.13"
   }
 }
