@@ -1301,7 +1301,7 @@ Example:
           .prepend(
             '<h3>' + title + '</h3>' +
             '<div class="mw-rtrc-diff-tools">' +
-              '<span class="tab"><a id="diffClose">X</a></span>' +
+              '<span class="tab"><a id="diffClose">' + message('close').escaped() + '</a></span>' +
               '<span class="tab"><a href="' + href + '" target="_blank" id="diffNewWindow">' + message('open-in-wiki').escaped() + '</a></span>' +
               '<span class="tab"><a onclick="$(\'.patrollink a\').click()">[' + message('mark').escaped() + ']</a></span>' +
               '<span class="tab"><a id="diffNext">' + mw.message('next').escaped() + ' &raquo;</a></span>' +
