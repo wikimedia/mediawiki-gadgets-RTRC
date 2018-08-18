@@ -25,35 +25,35 @@
       'wgDBname',
       'wgScriptPath'
     ]),
-  // Can't use mw.util.wikiScript until after #init
+    // Can't use mw.util.wikiScript until after #init
     apiUrl = conf.wgScriptPath + '/api.php',
     cvnApiUrl = '//cvn.wmflabs.org/api.php',
     oresApiUrl = '//ores.wikimedia.org/scores/' + conf.wgDBname + '/',
     oresModel = false,
     intuitionLoadUrl = '//tools.wmflabs.org/intuition/load.php?env=mw',
     docUrl = '//meta.wikimedia.org/wiki/User:Krinkle/Tools/Real-Time_Recent_Changes?uselang=' + conf.wgUserLanguage,
-  // 32x32px
+    // 32x32px
     ajaxLoaderUrl = '//upload.wikimedia.org/wikipedia/commons/d/de/Ajax-loader.gif',
     annotationsCache = {
       patrolled: {},
       cvn: {},
       ores: {}
     },
-  // See annotationsCacheUp()
+    // See annotationsCacheUp()
     annotationsCacheSize = 0,
 
-  /**
-   * Info from the wiki
-   * -------------------------------------------------
-   */
+    /**
+     * Info from the wiki
+     * -------------------------------------------------
+     */
     userHasPatrolRight = false,
     rcTags = [],
     wikiTimeOffset,
 
-  /**
-   * State
-   * -------------------------------------------------
-   */
+    /**
+     * State
+     * -------------------------------------------------
+     */
     updateFeedTimeout,
 
     rcDayHeadPrev,
@@ -63,30 +63,30 @@
     prevFeedHtml,
     updateReq,
 
-  /**
-   * Feed options
-   * -------------------------------------------------
-   */
+    /**
+     * Feed options
+     * -------------------------------------------------
+     */
     defOpt = {
       rc: {
-      // Timestamp
+        // Timestamp
         start: undefined,
-      // Timestamp
+        // Timestamp
         end: undefined,
-      // Direction "older" (descending) or "newer" (ascending)
+        // Direction "older" (descending) or "newer" (ascending)
         dir: 'older',
-      // Array of namespace ids
+        // Array of namespace ids
         namespace: undefined,
-      // User name
+        // User name
         user: undefined,
-      // Tag ID
+        // Tag ID
         tag: undefined,
-      // Filters
+        // Filters
         hideliu: false,
         hidebots: true,
         unpatrolled: false,
         limit: 25,
-      // Type filters are "show matches only"
+        // Type filters are "show matches only"
         typeEdit: true,
         typeNew: true
       },
@@ -427,13 +427,13 @@ Example:
           opt.rc[name] = el.checked;
           break;
         case 'dir':
-        // There's more than 1 radio button with this name in this loop,
-        // use the value of the first (and only) checked one.
+          // There's more than 1 radio button with this name in this loop,
+          // use the value of the first (and only) checked one.
           if (el.checked) {
             opt.rc[name] = el.value;
           }
           break;
-      // APP
+        // APP
         case 'cvnDB':
         case 'ores':
         case 'massPatrol':
@@ -748,15 +748,15 @@ Example:
         dataType: $.support.cors ? 'json' : 'jsonp',
         cache: true
       })
-      .then(function (resp) {
-        if (resp.users) {
-          annotationsCacheUp(resp.users.length);
-          $.each(resp.users, function (name, user) {
-            annotationsCache.cvn[name] = user;
-          });
-        }
-        return annotationsCache.cvn;
-      });
+        .then(function (resp) {
+          if (resp.users) {
+            annotationsCacheUp(resp.users.length);
+            $.each(resp.users, function (name, user) {
+              annotationsCache.cvn[name] = user;
+            });
+          }
+          return annotationsCache.cvn;
+        });
     }
 
     return dAnnotations.then(function (annotations) {
@@ -842,72 +842,72 @@ Example:
     return updateReq.always(function () {
       updateReq = null;
     })
-    .then(null, function (jqXhr, textStatus) {
-      var feedContentHTML = '<h3>Downloading recent changes failed</h3>';
-      if (textStatus === 'abort') {
-        return $.Deferred().reject();
-      }
-      pushFeedContent({
-        $feedContent: $(feedContentHTML),
-        rawHtml: feedContentHTML
-      });
-      // Error is handled. Move on normally.
-      return $.Deferred().resolve();
-    }).then(function (data) {
-      var recentchanges, $feedContent, client,
-        feedContentHTML = '';
+      .then(null, function (jqXhr, textStatus) {
+        var feedContentHTML = '<h3>Downloading recent changes failed</h3>';
+        if (textStatus === 'abort') {
+          return $.Deferred().reject();
+        }
+        pushFeedContent({
+          $feedContent: $(feedContentHTML),
+          rawHtml: feedContentHTML
+        });
+        // Error is handled. Move on normally.
+        return $.Deferred().resolve();
+      }).then(function (data) {
+        var recentchanges, $feedContent, client,
+          feedContentHTML = '';
 
-      if (data.error) {
-        // Account doesn't have patrol flag
-        if (data.error.code === 'rcpermissiondenied') {
-          feedContentHTML += '<h3>Downloading recent changes failed</h3><p>Please untick the "Unpatrolled only"-checkbox or request the Patroller-right.</a>';
+        if (data.error) {
+          // Account doesn't have patrol flag
+          if (data.error.code === 'rcpermissiondenied') {
+            feedContentHTML += '<h3>Downloading recent changes failed</h3><p>Please untick the "Unpatrolled only"-checkbox or request the Patroller-right.</a>';
 
-        // Other error
-        } else {
-          client = $.client.profile();
-          feedContentHTML += '<h3>Downloading recent changes failed</h3>' +
+          // Other error
+          } else {
+            client = $.client.profile();
+            feedContentHTML += '<h3>Downloading recent changes failed</h3>' +
             '<p>Please check the settings above and try again. If you believe this is a bug, please <strong>' +
             '<a href="https://github.com/Krinkle/mw-gadget-rtrc/issues/new?body=' + encodeURIComponent('\n\n\n----' +
             '\npackage: mw-gadget-rtrc ' + appVersion +
             mw.format('\nbrowser: $1 $2 ($3)', client.name, client.version, client.platform)
             ) + '" target="_blank">let me know</a></strong>.';
-        }
-      } else {
-        recentchanges = data.query.recentchanges;
-
-        if (recentchanges.length) {
-          $.each(recentchanges, function (i, rc) {
-            feedContentHTML += buildRcItem(rc);
-          });
+          }
         } else {
-          // Everything is OK - no results
-          feedContentHTML += '<strong><em>' + message('nomatches').escaped() + '</em></strong>';
+          recentchanges = data.query.recentchanges;
+
+          if (recentchanges.length) {
+            $.each(recentchanges, function (i, rc) {
+              feedContentHTML += buildRcItem(rc);
+            });
+          } else {
+            // Evserything is OK - no results
+            feedContentHTML += '<strong><em>' + message('nomatches').escaped() + '</em></strong>';
+          }
+
+          // Reset day
+          rcDayHeadPrev = undefined;
         }
 
-        // Reset day
-        rcDayHeadPrev = undefined;
-      }
-
-      $feedContent = $($.parseHTML(feedContentHTML));
-      return $.when(
-        opt.app.cvnDB && applyCvnAnnotations($feedContent),
-        oresModel && opt.app.ores && applyOresAnnotations($feedContent)
-      ).then(null, function () {
+        $feedContent = $($.parseHTML(feedContentHTML));
+        return $.when(
+          opt.app.cvnDB && applyCvnAnnotations($feedContent),
+          oresModel && opt.app.ores && applyOresAnnotations($feedContent)
+        ).then(null, function () {
         // Ignore errors from annotation handlers
-        return $.Deferred().resolve();
-      }).then(function () {
-        pushFeedContent({
-          $feedContent: $feedContent,
-          rawHtml: feedContentHTML
+          return $.Deferred().resolve();
+        }).then(function () {
+          pushFeedContent({
+            $feedContent: $feedContent,
+            rawHtml: feedContentHTML
+          });
         });
-      });
-    }).then(function () {
-      $RCOptionsSubmit.prop('disabled', false).css('opacity', '1.0');
+      }).then(function () {
+        $RCOptionsSubmit.prop('disabled', false).css('opacity', '1.0');
 
-      // Schedule next update
-      updateFeedTimeout = setTimeout(updateFeed, opt.app.refresh * 1000);
-      $('#krRTRC_loader').hide();
-    });
+        // Schedule next update
+        updateFeedTimeout = setTimeout(updateFeed, opt.app.refresh * 1000);
+        $('#krRTRC_loader').hide();
+      });
   }
 
   function nextDiff () {
@@ -945,7 +945,7 @@ Example:
     }
 
     $wrapper = $($.parseHTML(
-    '<div class="mw-rtrc-wrapper">' +
+      '<div class="mw-rtrc-wrapper">' +
       '<div class="mw-rtrc-head">' +
         message('title').escaped() + ' <small>(' + appVersion + ')</small>' +
         '<div class="mw-rtrc-head-links">' +
@@ -1512,9 +1512,9 @@ Example:
     $(function () {
       $('#p-namespaces ul')
         .find('li.selected')
-          .removeClass('new')
-          .find('a')
-            .text('RTRC');
+        .removeClass('new')
+        .find('a')
+        .text('RTRC');
     });
 
     featureTest = !!(Date.parse);
