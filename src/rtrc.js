@@ -2,7 +2,7 @@
  * Real-Time Recent Changes
  * https://github.com/Krinkle/mw-gadget-rtrc
  *
- * @copyright 2010-2016 Timo Tijhof
+ * @copyright 2010-2018 Timo Tijhof
  */
 /* global alert */
 (function ($, mw) {
@@ -13,7 +13,7 @@
    * -------------------------------------------------
    */
   var
-    appVersion = 'v1.3.4',
+    appVersion = 'v1.3.5',
     conf = mw.config.get([
       'skin',
       'wgAction',
