@@ -1,6 +1,6 @@
 extends: semistandard
 parserOptions:
-  ecmaVersion: 3
+  ecmaVersion: 5
 env:
   es6: false
   node: false
