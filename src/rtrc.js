@@ -1529,9 +1529,6 @@ Example:
       return;
     }
 
-    // These selectors from vector-hd conflict with mw-rtrc-available
-    $('.vector-animateLayout').removeClass('vector-animateLayout');
-
     $('html').addClass('mw-rtrc-available');
 
     if (navSupported) {
