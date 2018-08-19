@@ -1555,8 +1555,7 @@ Example:
       'mediawiki.Uri',
       'mediawiki.user',
       'mediawiki.util',
-      'mediawiki.api',
-      'mediawiki.api.messages'
+      'mediawiki.api'
     ]);
 
     if (!mw.libs.getIntuition) {
