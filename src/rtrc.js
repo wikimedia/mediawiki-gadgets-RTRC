@@ -671,7 +671,7 @@ Example:
       return $.Deferred().resolve();
     }
 
-    fetchRevids = $.grep(revids, function (revid) {
+    fetchRevids = revids.filter(function (revid) {
       return !annotationsCache.ores.hasOwnProperty(revid);
     });
 
@@ -1485,7 +1485,7 @@ Example:
     }).then(function (data) {
       var tags = data.query && data.query.tags;
       if (tags) {
-        rcTags = $.map(tags, function (tag) {
+        rcTags = tags.map(function (tag) {
           return tag.name;
         });
       }
