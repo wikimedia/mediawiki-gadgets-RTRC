@@ -1585,8 +1585,8 @@ Example:
         return mw.libs.intuition.load('rtrc');
       })
       .then(function () {
-        message = $.proxy(mw.libs.intuition.message, null, 'rtrc');
-        msg = $.proxy(mw.libs.intuition.msg, null, 'rtrc');
+        message = mw.libs.intuition.message.bind(null, 'rtrc');
+        msg = mw.libs.intuition.msg.bind(null, 'rtrc');
       }, function () {
         // Ignore failure. RTRC should load even if Labs is down.
         // Fallback to displaying message keys.
