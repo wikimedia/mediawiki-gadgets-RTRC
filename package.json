@@ -17,10 +17,7 @@
     "web": "https://github.com/Krinkle"
   },
   "scripts": {
-    "test": "eslint .",
-    "build-fetch": "curl 'https://www.mediawiki.org/w/load.php?debug=false&modules=ext.gadget.rtrc&lang=en' > dist.js",
-    "build-min": "uglifyjs --compress unsafe,conditionals,evaluate,collapse_vars,reduce_vars,pure_getters,keep_fargs=false -m -- dist.js > dist.min.js ",
-    "build": "npm run build-fetch && npm run build-min"
+    "test": "eslint ."
   },
   "devDependencies": {
     "eslint": "^5.4.0",
