@@ -114,7 +114,6 @@ Array.prototype.includes||Object.defineProperty(Array.prototype,"includes",{valu
     timeUtil,
     message,
     msg,
-    navSupported = conf.skin === 'vector',
     rAF = window.requestAnimationFrame || setTimeout,
 
     currentDiff,
@@ -1178,7 +1177,7 @@ Example:
     $RCOptionsSubmit = $('#RCOptions_submit');
 
     // Apply button
-    $RCOptionsSubmit.click(function () {
+    $RCOptionsSubmit.on('click', function () {
       $RCOptionsSubmit.prop('disabled', true).css('opacity', '0.5');
 
       readSettingsForm();
@@ -1379,7 +1378,7 @@ Example:
     });
 
     // Show helpicons
-    $('#mw-rtrc-toggleHelp').click(function (e) {
+    $('#mw-rtrc-toggleHelp').on('click', function (e) {
       e.preventDefault();
       $('#krRTRC_RCOptions').toggleClass('mw-rtrc-nohelp mw-rtrc-help');
     });
@@ -1400,7 +1399,7 @@ Example:
     });
 
     // Button: Pause
-    $('#rc-options-pause').click(function () {
+    $('#rc-options-pause').on('click', function () {
       if (!this.checked) {
         // Unpause
         updateFeedNow();
@@ -1510,7 +1509,8 @@ Example:
    * @return {jQuery.Promise}
    */
   function init () {
-    var dModules, dI18N, featureTest, $navToggle, dOres;
+    var dModules, dI18N, featureTest, $navToggle, dOres,
+      navSupported = conf.skin === 'vector';
 
     // Transform title and navigation tabs
     document.title = 'RTRC: ' + conf.wgDBname;
@@ -1606,19 +1606,18 @@ Example:
         $navToggle.attr('title', msg('navtoggle-tooltip'));
       }
 
-      // Map over months
+      // Create map of month names
       monthNames = msg('months').split(',');
 
       buildInterface();
       readPermalink();
       updateFeedNow();
-
       scrollIntoView($wrapper);
+      bindInterface();
+
       rAF(function () {
         $('html').addClass('mw-rtrc-ready');
       });
-
-      bindInterface();
     });
   }
 
