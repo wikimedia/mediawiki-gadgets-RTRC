@@ -4,8 +4,8 @@
  *
  * @copyright 2010-2018 Timo Tijhof
  */
-/* global alert */
-(function ($, mw) {
+/* global alert, mw, $ */
+(function () {
   'use strict';
 
   /**
@@ -104,7 +104,7 @@
       showAnonOnly: 'hideliu',
       showUnpatrolledOnly: 'unpatrolled'
     },
-    opt = $(true, {}, defOpt),
+    opt = Object.create(defOpt),
 
     timeUtil,
     message,
@@ -397,7 +397,7 @@ Example:
     // out <fieldset>.
     var $settings = $($wrapper.find('.mw-rtrc-settings')[0].elements).filter(':input');
 
-    opt = $.extend(true, {}, defOpt);
+    opt = Object.create(defOpt);
 
     $settings.each(function (i, el) {
       var name = el.name;
@@ -543,7 +543,7 @@ Example:
       }
     }
 
-    newOpt = $.extend(true, {}, defOpt, newOpt);
+    newOpt = $.extend(Object.create(defOpt), newOpt);
 
     normaliseSettings(newOpt, 'quiet');
     fillSettingsForm(newOpt);
@@ -1656,4 +1656,4 @@ Example:
   ) {
     init();
   }
-}(jQuery, mediaWiki));
+}());

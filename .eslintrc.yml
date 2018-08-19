@@ -5,8 +5,5 @@ env:
   es6: false
   node: false
   browser: true
-globals:
-  mediaWiki: false
-  jQuery: false
 rules:
   one-var: 0
