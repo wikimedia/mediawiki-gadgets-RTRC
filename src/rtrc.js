@@ -4,6 +4,11 @@
  *
  * @copyright 2010-2018 Timo Tijhof
  */
+
+// Array#includes polyfill (ES2016/ES7)
+// eslint-disable-next-line
+Array.prototype.includes||Object.defineProperty(Array.prototype,"includes",{value:function(r,e){if(null==this)throw new TypeError('"this" is null or not defined');var t=Object(this),n=t.length>>>0;if(0===n)return!1;var i,o,a=0|e,u=Math.max(a>=0?a:n-Math.abs(a),0);for(;u<n;){if((i=t[u])===(o=r)||"number"==typeof i&&"number"==typeof o&&isNaN(i)&&isNaN(o))return!0;u++}return!1}});
+
 /* global alert, mw, $ */
 (function () {
   'use strict';
@@ -640,7 +645,7 @@ Example:
         rcid = Number($el.data('rcid'));
 
       // Mark skipped and patrolled items as such
-      if ($.inArray(rcid, skippedRCIDs) !== -1) {
+      if (skippedRCIDs.includes(rcid)) {
         $el.addClass('mw-rtrc-item-skipped');
       } else if (annotationsCache.patrolled.hasOwnProperty(rcid)) {
         $el.addClass('mw-rtrc-item-patrolled');
@@ -732,7 +737,7 @@ Example:
     $feedContent.filter('.mw-rtrc-item').each(function () {
       var user = $(this).attr('user');
       // Don't query the same user multiple times
-      if (user && $.inArray(user, users) === -1 && !annotationsCache.cvn.hasOwnProperty(user)) {
+      if (user && users.includes(user) && !annotationsCache.cvn.hasOwnProperty(user)) {
         users.push(user);
       }
     });
@@ -1222,7 +1227,7 @@ Example:
           .removeClass('mw-rtrc-diff-loading');
       }).done(function (data) {
         var skipButtonHtml, $diff;
-        if ($.inArray(currentDiffRcid, skippedRCIDs) !== -1) {
+        if (skippedRCIDs.includes(currentDiffRcid)) {
           skipButtonHtml = '<span class="tab"><a id="diffUnskip">' + message('unskip').escaped() + '</a></span>';
         } else {
           skipButtonHtml = '<span class="tab"><a id="diffSkip">' + message('skip').escaped() + '</a></span>';
@@ -1288,7 +1293,7 @@ Example:
           .removeClass('mw-rtrc-diff-loading');
       }).done(function (data) {
         var skipButtonHtml;
-        if ($.inArray(currentDiffRcid, skippedRCIDs) !== -1) {
+        if (skippedRCIDs.includes(currentDiffRcid)) {
           skipButtonHtml = '<span class="tab"><a id="diffUnskip">' + message('unskip').escaped() + '</a></span>';
         } else {
           skipButtonHtml = '<span class="tab"><a id="diffSkip">' + message('skip').escaped() + '</a></span>';
@@ -1441,7 +1446,7 @@ Example:
     promises.push(
       mw.loader.using('mediawiki.user').then(function () {
         return mw.user.getRights().then(function (rights) {
-          if ($.inArray('patrol', rights) !== -1) {
+          if (rights.includes('patrol')) {
             userHasPatrolRight = true;
           }
         });
