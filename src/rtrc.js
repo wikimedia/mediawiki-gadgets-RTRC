@@ -32,13 +32,13 @@ Array.prototype.includes||Object.defineProperty(Array.prototype,"includes",{valu
     ]),
     // Can't use mw.util.wikiScript until after #init
     apiUrl = conf.wgScriptPath + '/api.php',
-    cvnApiUrl = '//cvn.wmflabs.org/api.php',
-    oresApiUrl = '//ores.wikimedia.org/scores/' + conf.wgDBname + '/',
+    cvnApiUrl = 'https://cvn.wmflabs.org/api.php',
+    oresApiUrl = 'https://ores.wikimedia.org/scores/' + conf.wgDBname + '/',
     oresModel = false,
-    intuitionLoadUrl = '//tools.wmflabs.org/intuition/load.php?env=mw',
-    docUrl = '//meta.wikimedia.org/wiki/User:Krinkle/Tools/Real-Time_Recent_Changes?uselang=' + conf.wgUserLanguage,
+    intuitionLoadUrl = 'https://meta.wikimedia.org/w/index.php?title=User:Krinkle/Scripts/Intuition.js&action=raw&ctype=text/javascript',
+    docUrl = 'https://meta.wikimedia.org/wiki/User:Krinkle/Tools/Real-Time_Recent_Changes?uselang=' + conf.wgUserLanguage,
     // 32x32px
-    ajaxLoaderUrl = '//upload.wikimedia.org/wikipedia/commons/d/de/Ajax-loader.gif',
+    ajaxLoaderUrl = 'https://upload.wikimedia.org/wikipedia/commons/d/de/Ajax-loader.gif',
     annotationsCache = {
       patrolled: {},
       cvn: {},
@@ -237,8 +237,8 @@ Example:
 
 <div class="mw-rtrc-item mw-rtrc-item-patrolled" data-diff="0" data-rcid="0" user="Abc">
   <div first>(<a>diff</a>) <span class="unpatrolled">!</span> 00:00 <a>Page</a></div>
-  <div user><a class="user" href="//User:Abc">Abc</a></div>
-  <div comment><a href="//User talk:Abc">talk</a> / <a href="//Special:Contributions/Abc">contribs</a>&nbsp;<span class="comment">Abc</span></div>
+  <div user><a class="user" href="/User:Abc">Abc</a></div>
+  <div comment><a href="/User talk:Abc">talk</a> / <a href="/Special:Contributions/Abc">contribs</a>&nbsp;<span class="comment">Abc</span></div>
   <div class="mw-rtrc-meta"><span class="mw-plusminus mw-plusminus-null">(0)</span></div>
 </div>
     */
