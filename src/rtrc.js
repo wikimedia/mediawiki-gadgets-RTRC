@@ -109,7 +109,7 @@ Array.prototype.includes||Object.defineProperty(Array.prototype,"includes",{valu
       showAnonOnly: 'hideliu',
       showUnpatrolledOnly: 'unpatrolled'
     },
-    opt = Object.create(defOpt),
+    opt = makeOpt(),
 
     timeUtil,
     message,
@@ -125,6 +125,14 @@ Array.prototype.includes||Object.defineProperty(Array.prototype,"includes",{valu
    * Utility functions
    * -------------------------------------------------
    */
+
+  function makeOpt () {
+    // Create a recursive copy of defOpt without exposing
+    // any of its arrays or objects in the returned value,
+    // so that the returned value can be modified in every way,
+    // without causing defOpt to change.
+    return $.extend(true, {}, defOpt);
+  }
 
   /**
    * Prepend a leading zero if value is under 10
@@ -401,7 +409,7 @@ Example:
     // out <fieldset>.
     var $settings = $($wrapper.find('.mw-rtrc-settings')[0].elements).filter(':input');
 
-    opt = Object.create(defOpt);
+    opt = makeOpt();
 
     $settings.each(function (i, el) {
       var name = el.name;
@@ -547,7 +555,7 @@ Example:
       }
     }
 
-    newOpt = $.extend(Object.create(defOpt), newOpt);
+    newOpt = $.extend(true, makeOpt(), newOpt);
 
     normaliseSettings(newOpt, 'quiet');
     fillSettingsForm(newOpt);
