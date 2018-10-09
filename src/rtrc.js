@@ -1546,9 +1546,10 @@ Example:
         $('body').append($('<div>').addClass('mw-rtrc-sidebar-cover'));
         $('#mw-panel')
           .append($navToggle)
-          .hover(function () {
+          .on('mouseenter', function () {
             $('html').addClass('mw-rtrc-sidebar-on');
-          }, function () {
+          })
+          .on('mouseleave', function () {
             $('html').removeClass('mw-rtrc-sidebar-on');
           });
       });
