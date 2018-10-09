@@ -1462,7 +1462,7 @@ Example:
 
     // Get MediaWiki interface messages
     promises.push(
-      mw.loader.using('mediawiki.api.messages').then(function () {
+      mw.loader.using('mediawiki.api').then(function () {
         return new mw.Api().loadMessages([
           'blanknamespace',
           'contributions',
