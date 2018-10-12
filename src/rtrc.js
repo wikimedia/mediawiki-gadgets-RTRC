@@ -46,31 +46,20 @@ Array.prototype.includes||Object.defineProperty(Array.prototype,"includes",{valu
     // See annotationsCacheUp()
     annotationsCacheSize = 0,
 
-    /**
-     * Info from the wiki
-     * -------------------------------------------------
-     */
+    // Info from the wiki - see initData()
     userHasPatrolRight = false,
     rcTags = [],
     wikiTimeOffset,
 
-    /**
-     * State
-     * -------------------------------------------------
-     */
+    // State
     updateFeedTimeout,
-
     rcDayHeadPrev,
     skippedRCIDs = [],
     monthNames,
-
     prevFeedHtml,
     updateReq,
 
-    /**
-     * Feed options
-     * -------------------------------------------------
-     */
+    // Default settings for the feed
     defOpt = {
       rc: {
         // Timestamp
@@ -104,10 +93,11 @@ Array.prototype.includes||Object.defineProperty(Array.prototype,"includes",{valu
       }
     },
     aliasOpt = {
-    // Back-compat for v1.0.4 and earlier
+      // Back-compat for v1.0.4 and earlier
       showAnonOnly: 'hideliu',
       showUnpatrolledOnly: 'unpatrolled'
     },
+    // Current settings for the feed
     opt = makeOpt(),
 
     timeUtil,
@@ -850,18 +840,7 @@ Example:
     return updateReq.always(function () {
       updateReq = null;
     })
-      .then(null, function (jqXhr, textStatus) {
-        var feedContentHTML = '<h3>Downloading recent changes failed</h3>';
-        if (textStatus === 'abort') {
-          return $.Deferred().reject();
-        }
-        pushFeedContent({
-          $feedContent: $(feedContentHTML),
-          rawHtml: feedContentHTML
-        });
-        // Error is handled. Move on normally.
-        return $.Deferred().resolve();
-      }).then(function (data) {
+      .then(function onRcSuccess (data) {
         var recentchanges, $feedContent, client,
           feedContentHTML = '';
 
@@ -901,15 +880,32 @@ Example:
           opt.app.cvnDB && applyCvnAnnotations($feedContent),
           oresModel && opt.app.ores && applyOresAnnotations($feedContent)
         ).then(null, function () {
-        // Ignore errors from annotation handlers
+          // Ignore errors from annotation handlers
           return $.Deferred().resolve();
         }).then(function () {
-          pushFeedContent({
+          return {
             $feedContent: $feedContent,
             rawHtml: feedContentHTML
-          });
+          };
         });
-      }).then(function () {
+      }, function onRcError (jqXhr, textStatus) {
+        var feedContentHTML;
+        if (textStatus === 'abort') {
+          // No rendering
+          return $.Deferred().reject();
+        }
+        feedContentHTML = '<h3>Downloading recent changes failed</h3>';
+        // Error is handled, continue to rendering.
+        return {
+          $feedContent: $(feedContentHTML),
+          rawHtml: feedContentHTML
+        };
+      })
+      .then(function (obj) {
+        // Render
+        pushFeedContent(obj);
+      })
+      .then(function () {
         $RCOptionsSubmit.prop('disabled', false).css('opacity', '1.0');
 
         // Schedule next update
@@ -1247,7 +1243,7 @@ Example:
                 ? '<span class="tab"><a onclick="(function(){ if($(\'.patrollink a\').length){ $(\'.patrollink a\').click(); } else { $(\'#diffSkip\').click(); } })();">[mark]</a></span>'
                 : ''
               ) +
-              '<span class="tab"><a id="diffNext">' + mw.message('next').escaped() + ' &raquo;</a></span>' +
+              '<span class="tab"><a id="diffNext">' + mw.message('next').escaped() + ' »</a></span>' +
               skipButtonHtml +
             '</div>'
           )
@@ -1310,7 +1306,7 @@ Example:
               '<span class="tab"><a id="diffClose">' + message('close').escaped() + '</a></span>' +
               '<span class="tab"><a href="' + href + '" target="_blank" id="diffNewWindow">' + message('open-in-wiki').escaped() + '</a></span>' +
               '<span class="tab"><a onclick="$(\'.patrollink a\').click()">[' + message('mark').escaped() + ']</a></span>' +
-              '<span class="tab"><a id="diffNext">' + mw.message('next').escaped() + ' &raquo;</a></span>' +
+              '<span class="tab"><a id="diffNext">' + mw.message('next').escaped() + ' »</a></span>' +
               skipButtonHtml +
             '</div>'
           )
@@ -1581,7 +1577,7 @@ Example:
         }
       }
     }, function () {
-      // If ORES doesn't have models for this wiki, do continue loading without
+      // ORES has have models for this wiki, continue without
       return $.Deferred().resolve();
     });
 
@@ -1594,7 +1590,7 @@ Example:
         msg = mw.libs.intuition.msg.bind(null, 'rtrc');
       }, function () {
         // Ignore failure. RTRC should load even if Labs is down.
-        // Fallback to displaying message keys.
+        // Fall back to displaying message keys.
         mw.messages.set('intuition-i18n-gone', '$1');
         message = function (key) {
           return mw.message('intuition-i18n-gone', key);
