@@ -413,7 +413,7 @@ Example:
     $settings.each(function (i, el) {
       var name = el.name;
       switch (name) {
-      // RC
+        // RC
         case 'limit':
           opt.rc[name] = Number(el.value);
           break;
@@ -457,8 +457,6 @@ Example:
     });
 
     if (!normaliseSettings(opt)) {
-      // TODO: Optimise this, no need to repopulate the entire settings form
-      // if only 1 thing changed.
       fillSettingsForm(opt);
     }
   }
@@ -532,7 +530,7 @@ Example:
       try {
         newOpt = JSON.parse(url.query.opt);
       } catch (e) {
-        // TODO: Report error to user
+        // Ignore
       }
     }
     if (newOpt) {
@@ -711,7 +709,7 @@ Example:
 
     return dAnnotations.then(function (annotations) {
       // Loop through all revision ids
-      $.each(revids, function (i, revid) {
+      revids.forEach(function (revid) {
         var tooltip,
           score = annotations[revid];
         // Only highlight high probability scores
@@ -760,8 +758,8 @@ Example:
       })
         .then(function (resp) {
           if (resp.users) {
-            annotationsCacheUp(resp.users.length);
             $.each(resp.users, function (name, user) {
+              annotationsCacheUp();
               annotationsCache.cvn[name] = user;
             });
           }
