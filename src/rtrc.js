@@ -24,7 +24,6 @@ Array.prototype.includes||Object.defineProperty(Array.prototype,"includes",{valu
       'wgAction',
       'wgCanonicalSpecialPageName',
       'wgPageName',
-      'wgServer',
       'wgTitle',
       'wgUserLanguage',
       'wgDBname',
