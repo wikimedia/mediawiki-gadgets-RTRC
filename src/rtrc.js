@@ -39,9 +39,9 @@ Array.prototype.includes||Object.defineProperty(Array.prototype,"includes",{valu
     // 32x32px
     ajaxLoaderUrl = 'https://upload.wikimedia.org/wikipedia/commons/d/de/Ajax-loader.gif',
     annotationsCache = {
-      patrolled: {},
-      cvn: {},
-      ores: {}
+      patrolled: Object.create(null),
+      cvn: Object.create(null),
+      ores: Object.create(null)
     },
     // See annotationsCacheUp()
     annotationsCacheSize = 0,
@@ -412,7 +412,6 @@ Example:
 
     $settings.each(function (i, el) {
       var name = el.name;
-
       switch (name) {
       // RC
         case 'limit':
@@ -541,7 +540,7 @@ Example:
       for (group in newOpt) {
         for (oldKey in newOpt[group]) {
           newKey = aliasOpt[oldKey];
-          if (newKey && !newOpt[group].hasOwnProperty(newKey)) {
+          if (newKey && !Object.hasOwnProperty.call(newOpt[group], newKey)) {
             newOpt[group][newKey] = newOpt[group][oldKey];
             delete newOpt[group][oldKey];
           }
@@ -653,7 +652,7 @@ Example:
       // Mark skipped and patrolled items as such
       if (skippedRCIDs.includes(rcid)) {
         $el.addClass('mw-rtrc-item-skipped');
-      } else if (annotationsCache.patrolled.hasOwnProperty(rcid)) {
+      } else if (rcid in annotationsCache.patrolled) {
         $el.addClass('mw-rtrc-item-patrolled');
       } else if (rcid === currentDiffRcid) {
         $el.addClass('mw-rtrc-item-current');
@@ -678,7 +677,7 @@ Example:
     }
 
     fetchRevids = revids.filter(function (revid) {
-      return !annotationsCache.ores.hasOwnProperty(revid);
+      return !(revid in annotationsCache.ores);
     });
 
     if (!fetchRevids.length) {
@@ -743,7 +742,7 @@ Example:
     $feedContent.filter('.mw-rtrc-item').each(function () {
       var user = $(this).attr('user');
       // Don't query the same user multiple times
-      if (user && users.includes(user) && !annotationsCache.cvn.hasOwnProperty(user)) {
+      if (user && users.includes(user) && !(user in annotationsCache.cvn)) {
         users.push(user);
       }
     });
@@ -1172,9 +1171,9 @@ Example:
   function annotationsCacheUp (increment) {
     annotationsCacheSize += increment || 1;
     if (annotationsCacheSize > 1000) {
-      annotationsCache.patrolled = {};
-      annotationsCache.ores = {};
-      annotationsCache.cvn = {};
+      annotationsCache.patrolled = Object.create(null);
+      annotationsCache.ores = Object.create(null);
+      annotationsCache.cvn = Object.create(null);
     }
   }
 
