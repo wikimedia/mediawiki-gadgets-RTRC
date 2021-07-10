@@ -2,7 +2,7 @@
  * Real-Time Recent Changes
  * https://github.com/Krinkle/mw-gadget-rtrc
  *
- * @copyright 2010-2018 Timo Tijhof
+ * @copyright 2010-2021 Timo Tijhof
  */
 
 // Array#includes polyfill (ES2016/ES7)

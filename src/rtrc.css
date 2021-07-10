@@ -2,7 +2,7 @@
  * Real-Time Recent Changes
  * https://github.com/Krinkle/mw-gadget-rtrc
  *
- * @copyright 2010-2018 Timo Tijhof
+ * @copyright 2010-2021 Timo Tijhof
  */
 
 /* Minimise MediaWiki frame */
@@ -117,7 +117,6 @@
 	z-index: 1; /* overlap mw-rtrc-sidebar-cover */
 	box-shadow: rgba(0, 0, 0, 0.5) 0 0 25px;
 	will-change: transform;
-
 }
 /* flipped */
 /* @noflip */
@@ -257,7 +256,7 @@
 	vertical-align: middle;
 	width: 18px;
 	height: 18px;
-	background: url(//upload.wikimedia.org/wikipedia/commons/5/51/Question-helpbutton.png) no-repeat;
+	background: url(https://upload.wikimedia.org/wikipedia/commons/5/51/Question-helpbutton.png) no-repeat;
 }
 
 .mw-rtrc-nohelp .helpicon {
@@ -473,7 +472,7 @@
 .mw-rtrc-body.placeholder {
 	width: 100%;
 	height: 600px;
-	background: transparent url(//upload.wikimedia.org/wikipedia/commons/9/9d/RTRC_Placeholder.png) top center no-repeat;
+	background: transparent url(https://upload.wikimedia.org/wikipedia/commons/9/9d/RTRC_Placeholder.png) top center no-repeat;
 }
 
 .mw-rtrc-body.placeholder > * {
@@ -549,14 +548,14 @@
 
 .mw-rtrc-item-alert-user .mw-userlink,
 .mw-rtrc-item-alert-rev .mw-rtrc-revscore {
-	background: url(//upload.wikimedia.org/wikipedia/commons/thumb/f/f7/Nuvola_apps_important.svg/18px-Nuvola_apps_important.svg.png) 0 50% no-repeat;
+	background: url(https://upload.wikimedia.org/wikipedia/commons/thumb/f/f7/Nuvola_apps_important.svg/18px-Nuvola_apps_important.svg.png) 0 50% no-repeat;
 	padding-left: 20px;
 }
 
 @media (min-resolution: 2dppx), (min-resolution: 192dpi) {
 	.mw-rtrc-item-alert-user .mw-userlink,
 	.mw-rtrc-item-alert-rev .mw-rtrc-revscore {
-		background-image: url(//upload.wikimedia.org/wikipedia/commons/thumb/f/f7/Nuvola_apps_important.svg/36px-Nuvola_apps_important.svg.png);
+		background-image: url(https://upload.wikimedia.org/wikipedia/commons/thumb/f/f7/Nuvola_apps_important.svg/36px-Nuvola_apps_important.svg.png);
 		background-size: 18px;
 	}
 }
@@ -597,7 +596,7 @@
 
 /**
  * On/Off switch checboxes.
- * Based on "iOS 6 style switch checkboxes" by Lea Verou http://lea.verou.me
+ * Based on "iOS 6 style switch checkboxes" by Lea Verou https://lea.verou.me/
  */
 
 .mw-rtrc-settings .switch {
@@ -728,4 +727,27 @@
 /* @noflip */
 .rtl .mw-rtrc-head-links {
 	left: 1em;
+}
+
+.client-js .skin-vector #t-specialpages::before {
+	content: "RTRC …";
+
+	/* Imitate `.vector-menu-portal .vector-menu-content li` styles.
+	   Padding 0+0.5 instead of 0.25+0.25 because we have to compensate for
+	   being an LI pseudo-element child instead of sibling. */
+	display: block;
+	padding: 0 0 0.5em 0;
+	line-height: 1.125em;
+
+	/* Idle styling */
+	cursor: wait;
+	opacity: 0.5;
+}
+/* Ideally we'd use something like `li:not(#t-rtrc) + #t-specialpages::before` above,
+   but we can't since there may be multiple portlet links inserted this way, so we
+   have to use sibling (~) instead of adjecent (+). And, when negating a sibling
+   selector, it doesn't stop matching once #t-rtrc is created as it would simply
+   keep matching via another sibling instead. */
+.client-js .skin-vector #t-rtrc ~ #t-specialpages::before {
+	display: none;
 }
