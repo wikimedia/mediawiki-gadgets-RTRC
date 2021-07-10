@@ -6,4 +6,6 @@ env:
   node: false
   browser: true
 rules:
-  one-var: 0
+  no-use-before-define: "error"
+  block-scoped-var: "error"
+  no-shadow: [ "error", { "hoist": "all" } ]

@@ -7,7 +7,7 @@
 
 // Array#includes polyfill (ES2016/ES7)
 // eslint-disable-next-line
-Array.prototype.includes||Object.defineProperty(Array.prototype,"includes",{value:function(r,e){if(null==this)throw new TypeError('"this" is null or not defined');var t=Object(this),n=t.length>>>0;if(0===n)return!1;var i,o,a=0|e,u=Math.max(a>=0?a:n-Math.abs(a),0);for(;u<n;){if((i=t[u])===(o=r)||"number"==typeof i&&"number"==typeof o&&isNaN(i)&&isNaN(o))return!0;u++}return!1}});
+Array.prototype.includes||Object.defineProperty(Array.prototype,"includes",{value:function(r,e){if(null==this)throw new TypeError('"this" is null or undefined');var t=Object(this),n=t.length>>>0;if(0===n)return!1;var i,o,a=0|e,u=Math.max(a>=0?a:n-Math.abs(a),0);for(;u<n;){if((i=t[u])===(o=r)||"number"==typeof i&&"number"==typeof o&&isNaN(i)&&isNaN(o))return!0;u++}return!1}});
 
 /* global alert, mw, $ */
 (function () {
@@ -17,6 +17,7 @@ Array.prototype.includes||Object.defineProperty(Array.prototype,"includes",{valu
    * Configuration
    * -------------------------------------------------
    */
+  // eslint-disable-next-line one-var
   var
     appVersion = 'v1.3.5',
     conf = mw.config.get([
@@ -100,7 +101,6 @@ Array.prototype.includes||Object.defineProperty(Array.prototype,"includes",{valu
     // Current settings for the feed
     opt = makeOpt(),
 
-    timeUtil,
     message,
     msg,
     rAF = window.requestAnimationFrame || setTimeout,
@@ -133,7 +133,7 @@ Array.prototype.includes||Object.defineProperty(Array.prototype,"includes",{valu
     return (num < 10 ? '0' : '') + num;
   }
 
-  timeUtil = {
+  var timeUtil = {
     // Create new Date object from an ISO-8601 formatted timestamp, as
     // returned by the MediaWiki API (e.g. "2010-04-25T23:24:02Z")
     newDateFromISO: function (s) {
@@ -150,11 +150,11 @@ Array.prototype.includes||Object.defineProperty(Array.prototype,"includes",{valu
      * @return {Date}
      */
     applyUserOffset: function (d) {
-      var parts,
-        offset = mw.user.options.get('timecorrection');
+      var offset = mw.user.options.get('timecorrection');
 
       // This preference has no default value, it is null for users that don't
       // override the site's default timeoffset.
+      var parts;
       if (offset) {
         parts = offset.split('|');
         if (parts[0] === 'System') {
@@ -205,17 +205,15 @@ Array.prototype.includes||Object.defineProperty(Array.prototype,"includes",{valu
    * @return {string} HTML
    */
   function buildRcItem (rc) {
-    var diffsize, isUnpatrolled, typeSymbol, itemClass, diffLink, el, item;
-
     // Get size difference (can be negative, zero or positive)
-    diffsize = rc.newlen - rc.oldlen;
+    var diffsize = rc.newlen - rc.oldlen;
 
     // Convert undefined/empty-string values from API into booleans
-    isUnpatrolled = rc.unpatrolled !== undefined;
+    var isUnpatrolled = rc.unpatrolled !== undefined;
 
     // typeSymbol, diffLink & itemClass
-    typeSymbol = '&nbsp;';
-    itemClass = [];
+    var typeSymbol = '&nbsp;';
+    var itemClass = [];
 
     if (rc.type === 'new') {
       typeSymbol += '<span class="newpage">' + mw.message('newpageletter').escaped() + '</span>';
@@ -241,9 +239,10 @@ Example:
     */
 
     // build & return item
-    item = buildRcDayHead(timeUtil.newDateFromISO(rc.timestamp));
+    var item = buildRcDayHead(timeUtil.newDateFromISO(rc.timestamp));
     item += '<div class="mw-rtrc-item ' + itemClass.join(' ') + '" data-diff="' + rc.revid + '" data-rcid="' + rc.rcid + '" user="' + rc.user + '">';
 
+    var diffLink;
     if (rc.type === 'edit') {
       diffLink = '<a class="rcitemlink diff" href="' +
         mw.util.wikiScript() + '?diff=' + rc.revid + '&oldid=' + rc.old_revid + '&rcid=' + rc.rcid +
@@ -268,6 +267,7 @@ Example:
       '</div>' +
       '<div comment>&nbsp;<span class="comment">' + rc.parsedcomment + '</span></div>';
 
+    var el;
     if (diffsize > 0) {
       el = diffsize > 399 ? 'strong' : 'span';
       item += '<div class="mw-rtrc-meta"><' + el + ' class="mw-plusminus mw-plusminus-pos">(+' + diffsize.toLocaleString() + ')</' + el + '></div>';
@@ -319,9 +319,9 @@ Example:
     if (newOpt.rc) {
       $.each(newOpt.rc, function (key, value) {
         var $setting = $settings.filter(function () {
-            return this.name === key;
-          }),
-          setting = $setting[0];
+          return this.name === key;
+        });
+        var setting = $setting[0];
 
         if (!setting) {
           return;
@@ -364,9 +364,9 @@ Example:
     if (newOpt.app) {
       $.each(newOpt.app, function (key, value) {
         var $setting = $settings.filter(function () {
-            return this.name === key;
-          }),
-          setting = $setting[0];
+          return this.name === key;
+        });
+        var setting = $setting[0];
 
         if (!setting) {
           setting = document.getElementById('rc-options-' + key);
@@ -452,8 +452,8 @@ Example:
   }
 
   function getPermalink () {
-    var uri = new mw.Uri(mw.util.getUrl(conf.wgPageName)),
-      reducedOpt = {};
+    var uri = new mw.Uri(mw.util.getUrl(conf.wgPageName));
+    var reducedOpt = {};
 
     $.each(opt.rc, function (key, value) {
       if (defOpt.rc[key] !== value) {
@@ -513,9 +513,9 @@ Example:
 
   // Read permalink into the program and reflect into settings form.
   function readPermalink () {
-    var group, oldKey, newKey, newOpt,
-      url = new mw.Uri();
+    var url = new mw.Uri();
 
+    var newOpt;
     if (url.query.opt) {
       try {
         newOpt = JSON.parse(url.query.opt);
@@ -525,9 +525,9 @@ Example:
     }
     if (newOpt) {
       // Rename values for old aliases
-      for (group in newOpt) {
-        for (oldKey in newOpt[group]) {
-          newKey = aliasOpt[oldKey];
+      for (var group in newOpt) {
+        for (var oldKey in newOpt[group]) {
+          var newKey = aliasOpt[oldKey];
           if (newKey && !Object.hasOwnProperty.call(newOpt[group], newKey)) {
             newOpt[group][newKey] = newOpt[group][oldKey];
             delete newOpt[group][oldKey];
@@ -550,18 +550,17 @@ Example:
   }
 
   function getApiRcParams (rc) {
-    var params,
-      rcprop = [
-        'flags',
-        'timestamp',
-        'user',
-        'title',
-        'parsedcomment',
-        'sizes',
-        'ids'
-      ],
-      rcshow = [],
-      rctype = [];
+    var rcprop = [
+      'flags',
+      'timestamp',
+      'user',
+      'title',
+      'parsedcomment',
+      'sizes',
+      'ids'
+    ];
+    var rcshow = [];
+    var rctype = [];
 
     if (userHasPatrolRight) {
       rcprop.push('patrolled');
@@ -588,7 +587,7 @@ Example:
       rctype = ['edit', 'new'];
     }
 
-    params = {
+    var params = {
       rcdir: rc.dir,
       rclimit: rc.limit,
       rcshow: rcshow.join('|'),
@@ -634,8 +633,8 @@ Example:
   function applyRtrcAnnotations ($feedContent) {
     // Re-apply item classes
     $feedContent.filter('.mw-rtrc-item').each(function () {
-      var $el = $(this),
-        rcid = Number($el.data('rcid'));
+      var $el = $(this);
+      var rcid = Number($el.data('rcid'));
 
       // Mark skipped and patrolled items as such
       if (skippedRCIDs.includes(rcid)) {
@@ -649,14 +648,12 @@ Example:
   }
 
   function applyOresAnnotations ($feedContent) {
-    var dAnnotations, revids, fetchRevids;
-
     if (!oresModel) {
       return $.Deferred().resolve();
     }
 
     // Find all revids names inside the feed
-    revids = $.map($feedContent.filter('.mw-rtrc-item'), function (node) {
+    var revids = $.map($feedContent.filter('.mw-rtrc-item'), function (node) {
       return $(node).attr('data-diff');
     });
 
@@ -664,10 +661,11 @@ Example:
       return $.Deferred().resolve();
     }
 
-    fetchRevids = revids.filter(function (revid) {
+    var fetchRevids = revids.filter(function (revid) {
       return !(revid in annotationsCache.ores);
     });
 
+    var dAnnotations;
     if (!fetchRevids.length) {
       // No (new) revisions
       dAnnotations = $.Deferred().resolve(annotationsCache.ores);
@@ -700,13 +698,12 @@ Example:
     return dAnnotations.then(function (annotations) {
       // Loop through all revision ids
       revids.forEach(function (revid) {
-        var tooltip,
-          score = annotations[revid];
+        var score = annotations[revid];
         // Only highlight high probability scores
         if (!score || score <= 0.45) {
           return;
         }
-        tooltip = msg('ores-damaging-probability', (100 * score).toFixed(0) + '%');
+        var tooltip = msg('ores-damaging-probability', (100 * score).toFixed(0) + '%');
 
         // Add alert
         $feedContent
@@ -723,10 +720,8 @@ Example:
   }
 
   function applyCvnAnnotations ($feedContent) {
-    var dAnnotations,
-      users = [];
-
     // Collect user names
+    var users = [];
     $feedContent.filter('.mw-rtrc-item').each(function () {
       var user = $(this).attr('user');
       // Don't query the same user multiple times
@@ -735,6 +730,7 @@ Example:
       }
     });
 
+    var dAnnotations;
     if (!users.length) {
       // No (new) users
       dAnnotations = $.Deferred().resolve(annotationsCache.cvn);
@@ -841,8 +837,7 @@ Example:
       updateReq = null;
     })
       .then(function onRcSuccess (data) {
-        var recentchanges, $feedContent, client,
-          feedContentHTML = '';
+        var feedContentHTML = '';
 
         if (data.error) {
           // Account doesn't have patrol flag
@@ -851,7 +846,7 @@ Example:
 
           // Other error
           } else {
-            client = $.client.profile();
+            var client = $.client.profile();
             feedContentHTML += '<h3>Downloading recent changes failed</h3>' +
             '<p>Please check the settings above and try again. If you believe this is a bug, please <strong>' +
             '<a href="https://github.com/Krinkle/mw-gadget-rtrc/issues/new?body=' + encodeURIComponent('\n\n\n----' +
@@ -860,7 +855,7 @@ Example:
             ) + '" target="_blank">let me know</a></strong>.';
           }
         } else {
-          recentchanges = data.query.recentchanges;
+          var recentchanges = data.query.recentchanges;
 
           if (recentchanges.length) {
             $.each(recentchanges, function (i, rc) {
@@ -875,7 +870,8 @@ Example:
           rcDayHeadPrev = undefined;
         }
 
-        $feedContent = $($.parseHTML(feedContentHTML));
+        var $feedContent = $($.parseHTML(feedContentHTML));
+
         return $.when(
           opt.app.cvnDB && applyCvnAnnotations($feedContent),
           oresModel && opt.app.ores && applyOresAnnotations($feedContent)
@@ -889,12 +885,11 @@ Example:
           };
         });
       }, function onRcError (jqXhr, textStatus) {
-        var feedContentHTML;
         if (textStatus === 'abort') {
           // No rendering
           return $.Deferred().reject();
         }
-        feedContentHTML = '<h3>Downloading recent changes failed</h3>';
+        var feedContentHTML = '<h3>Downloading recent changes failed</h3>';
         // Error is handled, continue to rendering.
         return {
           $feedContent: $(feedContentHTML),
@@ -931,21 +926,20 @@ Example:
 
   // Build the main interface
   function buildInterface () {
-    var namespaceOptionsHtml, tagOptionsHtml, key,
-      fmNs = mw.config.get('wgFormattedNamespaces');
+    var fmNs = mw.config.get('wgFormattedNamespaces');
 
-    namespaceOptionsHtml = '<option value>' + mw.message('namespacesall').escaped() + '</option>';
+    var namespaceOptionsHtml = '<option value>' + mw.message('namespacesall').escaped() + '</option>';
     namespaceOptionsHtml += '<option value="0">' + mw.message('blanknamespace').escaped() + '</option>';
 
-    for (key in fmNs) {
+    for (var key in fmNs) {
       if (key > 0) {
         namespaceOptionsHtml += '<option value="' + key + '">' + fmNs[key] + '</option>';
       }
     }
 
-    tagOptionsHtml = '<option value selected>' + message('select-placeholder-none').escaped() + '</option>';
-    for (key = 0; key < rcTags.length; key++) {
-      tagOptionsHtml += '<option value="' + mw.html.escape(rcTags[key]) + '">' + mw.html.escape(rcTags[key]) + '</option>';
+    var tagOptionsHtml = '<option value selected>' + message('select-placeholder-none').escaped() + '</option>';
+    for (var i = 0; i < rcTags.length; i++) {
+      tagOptionsHtml += '<option value="' + mw.html.escape(rcTags[i]) + '">' + mw.html.escape(rcTags[i]) + '</option>';
     }
 
     $wrapper = $($.parseHTML(
@@ -1196,10 +1190,10 @@ Example:
 
     // Load diffview on (diff)-link click
     $feed.on('click', 'a.diff', function (e) {
-      var $item = $(this).closest('.mw-rtrc-item').addClass('mw-rtrc-item-current'),
-        title = $item.find('.mw-title').text(),
-        href = $(this).attr('href'),
-        $frame = $('#krRTRC_DiffFrame');
+      var $item = $(this).closest('.mw-rtrc-item').addClass('mw-rtrc-item-current');
+      var title = $item.find('.mw-title').text();
+      var href = $(this).attr('href');
+      var $frame = $('#krRTRC_DiffFrame');
 
       $feed.find('.mw-rtrc-item-current').not($item).removeClass('mw-rtrc-item-current');
 
@@ -1220,11 +1214,7 @@ Example:
           diffonly: '1',
           uselang: conf.wgUserLanguage
         }
-      }).fail(function (jqXhr) {
-        $frame
-          .append(jqXhr.responseText || 'Loading diff failed.')
-          .removeClass('mw-rtrc-diff-loading');
-      }).done(function (data) {
+      }).then(function (data) {
         var skipButtonHtml, $diff;
         if (skippedRCIDs.includes(currentDiffRcid)) {
           skipButtonHtml = '<span class="tab"><a id="diffUnskip">' + message('unskip').escaped() + '</a></span>';
@@ -1260,16 +1250,20 @@ Example:
           // Leave scroll offset unchanged otherwise
           scrollIntoViewIfNeeded($frame);
         }
+      }).catch(function () {
+        $frame
+          .append('Loading diff failed.')
+          .removeClass('mw-rtrc-diff-loading');
       });
 
       e.preventDefault();
     });
 
     $feed.on('click', 'a.newPage', function (e) {
-      var $item = $(this).closest('.mw-rtrc-item').addClass('mw-rtrc-item-current'),
-        title = $item.find('.mw-title').text(),
-        href = $item.find('.mw-title').attr('href'),
-        $frame = $('#krRTRC_DiffFrame');
+      var $item = $(this).closest('.mw-rtrc-item').addClass('mw-rtrc-item-current');
+      var title = $item.find('.mw-title').text();
+      var href = $item.find('.mw-title').attr('href');
+      var $frame = $('#krRTRC_DiffFrame');
 
       $feed.find('.mw-rtrc-item-current').not($item).removeClass('mw-rtrc-item-current');
 
@@ -1286,11 +1280,7 @@ Example:
           action: 'render',
           uselang: conf.wgUserLanguage
         }
-      }).fail(function (jqXhr) {
-        $frame
-          .append(jqXhr.responseText || 'Loading diff failed.')
-          .removeClass('mw-rtrc-diff-loading');
-      }).done(function (data) {
+      }).then(function (data) {
         var skipButtonHtml;
         if (skippedRCIDs.includes(currentDiffRcid)) {
           skipButtonHtml = '<span class="tab"><a id="diffUnskip">' + message('unskip').escaped() + '</a></span>';
@@ -1315,6 +1305,10 @@ Example:
         if (opt.app.massPatrol) {
           $frame.find('.patrollink a').click();
         }
+      }).catch(function () {
+        $frame
+          .append('Loading diff failed.')
+          .removeClass('mw-rtrc-diff-loading');
       });
 
       e.preventDefault();
@@ -1324,10 +1318,11 @@ Example:
     $wrapper.on('click', '.patrollink', function () {
       var $el = $(this);
       $el.find('a').text(mw.msg('markaspatrolleddiff') + '...');
+
       api.postWithToken('patrol', {
         action: 'patrol',
         rcid: currentDiffRcid
-      }).done(function (data) {
+      }).then(function (data) {
         if (!data || data.error) {
           $el.empty().append(
             $('<span style="color: red;"></span>').text(mw.msg('markedaspatrollederror'))
@@ -1348,7 +1343,7 @@ Example:
         if (opt.app.autoDiff) {
           nextDiff();
         }
-      }).fail(function () {
+      }).catch(function () {
         $el.empty().append(
           $('<span style="color: red;"></span>').text(mw.msg('markedaspatrollederror'))
         );
@@ -1386,7 +1381,7 @@ Example:
     // Link helpicons
     $('.mw-rtrc-settings .helpicon')
       .attr('title', msg('helpicon-tooltip'))
-      .click(function (e) {
+      .on('click', function (e) {
         e.preventDefault();
         window.open(docUrl + '#' + $(this).attr('section'), '_blank');
       });
@@ -1509,8 +1504,7 @@ Example:
    * @return {jQuery.Promise}
    */
   function init () {
-    var dModules, dI18N, featureTest, $navToggle, dOres,
-      navSupported = conf.skin === 'vector';
+    var navSupported = conf.skin === 'vector';
 
     // Transform title and navigation tabs
     document.title = 'RTRC: ' + conf.wgDBname;
@@ -1522,8 +1516,7 @@ Example:
         .text('RTRC');
     });
 
-    featureTest = !!(Date.parse);
-
+    var featureTest = !!(Date.parse);
     if (!featureTest) {
       $(showUnsupported);
       return;
@@ -1531,6 +1524,7 @@ Example:
 
     $('html').addClass('mw-rtrc-available');
 
+    var $navToggle;
     if (navSupported) {
       $('html').addClass('mw-rtrc-sidebar-toggleable');
       $(function () {
@@ -1547,7 +1541,7 @@ Example:
       });
     }
 
-    dModules = mw.loader.using([
+    var dModules = mw.loader.using([
       'jquery.client',
       'mediawiki.diff.styles',
       // mw-plusminus styles etc.
@@ -1563,7 +1557,7 @@ Example:
       mw.libs.getIntuition = $.ajax({ url: intuitionLoadUrl, dataType: 'script', cache: true, timeout: 7000 });
     }
 
-    dOres = $.ajax({
+    var dOres = $.ajax({
       url: oresApiUrl,
       dataType: $.support.cors ? 'json' : 'jsonp',
       cache: true,
@@ -1577,11 +1571,11 @@ Example:
         }
       }
     }, function () {
-      // ORES has have models for this wiki, continue without
+      // ORES has no models for this wiki, continue without
       return $.Deferred().resolve();
     });
 
-    dI18N = mw.libs.getIntuition
+    var dI18N = mw.libs.getIntuition
       .then(function () {
         return mw.libs.intuition.load('rtrc');
       })
@@ -1601,24 +1595,26 @@ Example:
         return $.Deferred().resolve();
       });
 
-    $.when(initData(), dModules, dI18N, dOres, $.ready).fail(showFail).done(function () {
-      if ($navToggle) {
-        $navToggle.attr('title', msg('navtoggle-tooltip'));
-      }
+    $.when(initData(), dModules, dI18N, dOres, $.ready)
+      .then(function () {
+        if ($navToggle) {
+          $navToggle.attr('title', msg('navtoggle-tooltip'));
+        }
 
-      // Create map of month names
-      monthNames = msg('months').split(',');
+        // Create map of month names
+        monthNames = msg('months').split(',');
 
-      buildInterface();
-      readPermalink();
-      updateFeedNow();
-      scrollIntoView($wrapper);
-      bindInterface();
+        buildInterface();
+        readPermalink();
+        updateFeedNow();
+        scrollIntoView($wrapper);
+        bindInterface();
 
-      rAF(function () {
-        $('html').addClass('mw-rtrc-ready');
-      });
-    });
+        rAF(function () {
+          $('html').addClass('mw-rtrc-ready');
+        });
+      })
+      .catch(showFail);
   }
 
   /**
