@@ -1,0 +1,25 @@
+name: CI
+on:
+  - push
+  - pull_request
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+
+  test:
+    name: Test
+    # Has Node.js 14 pre-installed
+    # https://github.com/actions/virtual-environments/blob/ubuntu20/20210302.0/images/linux/Ubuntu2004-README.md
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions/cache@v2
+        with:
+          path: |
+            ~/.npm
+          key: ${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
+
+      - run: npm ci
+
+      - run: npm test
