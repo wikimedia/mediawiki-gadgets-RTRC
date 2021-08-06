@@ -961,25 +961,25 @@ Example:
             '<label class="head">' + message('filter').escaped() + '</label>' +
             '<div class="sub-panel">' +
               '<label>' +
-                '<input type="checkbox" name="hideliu" />' +
+                '<input type="checkbox" name="hideliu">' +
                 ' ' + message('filter-hideliu').escaped() +
               '</label>' +
-              '<br />' +
+              '<br>' +
               '<label>' +
-                '<input type="checkbox" name="hidebots" />' +
+                '<input type="checkbox" name="hidebots">' +
                 ' ' + message('filter-hidebots').escaped() +
               '</label>' +
             '</div>' +
             '<div class="sub-panel">' +
               '<label>' +
-                '<input type="checkbox" name="unpatrolled" />' +
+                '<input type="checkbox" name="unpatrolled">' +
                 ' ' + message('filter-unpatrolled').escaped() +
               '</label>' +
-              '<br />' +
+              '<br>' +
               '<label>' +
                 message('userfilter').escaped() +
                 '<span section="Userfilter" class="helpicon"></span>: ' +
-                '<input type="search" size="16" name="user" />' +
+                '<input type="search" size="16" name="user">' +
               '</label>' +
             '</div>' +
           '</div>' +
@@ -987,12 +987,12 @@ Example:
             '<label class="head">' + message('type').escaped() + '</label>' +
             '<div class="sub-panel">' +
               '<label>' +
-                '<input type="checkbox" name="typeEdit" checked />' +
+                '<input type="checkbox" name="typeEdit" checked>' +
                 ' ' + message('typeEdit').escaped() +
               '</label>' +
-              '<br />' +
+              '<br>' +
               '<label>' +
-                '<input type="checkbox" name="typeNew" checked />' +
+                '<input type="checkbox" name="typeNew" checked>' +
                 ' ' + message('typeNew').escaped() +
               '</label>' +
             '</div>' +
@@ -1000,7 +1000,7 @@ Example:
           '<div class="panel">' +
             '<label  class="head">' +
               mw.message('namespaces').escaped() +
-              ' <br />' +
+              ' <br>' +
               '<select class="mw-rtrc-setting-select" name="namespace">' +
               namespaceOptionsHtml +
               '</select>' +
@@ -1014,42 +1014,42 @@ Example:
             '<div class="sub-panel" style="text-align: right;">' +
               '<label>' +
                 message('time-from').escaped() + ': ' +
-                '<input type="text" size="16" placeholder="YYYYMMDDHHIISS" name="start" />' +
+                '<input type="text" size="16" placeholder="YYYYMMDDHHIISS" name="start">' +
               '</label>' +
-              '<br />' +
+              '<br>' +
               '<label>' +
                 message('time-untill').escaped() + ': ' +
-                '<input type="text" size="16" placeholder="YYYYMMDDHHIISS" name="end" />' +
+                '<input type="text" size="16" placeholder="YYYYMMDDHHIISS" name="end">' +
               '</label>' +
             '</div>' +
           '</div>' +
           '<div class="panel">' +
             '<label class="head">' +
               message('order').escaped() +
-              ' <br />' +
+              ' <br>' +
               '<span section="Order" class="helpicon"></span>' +
             '</label>' +
             '<div class="sub-panel">' +
               '<label>' +
-                '<input type="radio" name="dir" value="newer" />' +
+                '<input type="radio" name="dir" value="newer">' +
                 ' ' + message('asc').escaped() +
               '</label>' +
-              '<br />' +
+              '<br>' +
               '<label>' +
-                '<input type="radio" name="dir" value="older" checked />' +
+                '<input type="radio" name="dir" value="older" checked>' +
                 ' ' + message('desc').escaped() +
               '</label>' +
             '</div>' +
           '</div>' +
           '<div class="panel">' +
             '<label for="mw-rtrc-settings-refresh" class="head">' +
-              message('reload-interval').escaped() + '<br />' +
+              message('reload-interval').escaped() + '<br>' +
               '<span section="Reload_Interval" class="helpicon"></span>' +
             '</label>' +
-            '<input type="number" value="3" min="0" max="99" size="2" id="mw-rtrc-settings-refresh" name="refresh" />' +
+            '<input type="number" value="3" min="0" max="99" size="2" id="mw-rtrc-settings-refresh" name="refresh">' +
           '</div>' +
           '<div class="panel panel-last">' +
-            '<input class="button" type="button" id="RCOptions_submit" value="' + message('apply').escaped() + '" />' +
+            '<input class="button" type="button" id="RCOptions_submit" value="' + message('apply').escaped() + '">' +
           '</div>' +
         '</div>' +
         '<div class="panel-group panel-group-mini">' +
@@ -1077,7 +1077,7 @@ Example:
             '<label class="head">' +
               message('cvn-scores').escaped() +
               '<span section="CVN_Scores" class="helpicon"></span>' +
-              '<input type="checkbox" class="switch" name="cvnDB" />' +
+              '<input type="checkbox" class="switch" name="cvnDB">' +
             '</label>' +
           '</div>' +
           (oresModel ? (
@@ -1085,7 +1085,7 @@ Example:
               '<label class="head">' +
                 message('ores-scores').escaped() +
                 '<span section="ORES_Scores" class="helpicon"></span>' +
-                '<input type="checkbox" class="switch" name="ores" />' +
+                '<input type="checkbox" class="switch" name="ores">' +
               '</label>' +
             '</div>'
           ) : '') +
@@ -1093,32 +1093,32 @@ Example:
             '<label class="head">' +
               message('masspatrol').escaped() +
               '<span section="MassPatrol" class="helpicon"></span>' +
-              '<input type="checkbox" class="switch" name="massPatrol" />' +
+              '<input type="checkbox" class="switch" name="massPatrol">' +
             '</label>' +
           '</div>' +
           '<div class="panel">' +
             '<label class="head">' +
               message('autodiff').escaped() +
               '<span section="AutoDiff" class="helpicon"></span>' +
-              '<input type="checkbox" class="switch" name="autoDiff" />' +
+              '<input type="checkbox" class="switch" name="autoDiff">' +
             '</label>' +
           '</div>' +
           '<div class="panel">' +
             '<label class="head">' +
               message('pause').escaped() +
-              '<input class="switch" type="checkbox" id="rc-options-pause" />' +
+              '<input class="switch" type="checkbox" id="rc-options-pause">' +
             '</label>' +
           '</div>' +
         '</div>' +
       '</fieldset></form>' +
-      '<a name="krRTRC_DiffTop" />' +
+      '<a name="krRTRC_DiffTop"></a>' +
       '<div class="mw-rtrc-diff mw-rtrc-diff-closed" id="krRTRC_DiffFrame"></div>' +
       '<div class="mw-rtrc-body placeholder">' +
         '<div class="mw-rtrc-feed">' +
           '<div class="mw-rtrc-feed-update"></div>' +
           '<div class="mw-rtrc-feed-content"></div>' +
         '</div>' +
-        '<img src="' + ajaxLoaderUrl + '" id="krRTRC_loader" style="display: none;" />' +
+        '<img src="' + ajaxLoaderUrl + '" id="krRTRC_loader" style="display: none;">' +
         '<div class="mw-rtrc-legend">' +
           message('legend').escaped() + ': ' +
           '<div class="mw-rtrc-item mw-rtrc-item-patrolled">' + mw.message('markedaspatrolled').escaped() + '</div>, ' +
