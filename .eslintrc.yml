@@ -1,11 +1,13 @@
 extends: semistandard
 parserOptions:
   ecmaVersion: 5
+  sourceType: script
 env:
   es6: false
   node: false
   browser: true
 rules:
-  no-use-before-define: "error"
   block-scoped-var: "error"
+  no-use-before-define: "error"
+  no-var: "off"
   no-shadow: [ "error", { "hoist": "all" } ]

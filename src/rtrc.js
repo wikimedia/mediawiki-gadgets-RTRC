@@ -688,7 +688,7 @@ Example:
             if (!item || item.error || !item[oresModel] || item[oresModel].error) {
               return;
             }
-            annotationsCache.ores[revid] = item[oresModel].probability['true'];
+            annotationsCache.ores[revid] = item[oresModel].probability.true;
           });
         }
         return annotationsCache.ores;
@@ -947,11 +947,11 @@ Example:
       '<div class="mw-rtrc-head">' +
         message('title').escaped() + ' <small>(' + appVersion + ')</small>' +
         '<div class="mw-rtrc-head-links">' +
-          (!mw.user.isAnon() ? (
-            '<a target="_blank" href="' + mw.util.getUrl('Special:Log', { type: 'patrol', user: mw.user.getName(), subtype: 'patrol' }) + '">' +
+          (!mw.user.isAnon()
+            ? ('<a target="_blank" href="' + mw.util.getUrl('Special:Log', { type: 'patrol', user: mw.user.getName(), subtype: 'patrol' }) + '">' +
               message('mypatrollog').escaped() +
-            '</a>'
-          ) : '') +
+            '</a>')
+            : '') +
           '<a id="mw-rtrc-toggleHelp">' + message('help').escaped() + '</a>' +
         '</div>' +
       '</div>' +
@@ -1080,15 +1080,15 @@ Example:
               '<input type="checkbox" class="switch" name="cvnDB">' +
             '</label>' +
           '</div>' +
-          (oresModel ? (
-            '<div class="panel">' +
+          (oresModel
+            ? ('<div class="panel">' +
               '<label class="head">' +
                 message('ores-scores').escaped() +
                 '<span section="ORES_Scores" class="helpicon"></span>' +
                 '<input type="checkbox" class="switch" name="ores">' +
               '</label>' +
-            '</div>'
-          ) : '') +
+            '</div>')
+            : '') +
           '<div class="panel">' +
             '<label class="head">' +
               message('masspatrol').escaped() +

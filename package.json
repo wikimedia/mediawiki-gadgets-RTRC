@@ -8,7 +8,7 @@
   "homepage": "https://github.com/Krinkle/mw-gadget-rtrc",
   "repository": {
     "type": "git",
-    "url": "git://github.com/Krinkle/mw-gadget-rtrc.git"
+    "url": "https://github.com/Krinkle/mw-gadget-rtrc.git"
   },
   "bugs": "https://github.com/Krinkle/mw-gadget-rtrc/issues",
   "license": "MIT",
@@ -20,13 +20,12 @@
     "test": "eslint ."
   },
   "devDependencies": {
-    "eslint": "^5.4.0",
-    "eslint-config-semistandard": "^12.0.1",
-    "eslint-config-standard": "^11.0.0",
-    "eslint-plugin-import": "^2.14.0",
-    "eslint-plugin-node": "^7.0.1",
-    "eslint-plugin-promise": "^4.0.0",
-    "eslint-plugin-standard": "^3.1.0",
-    "uglify-js": "^3.4.7"
+    "eslint": "^7.32.0",
+    "eslint-config-semistandard": "^16.0.0",
+    "eslint-config-standard": "^16.0.3",
+    "eslint-plugin-import": "^2.24.2",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-promise": "^5.1.0",
+    "eslint-plugin-standard": "^4.1.0"
   }
 }
