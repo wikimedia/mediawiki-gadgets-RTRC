@@ -439,6 +439,11 @@
 	width: 100%;
 }
 
+.mw-rtrc-diff .mw-revslider-container {
+	/* Hide broken "Browse history interactively" link. */
+	display: none;
+}
+
 .mw-rtrc-diff-tools {
 	position: absolute;
 	top: 0;
