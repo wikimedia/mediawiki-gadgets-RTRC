@@ -1142,14 +1142,6 @@ Example:
     // Add helper element for switch checkboxes
     $wrapper.find('input.switch').after('<div class="switched"></div>');
 
-    // All links within the diffframe should open in a new window
-    $wrapper.find('#krRTRC_DiffFrame').on('click', 'table.diff a', function () {
-      var $el = $(this);
-      if ($el.is('[href^="http://"], [href^="https://"], [href^="//"]')) {
-        $el.attr('target', '_blank');
-      }
-    });
-
     $('#content').empty().append($wrapper);
 
     $body = $wrapper.find('.mw-rtrc-body');
@@ -1349,6 +1341,8 @@ Example:
         );
       });
 
+      // Prevent default and prevent further propagation,
+      // so that the patrollink does not (also) open in a new window.
       return false;
     });
 
@@ -1387,10 +1381,19 @@ Example:
       });
 
     // Mark as patrolled when rollbacking
-    // Note: As of MediaWiki r(unknown) rollbacking does already automatically patrol all reverted revisions.
-    // But by doing it anyway it saves a click for the AutoDiff-users
+    // Note: MediaWiki rollbacking already automatically patrols all reverted revisions.
+    // But, by doing it again here saves a click for the AutoDiff-users to move to the
+    // next diff.
     $wrapper.on('click', '.mw-rollback-link a', function () {
       $('.patrollink a').click();
+      // Don't return false, we also let the click happen, which will go
+      // to a new window.
+    });
+
+    // Any links from the wiki rendered in the diff, that don't have a special override
+    // (like patrollink), should open in a new window.
+    $wrapper.find('#krRTRC_DiffFrame').on('click', 'table.diff a[href]', function () {
+      this.target = '_blank';
     });
 
     // Button: Pause
