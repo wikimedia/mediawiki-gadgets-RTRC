@@ -1477,7 +1477,8 @@ Example:
         format: 'json',
         action: 'query',
         list: 'tags',
-        tgprop: 'displayname'
+        tgprop: 'displayname',
+        tglimit: 'max'
       }
     }).then(function (data) {
       var tags = data.query && data.query.tags;
