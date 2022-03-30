@@ -18,8 +18,7 @@ jobs:
         with:
           path: |
             ~/.npm
-          key: ${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
+          key: ${{ runner.os }}-${{ hashFiles('**/package.json') }}
 
-      - run: npm ci
-
+      - run: npm install
       - run: npm test
