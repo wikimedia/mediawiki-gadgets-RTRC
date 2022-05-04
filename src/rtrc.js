@@ -1409,7 +1409,7 @@ Example:
 
   function showUnsupported () {
     $('#content').empty().append(
-      $('<p>').addClass('errorbox').text(
+      $('<p>').addClass('mw-message-box mw-message-box-error').text(
         'This program requires functionality not supported in this browser.'
       )
     );
@@ -1420,7 +1420,7 @@ Example:
    */
   function showFail (errMsg) {
     $('#content').empty().append(
-      $('<p>').addClass('errorbox').text(errMsg || 'An unexpected error occurred.')
+      $('<p>').addClass('mw-message-box mw-message-box-error').text(errMsg || 'An unexpected error occurred.')
     );
   }
 
