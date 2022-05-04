@@ -2,7 +2,7 @@
  * Real-Time Recent Changes
  * https://github.com/Krinkle/mw-gadget-rtrc
  *
- * @copyright 2010-2021 Timo Tijhof
+ * @copyright 2010-2022 Timo Tijhof
  */
 
 // Array#includes polyfill (ES2016/ES7)
@@ -19,7 +19,7 @@ Array.prototype.includes||Object.defineProperty(Array.prototype,"includes",{valu
    */
   // eslint-disable-next-line one-var
   var
-    appVersion = 'v1.4.1',
+    appVersion = 'v1.4.2',
     conf = mw.config.get([
       'skin',
       'wgAction',
@@ -101,14 +101,11 @@ Array.prototype.includes||Object.defineProperty(Array.prototype,"includes",{valu
     // Current settings for the feed
     opt = makeOpt(),
 
-    message,
-    msg,
     rAF = window.requestAnimationFrame || setTimeout,
 
-    currentDiff,
-    currentDiffRcid,
-    $wrapper, $body, $feed,
-    $RCOptionsSubmit;
+    message, msg,
+    currentDiff, currentDiffRcid,
+    $wrapper, $body, $feed, $rcOptionsSubmit;
 
   /**
    * Utility functions
@@ -901,7 +898,7 @@ Example:
         pushFeedContent(obj);
       })
       .then(function () {
-        $RCOptionsSubmit.prop('disabled', false).css('opacity', '1.0');
+        $rcOptionsSubmit.prop('disabled', false).css('opacity', '1.0');
 
         // Schedule next update
         updateFeedTimeout = setTimeout(updateFeed, opt.app.refresh * 1000);
@@ -1160,11 +1157,11 @@ Example:
   // Bind event hanlders in the user interface
   function bindInterface () {
     var api = new mw.Api();
-    $RCOptionsSubmit = $('#RCOptions_submit');
+    $rcOptionsSubmit = $('#RCOptions_submit');
 
     // Apply button
-    $RCOptionsSubmit.on('click', function () {
-      $RCOptionsSubmit.prop('disabled', true).css('opacity', '0.5');
+    $rcOptionsSubmit.on('click', function () {
+      $rcOptionsSubmit.prop('disabled', true).css('opacity', '0.5');
 
       readSettingsForm();
 
