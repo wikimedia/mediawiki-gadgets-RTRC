@@ -2,7 +2,7 @@
  * Real-Time Recent Changes
  * https://github.com/Krinkle/mw-gadget-rtrc
  *
- * @copyright 2010-2022 Timo Tijhof
+ * @copyright 2010 Timo Tijhof
  */
 
 // Array#includes polyfill (ES2016/ES7)
@@ -877,7 +877,7 @@ Example:
           return $.Deferred().resolve();
         }).then(function () {
           return {
-            $feedContent: $feedContent,
+            $feedContent,
             rawHtml: feedContentHTML
           };
         });
