@@ -2,6 +2,11 @@
 
 Notable and user-facing changes to RTRC are documented in this file, in the [Keep a Changelog](http://keepachangelog.com/en/1.0.0/) format.
 
+## v1.4.4
+
+### Fixed
+* init: Restore changelist styles via `mediawiki.interface.helpers.styles` module.
+
 ## v1.4.3
 
 ### Enhancements
