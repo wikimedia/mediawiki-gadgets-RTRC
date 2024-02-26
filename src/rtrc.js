@@ -33,19 +33,22 @@ Array.prototype.includes||Object.defineProperty(Array.prototype,"includes",{valu
     // Can't use mw.util.wikiScript until after #init
     apiUrl = conf.wgScriptPath + '/api.php',
     cvnApiUrl = 'https://cvn.wmflabs.org/api.php',
-    oresApiUrl = 'https://ores.wikimedia.org/scores/' + conf.wgDBname + '/',
-    oresModel = false,
+    oresApiUrl = 'https://ores.wikimedia.org/v3/scores/' + conf.wgDBname,
+    oresModel = null,
     intuitionLoadUrl = 'https://meta.wikimedia.org/w/index.php?title=User:Krinkle/Scripts/Intuition.js&action=raw&ctype=text/javascript',
     docUrl = 'https://meta.wikimedia.org/wiki/User:Krinkle/Tools/Real-Time_Recent_Changes?uselang=' + conf.wgUserLanguage,
     // 32x32px
     ajaxLoaderUrl = 'https://upload.wikimedia.org/wikipedia/commons/d/de/Ajax-loader.gif',
-    annotationsCache = {
-      patrolled: Object.create(null),
-      cvn: Object.create(null),
-      ores: Object.create(null)
+    annotations = {
+      // by RCID
+      patrolled: new Map(),
+      // by username
+      cvn: new Map(),
+      // by revision ID
+      ores: new Map()
     },
-    // See annotationsCacheUp()
-    annotationsCacheSize = 0,
+    // See annotationsCheck()
+    ANNOTATION_CACHE_LIMIT = 1000,
 
     // Info from the wiki - see initData()
     userHasPatrolRight = false,
@@ -636,7 +639,7 @@ Example:
       // Mark skipped and patrolled items as such
       if (skippedRCIDs.includes(rcid)) {
         $el.addClass('mw-rtrc-item-skipped');
-      } else if (rcid in annotationsCache.patrolled) {
+      } else if (annotations.patrolled.has(rcid)) {
         $el.addClass('mw-rtrc-item-patrolled');
       } else if (rcid === currentDiffRcid) {
         $el.addClass('mw-rtrc-item-current');
@@ -659,43 +662,49 @@ Example:
     }
 
     var fetchRevids = revids.filter(function (revid) {
-      return !(revid in annotationsCache.ores);
+      return !annotations.ores.has(revid);
     });
 
     var dAnnotations;
     if (!fetchRevids.length) {
       // No (new) revisions
-      dAnnotations = $.Deferred().resolve(annotationsCache.ores);
+      dAnnotations = $.Deferred().resolve(annotations.ores);
     } else {
       dAnnotations = $.ajax({
         url: oresApiUrl,
         data: {
           models: oresModel,
-          revids: fetchRevids.join('|')
+          // ORES v3 limits batches to 20 revisions.
+          // We don't request multiple batches as this would delay the UI
+          // too much. Fetching the first batch only, works well, because we
+          // have a cache, and we refresh the feed every 5s.
+          //
+          // During each refresh, we will the fetch more scores for any newer
+          // edits on top, and any older edits still in the list.
+          revids: fetchRevids.slice(0, 20).join('|')
         },
         timeout: 10000,
-        dataType: $.support.cors ? 'json' : 'jsonp',
+        dataType: 'json',
         cache: true
       }).then(function (resp) {
-        var len;
-        if (resp) {
-          len = Object.keys ? Object.keys(resp).length : fetchRevids.length;
-          annotationsCacheUp(len);
-          $.each(resp, function (revid, item) {
-            if (!item || item.error || !item[oresModel] || item[oresModel].error) {
-              return;
-            }
-            annotationsCache.ores[revid] = item[oresModel].probability.true;
-          });
+        var scores = resp && resp[conf.wgDBname] && resp[conf.wgDBname].scores;
+        for (var revid in scores) {
+          const item = scores[revid] && scores[revid][oresModel];
+          if (item.error) {
+            mw.log.warn('ORES API', item.error);
+            continue;
+          }
+          annotations.ores.set(revid, item.score.probability.true);
         }
-        return annotationsCache.ores;
+        annotationsCheck();
+        return annotations.ores;
       });
     }
 
-    return dAnnotations.then(function (annotations) {
+    return dAnnotations.then(function (ores) {
       // Loop through all revision ids
       revids.forEach(function (revid) {
-        var score = annotations[revid];
+        var score = ores.get(revid);
         // Only highlight high probability scores
         if (!score || score <= 0.45) {
           return;
@@ -722,37 +731,43 @@ Example:
     $feedContent.filter('.mw-rtrc-item').each(function () {
       var user = $(this).attr('user');
       // Don't query the same user multiple times
-      if (user && users.includes(user) && !(user in annotationsCache.cvn)) {
-        users.push(user);
+      if (user && !users.includes(user)) {
+        const cvnData = annotations.cvn.get(user);
+        if (cvnData) {
+          // Move to end of key list for LRU in annotationsCheck()
+          annotations.cvn.delete(user);
+          annotations.cvn.set(user, cvnData);
+        } else {
+          users.push(user);
+        }
       }
     });
 
     var dAnnotations;
     if (!users.length) {
       // No (new) users
-      dAnnotations = $.Deferred().resolve(annotationsCache.cvn);
+      dAnnotations = $.Deferred().resolve(annotations.cvn);
     } else {
       dAnnotations = $.ajax({
         url: cvnApiUrl,
         data: { users: users.join('|') },
         timeout: 2000,
-        dataType: $.support.cors ? 'json' : 'jsonp',
+        dataType: 'json',
         cache: true
       })
         .then(function (resp) {
           if (resp.users) {
             $.each(resp.users, function (name, user) {
-              annotationsCacheUp();
-              annotationsCache.cvn[name] = user;
+              annotations.cvn.set(name, user);
             });
+            annotationsCheck();
           }
-          return annotationsCache.cvn;
+          return annotations.cvn;
         });
     }
 
-    return dAnnotations.then(function (annotations) {
-      // Loop through all cvn user annotations
-      $.each(annotations, function (name, user) {
+    return dAnnotations.then(function (cvn) {
+      cvn.forEach(function (user, name) {
         var tooltip;
 
         // Only if blacklisted, otherwise don't highlight
@@ -1145,12 +1160,21 @@ Example:
     $feed = $body.find('.mw-rtrc-feed');
   }
 
-  function annotationsCacheUp (increment) {
-    annotationsCacheSize += increment || 1;
-    if (annotationsCacheSize > 1000) {
-      annotationsCache.patrolled = Object.create(null);
-      annotationsCache.ores = Object.create(null);
-      annotationsCache.cvn = Object.create(null);
+  function annotationsCheck () {
+    for (const cache of [
+      annotations.patrolled,
+      annotations.ores,
+      annotations.cvn
+    ]) {
+      // For "patrolled" and "ores", given data per-edit and in chronological
+      // order, we simply store data once and delete old keys (FIFO),
+      // which is naturally equal to LRU, because old data is unused.
+      //
+      // For "cvn", data is per-user and old data may be frequently used.
+      // We implement LRU tracking in applyCvnAnnotations().
+      while (cache.size > ANNOTATION_CACHE_LIMIT) {
+        cache.delete(cache.keys().next().value);
+      }
     }
   }
 
@@ -1326,8 +1350,8 @@ Example:
 
         // Feed refreshes may overlap with patrol actions, which can cause patrolled edits
         // to show up in an "Unpatrolled only" feed. This is make nextDiff() skip those.
-        annotationsCacheUp();
-        annotationsCache.patrolled[currentDiffRcid] = true;
+        annotations.patrolled.set(currentDiffRcid, true);
+        annotationsCheck();
 
         if (opt.app.autoDiff) {
           nextDiff();
@@ -1562,16 +1586,15 @@ Example:
 
     var dOres = $.ajax({
       url: oresApiUrl,
-      dataType: $.support.cors ? 'json' : 'jsonp',
+      dataType: 'json',
       cache: true,
       timeout: 2000
     }).then(function (data) {
-      if (data && data.models) {
-        if (data.models.damaging) {
-          oresModel = 'damaging';
-        } else if (data.models.reverted) {
-          oresModel = 'reverted';
-        }
+      var models = data && data[conf.wgDBname] && data[conf.wgDBname].models;
+      if (models && models.damaging) {
+        oresModel = 'damaging';
+      } else if (models && models.reverted) {
+        oresModel = 'reverted';
       }
     }, function () {
       // ORES has no models for this wiki, continue without
