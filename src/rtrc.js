@@ -33,7 +33,7 @@ Array.prototype.includes||Object.defineProperty(Array.prototype,"includes",{valu
     // Can't use mw.util.wikiScript until after #init
     apiUrl = conf.wgScriptPath + '/api.php',
     cvnApiUrl = 'https://cvn.wmflabs.org/api.php',
-    oresApiUrl = 'https://ores.wikimedia.org/scores/' + conf.wgDBname + '/',
+    oresApiUrl = 'https://ores.wikimedia.org/v3/scores/' + conf.wgDBname + '/',
     oresModel = false,
     intuitionLoadUrl = 'https://meta.wikimedia.org/w/index.php?title=User:Krinkle/Scripts/Intuition.js&action=raw&ctype=text/javascript',
     docUrl = 'https://meta.wikimedia.org/wiki/User:Krinkle/Tools/Real-Time_Recent_Changes?uselang=' + conf.wgUserLanguage,
@@ -671,21 +671,21 @@ Example:
         url: oresApiUrl,
         data: {
           models: oresModel,
-          revids: fetchRevids.join('|')
+          revids: fetchRevids.slice(0, 20).join('|')
         },
-        timeout: 10000,
+        timeout: 20000,
         dataType: $.support.cors ? 'json' : 'jsonp',
         cache: true
       }).then(function (resp) {
         var len;
-        if (resp) {
-          len = Object.keys ? Object.keys(resp).length : fetchRevids.length;
+        if (resp && resp[conf.wgDBname] && resp[conf.wgDBname].scores) {
+          len = Object.keys ? Object.keys(resp[conf.wgDBname].scores).length : fetchRevids.length;
           annotationsCacheUp(len);
-          $.each(resp, function (revid, item) {
+          $.each(resp[conf.wgDBname].scores, function (revid, item) {
             if (!item || item.error || !item[oresModel] || item[oresModel].error) {
               return;
             }
-            annotationsCache.ores[revid] = item[oresModel].probability.true;
+            annotationsCache.ores[revid] = item[oresModel].score.probability.true;
           });
         }
         return annotationsCache.ores;
@@ -1566,10 +1566,10 @@ Example:
       cache: true,
       timeout: 2000
     }).then(function (data) {
-      if (data && data.models) {
-        if (data.models.damaging) {
+      if (data && data[conf.wgDBname].models) {
+        if (data[conf.wgDBname].models.damaging) {
           oresModel = 'damaging';
-        } else if (data.models.reverted) {
+        } else if (data[conf.wgDBname].models.reverted) {
           oresModel = 'reverted';
         }
       }
