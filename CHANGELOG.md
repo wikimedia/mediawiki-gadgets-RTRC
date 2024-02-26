@@ -2,16 +2,15 @@
 
 Notable and user-facing changes to RTRC are documented in this file, in the [Keep a Changelog](http://keepachangelog.com/en/1.0.0/) format.
 
-## v1.4.4
-
-### Fixed
-* init: Restore changelist styles via `mediawiki.interface.helpers.styles` module.
-
-## v1.4.3
+## v1.4.5
 
 ### Enhancements
 * settings: Modernize icons for "Help mode" and make it stand out more.
 * footer: Update changelog link, moved to a CHANGELOG.md file.
+
+### Fixed
+* init: Restore changelist styles via `mediawiki.interface.helpers.styles` module.
+* layout: Add support for Timeless skin. [#84](https://github.com/Krinkle/mw-gadget-rtrc/issues/84) 
 
 ## v1.4.2
 
