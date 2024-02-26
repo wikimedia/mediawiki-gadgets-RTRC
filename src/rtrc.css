@@ -23,6 +23,13 @@
 	display: none;
 }
 
+.mw-rtrc-available .skin-timeless #mw-related-navigation {
+	display: none;
+}
+.mw-rtrc-available .skin-timeless #mw-content {
+	padding: 0;
+}
+
 /* Wrapper */
 
 .mw-rtrc-wrapper {
@@ -285,7 +292,11 @@
 	text-align: center;
 }
 
-.mw-rtrc-settings fieldset {
+.mw-rtrc-settings fieldset,
+/* Avoid unwanted margins in Timeless skin from (as of Feb 2024)
+   `form:not(.oo-ui-layout) fieldset`
+*/
+.skin-timeless form.mw-rtrc-settings fieldset {
 	display: inline-block;
 	background: #fff;
 	border-bottom-left-radius: 11px;
@@ -296,6 +307,12 @@
 	margin: 0;
 	padding: 0;
 	border: 0;
+}
+/* Avoid unwanted margins in Timeless skin from (as of Feb 2024)
+   `form input:not(.mw-widgets-datetime-dateTimeInputWidget-editField):not(.mw-history-compareselectedversions-button)`
+*/
+.skin-timeless form.mw-rtrc-settings input {
+	margin: 0;
 }
 
 .mw-rtrc-setting-select {
