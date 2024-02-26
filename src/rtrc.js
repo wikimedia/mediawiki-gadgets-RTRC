@@ -53,7 +53,7 @@ Array.prototype.includes||Object.defineProperty(Array.prototype,"includes",{valu
     // Info from the wiki - see initData()
     userHasPatrolRight = false,
     rcTags = [],
-    wikiTimeOffset,
+    wikiTimeOffset = 0,
 
     // State
     updateFeedTimeout,
@@ -687,9 +687,9 @@ Example:
         dataType: 'json',
         cache: true
       }).then(function (resp) {
-        var scores = resp && resp[conf.wgDBname] && resp[conf.wgDBname].scores;
+        var scores = resp[conf.wgDBname].scores;
         for (var revid in scores) {
-          const item = scores[revid] && scores[revid][oresModel];
+          const item = scores[revid][oresModel];
           if (item.error) {
             mw.log.warn('ORES API', item.error);
             continue;
@@ -1502,13 +1502,8 @@ Example:
         tgprop: 'displayname',
         tglimit: 'max'
       }
-    }).then(function (data) {
-      var tags = data.query && data.query.tags;
-      if (tags) {
-        rcTags = tags.map(function (tag) {
-          return tag.name;
-        });
-      }
+    }).then(function (resp) {
+      rcTags = resp.query.tags.map((tag) => tag.name);
     }));
 
     promises.push($.ajax({
@@ -1519,8 +1514,8 @@ Example:
         action: 'query',
         meta: 'siteinfo'
       }
-    }).then(function (data) {
-      wikiTimeOffset = (data.query && data.query.general.timeoffset) || 0;
+    }).then(function (resp) {
+      wikiTimeOffset = resp.query.general.timeoffset || 0;
     }));
 
     return $.when.apply(null, promises);
@@ -1589,11 +1584,11 @@ Example:
       dataType: 'json',
       cache: true,
       timeout: 2000
-    }).then(function (data) {
-      var models = data && data[conf.wgDBname] && data[conf.wgDBname].models;
-      if (models && models.damaging) {
+    }).then(function (resp) {
+      var models = resp[conf.wgDBname].models;
+      if (models.damaging) {
         oresModel = 'damaging';
-      } else if (models && models.reverted) {
+      } else if (models.reverted) {
         oresModel = 'reverted';
       }
     }, function () {
