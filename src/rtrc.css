@@ -460,8 +460,10 @@
 	width: 100%;
 }
 
-.mw-rtrc-diff .mw-revslider-container {
-	/* Hide broken "Browse history interactively" link. */
+/* Hide broken "Browse history interactively" link. */
+.mw-rtrc-diff .mw-revslider-container,
+/* Hide broken "Inline" toggle button. */
+.mw-rtrc-diff .mw-diffPage-inlineToggle-container {
 	display: none;
 }
 
