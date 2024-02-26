@@ -1129,7 +1129,7 @@ Example:
           'Real-Time Recent Changes by ' +
           '<a href="//meta.wikimedia.org/wiki/User:Krinkle">Krinkle</a>' +
           ' | <a href="' + docUrl + '">' + message('documentation').escaped() + '</a>' +
-          ' | <a href="https://github.com/Krinkle/mw-gadget-rtrc/releases">' + message('changelog').escaped() + '</a>' +
+          ' | <a href="https://github.com/Krinkle/mw-gadget-rtrc/blob/main/CHANGELOG.md">' + message('changelog').escaped() + '</a>' +
           ' | <a href="https://github.com/Krinkle/mw-gadget-rtrc/issues">' + message('feedback').escaped() + '</a>' +
         '</div>' +
       '</div>' +
