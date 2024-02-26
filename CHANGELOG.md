@@ -2,12 +2,26 @@
 
 Notable and user-facing changes to RTRC are documented in this file, in the [Keep a Changelog](http://keepachangelog.com/en/1.0.0/) format.
 
+## v1.4.3
+
+### Enhancements
+* settings: Modernize icons for "Help mode" and make it stand out more.
+* footer: Update changelog link, moved to a CHANGELOG.md file.
+
+## v1.4.2
+
+### Enhancements
+* settings: Increase tags dropdown from 10 to 50. (SinonJZH)
+
+### Fixed
+* src: Replace class "errorbox". [T300306](https://phabricator.wikimedia.org/T300306).
+
 ## v1.4.1
 
 ### Fixed
-* init: Fix invalid XHTML shortcut for jQuery 3 migration. 0ffca09
-* diff: Hide broken "Browse history interactively" link. https://github.com/Krinkle/mw-gadget-rtrc/issues/98
-* diff: Restore "new window" behaviour for core's tool links. https://github.com/Krinkle/mw-gadget-rtrc/issues/99
+* init: Fix invalid XHTML shortcut for jQuery 3 migration. [0ffca09cc7](https://github.com/Krinkle/mw-gadget-rtrc/commit/0ffca09cc7)
+* diff: Hide broken "Browse history interactively" link. [#98](https://github.com/Krinkle/mw-gadget-rtrc/issues/98)
+* diff: Restore "new window" behaviour for core's tool links. [#99](https://github.com/Krinkle/mw-gadget-rtrc/issues/99)
 
 ## v1.4.0
 
@@ -17,10 +31,10 @@ Notable and user-facing changes to RTRC are documented in this file, in the [Kee
 
 ### Fixed
 
-* init: Load executable `intuition.js` from meta.wikimedia.org instead of Toolforge. https://github.com/Krinkle/mw-gadget-rtrc/commit/59eac8adf3cb0a534f8c0fc5594aa9aabfe162f2
+* init: Load executable `intuition.js` from meta.wikimedia.org instead of Toolforge. [59eac8adf3](https://github.com/Krinkle/mw-gadget-rtrc/commit/59eac8adf3)
 * src: Use native ES5 methods instead of jQuery methods where applicable.
 * init: Avoid use of various deprecated features (e.g. `mediawiki.api.messages`, and `$.fn.hover()`).
-* cvn: Restore caching for CVN API queries (it was caching the last 1 query instead of the last 1000). https://github.com/Krinkle/mw-gadget-rtrc/commit/e7b4549121eafacd06ecc34002cf2e19a27ff4ac
+* cvn: Restore caching for CVN API queries. We now cache the last 1000 queries. [e7b4549121](https://github.com/Krinkle/mw-gadget-rtrc/commit/e7b4549121)
 * feed: Make `updateFeed()` error handling more robust.
 
 ## v1.3.4
