@@ -1547,6 +1547,7 @@ Example:
       'jquery.client',
       'mediawiki.diff.styles',
       // mw-plusminus styles etc.
+      'mediawiki.interface.helpers.styles',
       'mediawiki.special.changeslist',
       'mediawiki.jqueryMsg',
       'mediawiki.Uri',
