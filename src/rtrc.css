@@ -252,11 +252,15 @@
 
 .mw-rtrc-wrapper .helpicon {
 	display: inline-block;
-	margin: 0 0.3em;
+	margin: 0 0.3em 0.1em 0.3em;
 	vertical-align: middle;
 	width: 18px;
 	height: 18px;
-	background: url(https://upload.wikimedia.org/wikipedia/commons/5/51/Question-helpbutton.png) no-repeat;
+	line-height: 18px;
+	background: #edab00;
+	color: #fff;
+	font-weight: bold;
+	text-align: center;
 }
 
 .mw-rtrc-nohelp .helpicon {

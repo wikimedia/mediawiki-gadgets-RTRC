@@ -1371,6 +1371,7 @@ Example:
 
     // Link helpicons
     $('.mw-rtrc-settings .helpicon')
+      .text('?')
       .attr('title', msg('helpicon-tooltip'))
       .on('click', function (e) {
         e.preventDefault();
