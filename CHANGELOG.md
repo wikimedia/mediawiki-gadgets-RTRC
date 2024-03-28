@@ -4,6 +4,12 @@
 
 Notable and user-facing changes to RTRC are documented in this file, in the [Keep a Changelog](http://keepachangelog.com/en/1.0.0/) format.
 
+## v1.4.7
+
+### Fixed
+* Source code moved to <https://gerrit.wikimedia.org/g/mediawiki/gadgets/RTRC/>.
+* Issue tracker moved to <https://phabricator.wikimedia.org/tag/gadget-rtrc/>.
+
 ## v1.4.6
 
 ### Enhancements

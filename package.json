@@ -1,6 +1,6 @@
 {
   "name": "mw-gadget-rtrc",
-  "version": "1.4.6",
+  "version": "1.4.7",
   "description": "MediaWiki gadget to monitor and patrol recent changes in real-time.",
   "keywords": [
     "mw-gadget"
@@ -14,6 +14,7 @@
   },
   "scripts": {
     "test": "eslint .",
+    "changelog": "git log --format='* %s (%aN)' --no-merges --reverse $(git describe --tags --abbrev=0 HEAD)...HEAD | sort | grep -vE '^\\* (build|docs?|tests?):'",
     "fix": "eslint --fix ."
   },
   "devDependencies": {
