@@ -1,3 +1,5 @@
+[← Browse repository](https://gerrit.wikimedia.org/g/mediawiki/gadgets/RTRC/)
+
 # Changelog
 
 Notable and user-facing changes to RTRC are documented in this file, in the [Keep a Changelog](http://keepachangelog.com/en/1.0.0/) format.

@@ -1,6 +1,6 @@
 /**
  * Real-Time Recent Changes
- * https://github.com/Krinkle/mw-gadget-rtrc
+ * https://gerrit.wikimedia.org/g/mediawiki/gadgets/RTRC
  *
  * @copyright 2010 Timo Tijhof
  */
@@ -861,7 +861,7 @@ Example:
             var client = $.client.profile();
             feedContentHTML += '<h3>Downloading recent changes failed</h3>' +
             '<p>Please check the settings above and try again. If you believe this is a bug, please <strong>' +
-            '<a href="https://github.com/Krinkle/mw-gadget-rtrc/issues/new?body=' + encodeURIComponent('\n\n\n----' +
+            '<a href="https://phabricator.wikimedia.org/maniphest/task/edit/form/1/?project=gadget-RTRC&description=' + encodeURIComponent('\n\n\n----' +
             '\npackage: mw-gadget-rtrc ' + appVersion +
             mw.format('\nbrowser: $1 $2 ($3)', client.name, client.version, client.platform)
             ) + '" target="_blank">let me know</a></strong>.';
@@ -1142,10 +1142,10 @@ Example:
       '<div class="mw-rtrc-foot">' +
         '<div class="plainlinks" style="text-align: right;">' +
           'Real-Time Recent Changes by ' +
-          '<a href="//meta.wikimedia.org/wiki/User:Krinkle">Krinkle</a>' +
+          '<a href="https://meta.wikimedia.org/wiki/User:Krinkle">Krinkle</a>' +
           ' | <a href="' + docUrl + '">' + message('documentation').escaped() + '</a>' +
-          ' | <a href="https://github.com/Krinkle/mw-gadget-rtrc/blob/main/CHANGELOG.md">' + message('changelog').escaped() + '</a>' +
-          ' | <a href="https://github.com/Krinkle/mw-gadget-rtrc/issues">' + message('feedback').escaped() + '</a>' +
+          ' | <a href="https://gerrit.wikimedia.org/g/mediawiki/gadgets/RTRC/+/master/CHANGELOG.md">' + message('changelog').escaped() + '</a>' +
+          ' | <a href="https://phabricator.wikimedia.org/tag/gadget-rtrc/">' + message('feedback').escaped() + '</a>' +
         '</div>' +
       '</div>' +
     '</div>'

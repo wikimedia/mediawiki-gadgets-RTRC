@@ -5,12 +5,8 @@
   "keywords": [
     "mw-gadget"
   ],
-  "homepage": "https://github.com/Krinkle/mw-gadget-rtrc",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/Krinkle/mw-gadget-rtrc.git"
-  },
-  "bugs": "https://github.com/Krinkle/mw-gadget-rtrc/issues",
+  "homepage": "https://gerrit.wikimedia.org/g/mediawiki/gadgets/RTRC",
+  "bugs": "https://phabricator.wikimedia.org/tag/gadget-rtrc/",
   "license": "MIT",
   "author": {
     "name": "Timo Tijhof",
