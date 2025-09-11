@@ -937,7 +937,7 @@ Example:
       if (!currentDiff) {
         nextDiff();
       } else {
-        $('.patrollink a').click();
+        $('.patrollink a').first().click();
       }
     }
   }
@@ -1251,7 +1251,7 @@ Example:
               '<span class="tab"><a id="diffClose">' + message('close').escaped() + '</a></span>' +
               '<span class="tab"><a href="' + href + '" target="_blank" id="diffNewWindow">' + message('open-in-wiki').escaped() + '</a></span>' +
               (userHasPatrolRight
-                ? '<span class="tab"><a onclick="(function(){ if($(\'.patrollink a\').length){ $(\'.patrollink a\').click(); } else { $(\'#diffSkip\').click(); } })();">[' + message('mark').escaped() + ']</a></span>'
+                ? '<span class="tab"><a onclick="(function(){ if($(\'.patrollink a\').length){ $(\'.patrollink a\').first().click(); } else { $(\'#diffSkip\').click(); } })();">[' + message('mark').escaped() + ']</a></span>'
                 : ''
               ) +
               '<span class="tab"><a id="diffNext">' + mw.message('next').escaped() + ' »</a></span>' +
@@ -1261,7 +1261,7 @@ Example:
           .removeClass('mw-rtrc-diff-loading');
 
         if (opt.app.massPatrol) {
-          $frame.find('.patrollink a').click();
+          $frame.find('.patrollink a').first().click();
         } else if (!isNewPage) {
           $diff = $frame.find('table.diff');
           if ($diff.length) {
@@ -1282,21 +1282,21 @@ Example:
 
     // Mark as patrolled
     $wrapper.on('click', '.patrollink', function () {
-      var $el = $(this);
-      $el.find('a').text(mw.msg('markaspatrolleddiff') + '...');
+      var $patrollinks = $wrapper.find('.patrollink a');
+      $patrollinks.text(mw.msg('markaspatrolleddiff') + '...');
 
       api.postWithToken('patrol', {
         action: 'patrol',
         rcid: currentDiffRcid
       }).then(function (data) {
         if (!data || data.error) {
-          $el.empty().append(
+          $patrollinks.empty().append(
             $('<span style="color: red;"></span>').text(mw.msg('markedaspatrollederror'))
           );
           mw.log('Patrol error:', data);
           return;
         }
-        $el.empty().append(
+        $patrollinks.empty().append(
           $('<span style="color: green;"></span>').text(mw.msg('markedaspatrolled'))
         );
         $feed.find('.mw-rtrc-item[data-rcid="' + currentDiffRcid + '"]').addClass('mw-rtrc-item-patrolled');
@@ -1310,7 +1310,7 @@ Example:
           nextDiff();
         }
       }).catch(function () {
-        $el.empty().append(
+        $patrollinks.empty().append(
           $('<span style="color: red;"></span>').text(mw.msg('markedaspatrollederror'))
         );
       });
@@ -1360,7 +1360,7 @@ Example:
     // But, by doing it again here saves a click for the AutoDiff-users to move to the
     // next diff.
     $wrapper.on('click', '.mw-rollback-link a', function () {
-      $('.patrollink a').click();
+      $('.patrollink a').first().click();
       // Don't return false, we also let the click happen, which will go
       // to a new window.
     });
