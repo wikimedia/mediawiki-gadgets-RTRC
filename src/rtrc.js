@@ -1291,7 +1291,8 @@ Example:
         dataType: 'html',
         data: {
           action: 'render',
-          uselang: conf.wgUserLanguage
+          uselang: conf.wgUserLanguage,
+          redirect: 'no'
         }
       }).then(function (data) {
         var skipButtonHtml;
