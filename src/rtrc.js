@@ -19,7 +19,7 @@ Array.prototype.includes||Object.defineProperty(Array.prototype,"includes",{valu
    */
   // eslint-disable-next-line one-var
   var
-    appVersion = 'v1.4.7',
+    appVersion = 'v1.4.8',
     conf = mw.config.get([
       'skin',
       'wgAction',
@@ -35,7 +35,7 @@ Array.prototype.includes||Object.defineProperty(Array.prototype,"includes",{valu
     cvnApiUrl = 'https://cvn.wmflabs.org/api.php',
     oresApiUrl = 'https://ores.wikimedia.org/v3/scores/' + conf.wgDBname,
     oresModel = null,
-    intuitionLoadUrl = 'https://meta.wikimedia.org/w/index.php?title=User:Krinkle/Scripts/Intuition.js&action=raw&ctype=text/javascript',
+    intuitionLoadUrl = 'https://www.mediawiki.org/w/load.php?modules=ext.gadget.intuition&lang=en&only=scripts&raw=1',
     docUrl = 'https://meta.wikimedia.org/wiki/User:Krinkle/Tools/Real-Time_Recent_Changes?uselang=' + conf.wgUserLanguage,
     // 32x32px
     ajaxLoaderUrl = 'https://upload.wikimedia.org/wikipedia/commons/d/de/Ajax-loader.gif',

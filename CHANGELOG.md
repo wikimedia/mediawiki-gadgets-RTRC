@@ -4,6 +4,11 @@
 
 Notable and user-facing changes to RTRC are documented in this file, in the [Keep a Changelog](http://keepachangelog.com/en/1.0.0/) format.
 
+## v1.4.8
+
+### Fixed
+* Load intuition.js as mediawiki.org gadget instead of `action=raw` user script. [T419137](https://phabricator.wikimedia.org/T419137)
+
 ## v1.4.7
 
 ### Fixed
