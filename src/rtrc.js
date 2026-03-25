@@ -253,9 +253,8 @@ Example:
       diffLink = '<a class="rcitemlink diff" href="' +
         mw.util.wikiScript() + '?curid=' + rc.pageid + '&diff=' + rc.revid + '&oldid=' + rc.old_revid + '">' + mw.message('diff').escaped() + '</a>';
     } else if (rc.type === 'new') {
-      diffLink = '<a class="rcitemlink newPage" href="' + pageLink + '">' + message('new-short').escaped() + '</a>';
-    } else {
-      diffLink = mw.message('diff').escaped();
+      diffLink = '<a class="rcitemlink diff newPage" href="' +
+        mw.util.getUrl(rc.title, { curid: rc.pageid }) + '">' + message('new-short').escaped() + '</a>';
     }
 
     item += '<div first>' +
@@ -1214,6 +1213,7 @@ Example:
       var title = $item.find('.mw-title').text();
       var href = $(this).attr('href');
       var $frame = $('#krRTRC_DiffFrame');
+      var isNewPage = $(this).hasClass('newPage');
 
       $feed.find('.mw-rtrc-item-current').not($item).removeClass('mw-rtrc-item-current');
 
@@ -1222,16 +1222,17 @@ Example:
 
       $frame
         .addClass('mw-rtrc-diff-loading')
-        // Reset class potentially added by a.newPage or diffClose
-        .removeClass('mw-rtrc-diff-newpage mw-rtrc-diff-closed');
+        // Reset class potentially added by diffClose
+        .removeClass('mw-rtrc-diff-closed')
+        // Add if we clicked a.newPage, or remove any from a previous a.newPage click
+        .toggleClass('mw-rtrc-diff-newpage', isNewPage);
 
       $.ajax({
-        url: mw.util.wikiScript(),
+        url: href,
         dataType: 'html',
         data: {
           action: 'render',
-          diff: currentDiff,
-          diffonly: '1',
+          diffonly: isNewPage ? undefined : '1',
           uselang: conf.wgUserLanguage
         }
       }).then(function (data) {
@@ -1250,7 +1251,7 @@ Example:
               '<span class="tab"><a id="diffClose">' + message('close').escaped() + '</a></span>' +
               '<span class="tab"><a href="' + href + '" target="_blank" id="diffNewWindow">' + message('open-in-wiki').escaped() + '</a></span>' +
               (userHasPatrolRight
-                ? '<span class="tab"><a onclick="(function(){ if($(\'.patrollink a\').length){ $(\'.patrollink a\').click(); } else { $(\'#diffSkip\').click(); } })();">[mark]</a></span>'
+                ? '<span class="tab"><a onclick="(function(){ if($(\'.patrollink a\').length){ $(\'.patrollink a\').click(); } else { $(\'#diffSkip\').click(); } })();">[' + message('mark').escaped() + ']</a></span>'
                 : ''
               ) +
               '<span class="tab"><a id="diffNext">' + mw.message('next').escaped() + ' »</a></span>' +
@@ -1261,7 +1262,7 @@ Example:
 
         if (opt.app.massPatrol) {
           $frame.find('.patrollink a').click();
-        } else {
+        } else if (!isNewPage) {
           $diff = $frame.find('table.diff');
           if ($diff.length) {
             mw.hook('wikipage.diff').fire($diff.eq(0));
@@ -1272,62 +1273,7 @@ Example:
         }
       }).catch(function () {
         $frame
-          .append('Loading diff failed.')
-          .removeClass('mw-rtrc-diff-loading');
-      });
-
-      e.preventDefault();
-    });
-
-    $feed.on('click', 'a.newPage', function (e) {
-      var $item = $(this).closest('.mw-rtrc-item').addClass('mw-rtrc-item-current');
-      var title = $item.find('.mw-title').text();
-      var href = $item.find('.mw-title').attr('href');
-      var $frame = $('#krRTRC_DiffFrame');
-
-      $feed.find('.mw-rtrc-item-current').not($item).removeClass('mw-rtrc-item-current');
-
-      currentDiffRcid = Number($item.data('rcid'));
-
-      $frame
-        .addClass('mw-rtrc-diff-loading mw-rtrc-diff-newpage')
-        .removeClass('mw-rtrc-diff-closed');
-
-      $.ajax({
-        url: href,
-        dataType: 'html',
-        data: {
-          action: 'render',
-          uselang: conf.wgUserLanguage
-        }
-      }).then(function (data) {
-        var skipButtonHtml;
-        if (skippedRCIDs.includes(currentDiffRcid)) {
-          skipButtonHtml = '<span class="tab"><a id="diffUnskip">' + message('unskip').escaped() + '</a></span>';
-        } else {
-          skipButtonHtml = '<span class="tab"><a id="diffSkip">' + message('skip').escaped() + '</a></span>';
-        }
-
-        $frame
-          .html(data)
-          .prepend(
-            '<h3>' + title + '</h3>' +
-            '<div class="mw-rtrc-diff-tools">' +
-              '<span class="tab"><a id="diffClose">' + message('close').escaped() + '</a></span>' +
-              '<span class="tab"><a href="' + href + '" target="_blank" id="diffNewWindow">' + message('open-in-wiki').escaped() + '</a></span>' +
-              '<span class="tab"><a onclick="$(\'.patrollink a\').click()">[' + message('mark').escaped() + ']</a></span>' +
-              '<span class="tab"><a id="diffNext">' + mw.message('next').escaped() + ' »</a></span>' +
-              skipButtonHtml +
-            '</div>'
-          )
-          .removeClass('mw-rtrc-diff-loading');
-
-        if (opt.app.massPatrol) {
-          $frame.find('.patrollink a').click();
-        }
-      }).catch(function () {
-        $frame
-          .append('Loading diff failed.')
+          .text('Loading diff failed.')
           .removeClass('mw-rtrc-diff-loading');
       });
 
