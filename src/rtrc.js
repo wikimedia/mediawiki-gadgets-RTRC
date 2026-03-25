@@ -19,7 +19,7 @@ Array.prototype.includes||Object.defineProperty(Array.prototype,"includes",{valu
    */
   // eslint-disable-next-line one-var
   var
-    appVersion = 'v1.4.8',
+    appVersion = 'v1.4.9',
     conf = mw.config.get([
       'skin',
       'wgAction',

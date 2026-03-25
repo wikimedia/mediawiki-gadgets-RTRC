@@ -4,6 +4,15 @@
 
 Notable and user-facing changes to RTRC are documented in this file, in the [Keep a Changelog](http://keepachangelog.com/en/1.0.0/) format.
 
+## v1.4.9
+
+### Fixed
+
+* Set redirect=no on diff preview requests to action=render (NguoiDungKhongDinhDanh) [T361275](https://phabricator.wikimedia.org/T361275)
+* Fix broken "new" link after page rename by adding `curid` (Timo Tijhof) [T361276](https://phabricator.wikimedia.org/T361276)
+* Remove unused "rcid" from URLs (Timo Tijhof) [T361276](https://phabricator.wikimedia.org/T361276)
+* Fix untranslated "mark" button in diffs (Timo Tijhof) [T361276](https://phabricator.wikimedia.org/T361276)
+
 ## v1.4.8
 
 ### Fixed
