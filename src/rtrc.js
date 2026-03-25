@@ -208,9 +208,6 @@ Array.prototype.includes||Object.defineProperty(Array.prototype,"includes",{valu
     // Get size difference (can be negative, zero or positive)
     var diffsize = rc.newlen - rc.oldlen;
 
-    // Convert undefined/empty-string values from API into booleans
-    var isUnpatrolled = rc.unpatrolled !== undefined;
-
     // typeSymbol, diffLink & itemClass
     var typeSymbol = '&nbsp;';
     var itemClass = [];
@@ -219,7 +216,7 @@ Array.prototype.includes||Object.defineProperty(Array.prototype,"includes",{valu
       typeSymbol += '<span class="newpage">' + mw.message('newpageletter').escaped() + '</span>';
     }
 
-    if ((rc.type === 'edit' || rc.type === 'new') && userHasPatrolRight && isUnpatrolled) {
+    if ((rc.type === 'edit' || rc.type === 'new') && userHasPatrolRight && rc.unpatrolled) {
       typeSymbol += '<span class="unpatrolled">!</span>';
     }
 
@@ -242,13 +239,21 @@ Example:
     var item = buildRcDayHead(timeUtil.newDateFromISO(rc.timestamp));
     item += '<div class="mw-rtrc-item ' + itemClass.join(' ') + '" data-diff="' + rc.revid + '" data-rcid="' + rc.rcid + '" user="' + rc.user + '">';
 
+    var pageLink;
+    if (rc.redirect) {
+      // https://phabricator.wikimedia.org/T361275
+      // https://phabricator.wikimedia.org/T361276
+      pageLink = mw.util.getUrl(rc.title, { redirect: 'no' });
+    } else {
+      pageLink = mw.util.getUrl(rc.title);
+    }
+
     var diffLink;
     if (rc.type === 'edit') {
       diffLink = '<a class="rcitemlink diff" href="' +
-        mw.util.wikiScript() + '?diff=' + rc.revid + '&oldid=' + rc.old_revid + '&rcid=' + rc.rcid +
-        '">' + mw.message('diff').escaped() + '</a>';
+        mw.util.wikiScript() + '?curid=' + rc.pageid + '&diff=' + rc.revid + '&oldid=' + rc.old_revid + '">' + mw.message('diff').escaped() + '</a>';
     } else if (rc.type === 'new') {
-      diffLink = '<a class="rcitemlink newPage">' + message('new-short').escaped() + '</a>';
+      diffLink = '<a class="rcitemlink newPage" href="' + pageLink + '">' + message('new-short').escaped() + '</a>';
     } else {
       diffLink = mw.message('diff').escaped();
     }
@@ -256,7 +261,7 @@ Example:
     item += '<div first>' +
       '(' + diffLink + ') ' + typeSymbol + ' ' +
       timeUtil.getClocktimeFromApi(rc.timestamp) +
-      ' <a class="mw-title" href="' + mw.util.getUrl(rc.title) + '?rcid=' + rc.rcid + '" target="_blank">' + rc.title + '</a>' +
+      ' <a class="mw-title" href="' + pageLink + '" target="_blank">' + rc.title + '</a>' +
       '</div>' +
       '<div user>&nbsp;<small>&middot;&nbsp;' +
       '<a href="' + mw.util.getUrl('User talk:' + rc.user) + '" target="_blank">' + mw.message('talkpagelinktext').escaped() + '</a>' +
@@ -551,13 +556,14 @@ Example:
 
   function getApiRcParams (rc) {
     var rcprop = [
+      'user',
+      'parsedcomment',
       'flags',
       'timestamp',
-      'user',
       'title',
-      'parsedcomment',
+      'ids',
       'sizes',
-      'ids'
+      'redirect'
     ];
     var rcshow = [];
     var rctype = [];
@@ -836,6 +842,7 @@ Example:
       dataType: 'json',
       data: $.extend(getApiRcParams(opt.rc), {
         format: 'json',
+        formatversion: '2',
         action: 'query',
         list: 'recentchanges'
       })
@@ -870,11 +877,11 @@ Example:
           var recentchanges = data.query.recentchanges;
 
           if (recentchanges.length) {
-            $.each(recentchanges, function (i, rc) {
+            for (const rc of recentchanges) {
               feedContentHTML += buildRcItem(rc);
-            });
+            }
           } else {
-            // Evserything is OK - no results
+            // Everything is OK - no results
             feedContentHTML += '<strong><em>' + message('nomatches').escaped() + '</em></strong>';
           }
 
@@ -1291,8 +1298,7 @@ Example:
         dataType: 'html',
         data: {
           action: 'render',
-          uselang: conf.wgUserLanguage,
-          redirect: 'no'
+          uselang: conf.wgUserLanguage
         }
       }).then(function (data) {
         var skipButtonHtml;
