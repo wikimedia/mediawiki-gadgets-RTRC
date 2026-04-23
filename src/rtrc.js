@@ -1,8 +1,12 @@
 /**
  * Real-Time Recent Changes
- * https://gerrit.wikimedia.org/g/mediawiki/gadgets/RTRC
  *
- * @copyright 2010 Timo Tijhof
+ * Documentation: https://meta.wikimedia.org/wiki/RTRC#Install
+ * Source: https://gerrit.wikimedia.org/g/mediawiki/gadgets/RTRC
+ *
+ * Copyright Timo Tijhof
+ *
+ * SPDX-License-Identifier: MIT
  */
 
 // Array#includes polyfill (ES2016/ES7)

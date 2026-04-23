@@ -1,4 +1,4 @@
-Copyright 2010 Timo Tijhof
+Copyright Timo Tijhof, https://gerrit.wikimedia.org/g/mediawiki/gadgets/RTRC
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the
