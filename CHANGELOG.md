@@ -4,6 +4,12 @@
 
 Notable and user-facing changes to RTRC are documented in this file, in the [Keep a Changelog](http://keepachangelog.com/en/1.0.0/) format.
 
+## v1.4.11
+
+### Fixed
+
+* Fix broken CVN/ORES warning icon by adopting standard thumb size (Timo Tijhof)
+
 ## v1.4.10
 
 ### Fixed

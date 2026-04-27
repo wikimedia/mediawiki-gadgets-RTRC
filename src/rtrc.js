@@ -19,7 +19,7 @@
    */
   // eslint-disable-next-line one-var
   var
-    appVersion = 'v1.4.10',
+    appVersion = 'v1.4.11',
     conf = mw.config.get([
       'skin',
       'wgAction',
