@@ -32,7 +32,7 @@
     ]),
     // Can't use mw.util.wikiScript until after #init
     apiUrl = conf.wgScriptPath + '/api.php',
-    cvnApiUrl = 'https://cvn.wmflabs.org/api.php',
+    cvnApiUrl = 'https://cvn.wmcloud.org/api.php',
     oresApiUrl = 'https://ores.wikimedia.org/v3/scores/' + conf.wgDBname,
     oresModel = null,
     intuitionLoadUrl = 'https://www.mediawiki.org/w/load.php?modules=ext.gadget.intuition&lang=en&only=scripts&raw=1',
