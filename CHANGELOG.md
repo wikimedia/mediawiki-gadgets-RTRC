@@ -4,6 +4,13 @@
 
 Notable and user-facing changes to RTRC are documented in this file, in the [Keep a Changelog](http://keepachangelog.com/en/1.0.0/) format.
 
+## v1.4.10
+
+### Fixed
+
+* Fix skipping edits in "AutoDiff" mode (NguoiDungKhongDinhDanh) [T404400](https://phabricator.wikimedia.org/T404400)
+* Update CVN API address from `cvn.wmflabs.org` to https://cvn.wmcloud.org.
+
 ## v1.4.9
 
 ### Fixed
